@@ -1,7 +1,7 @@
 ---
 spec_id: "HELIX-ARCH-000"
-status: "Draft"
-version: "0.1.0"
+status: "Frozen"
+version: "1.0.0"
 owner: "@harsh"
 reviewers: "Architecture Review Board"
 last_updated: "2026-07-05"
@@ -11,7 +11,7 @@ related_rfc: []
 related_requirements: []
 doc_type: "Explanation"
 diataxis_category: "Explanation"
-lifecycle: "Draft"
+lifecycle: "Frozen"
 ---
 
 # HELIX-ARCH-000: Architecture Principles
@@ -21,7 +21,7 @@ This document defines the foundational architectural philosophy of Helix. It est
 ---
 
 ## 1. Executive Summary
-Helix is an event-driven, AI-native Governance Operating System that integrates unstructured community inputs with administrative workflows. Because governance platforms serve public democratic institutions, they demand high consistency, auditability, and long-term evolvability. System architectures that are built ad-hoc or tightly coupled suffer rapid degradation, vendor lock-in, and operational brittleness.
+Helix is an event-driven, AI-native Governance Operating System that integrates unstructured community community inputs with administrative workflows. Because governance platforms serve public democratic institutions, they demand high consistency, auditability, and long-term evolvability. System architectures that are built ad-hoc or tightly coupled suffer rapid degradation, vendor lock-in, and operational brittleness.
 
 This document defines the architectural principles of Helix. It serves as our technical constitution. Every database schema, event contract, microservice interface, deployment layout, and AI agent must justify its existence and structure against these principles.
 
@@ -34,7 +34,7 @@ The architecture of Helix is designed to exhibit ten fundamental qualities:
 * **Secure:** Data validation, encryption, and cryptographic signatures must protect citizen privacy and administrative integrity by design.
 * **Explainable:** Automated logic, triage actions, and RAG contexts must provide clear reasoning traces and grounding evidence.
 * **Modular:** Services have strict context boundaries, communicating via defined, asynchronous contracts.
-* **Cloud-Native:** Platform components must run seamlessly inside standard containers, leveraging elastic resource scaling.
+* **Cloud-Native:** Platform components must run seamlessly inside standard environments, leveraging elastic resource scaling.
 * **Event-Driven:** Workflows and data streams are modeled as asynchronous events, ensuring decoupling and transactional safety.
 * **Human-Centric:** Interfaces prioritize administrative efficiency and ease of use, keeping human operators in control.
 * **Extensible:** The system is open to custom integrations (models, messaging channels) via isolated SDK plugin interfaces.
@@ -59,7 +59,7 @@ $$\text{Security \& Privacy} > \text{Explainability} > \text{Reliability} > \tex
 ## 4. Core Architectural Principles
 
 ### ARCH-P-001: Modular by Default
-* **Statement:** The system shall be composed of loosely coupled, containerized services with strictly defined domain boundaries.
+* **Statement:** The system shall be composed of loosely coupled, independently deployable services with strictly defined domain boundaries.
 * **Rationale:** Monolithic systems degrade under complex operational changes, making localized modifications fragile.
 * **Trade-offs:** Increases network telemetry complexity and operational deployment configurations.
 * **Impact:** Easier scaling, independent component upgrades, and isolated failure domains.
@@ -80,7 +80,7 @@ $$\text{Security \& Privacy} > \text{Explainability} > \text{Reliability} > \tex
 * **Statement:** Application logic layers must remain stateless, delegating persistence and status updates to external registries.
 * **Rationale:** Stateless services allow horizontal scalability and immediate auto-recovery from process failures.
 * **Trade-offs:** Offloads caching requirements and transaction locking to the database tier.
-* **Impact:** Simplified container management and predictable scaling behaviors.
+* **Impact:** Simplified service management and predictable scaling behaviors.
 
 ### ARCH-P-005: Standardized Extension Points (Plugins over Forks)
 * **Statement:** Custom integrations (AI models, SMS channels, databases) must use defined plugin contracts rather than modifications to the core codebase.
@@ -104,7 +104,7 @@ $$\text{Security \& Privacy} > \text{Explainability} > \text{Reliability} > \tex
 * **Statement:** Every service must export structured logs, operational metrics, and distributed trace contexts.
 * **Rationale:** Distributed systems are impossible to debug without transactional trace visualization.
 * **Expected User Impact:** Instant detection of execution failures and clear performance metrics.
-* **Engineering Implication:** Standard logging libraries and OpenTelemetry SDK integrations must be integrated into our base microservice templates.
+* **Engineering Implication:** Standard logging libraries and distributed tracing standard integrations must be integrated into our base microservice templates.
 
 ### ARCH-P-009: Explainability Everywhere
 * **Statement:** AI recommendation pipelines must store and present their grounding evidence alongside the generated payload.
@@ -131,9 +131,9 @@ We prioritize Helix system attributes according to these criteria:
 | **Extensibility** | High | The plugin framework must allow rapid localized integrations without core forks. |
 | **Reliability** | Medium | Low message drop rates in ingestion queues are required, but slight routing delays are acceptable. |
 | **Maintainability** | Medium | Decoupled modular structures make the code manageable for open-source contributors. |
-| **Portability** | Medium | Standardized containerization supports public, private, or hybrid cloud deployments. |
+| **Portability** | Medium | Standardized deployability supports public, private, or hybrid cloud deployments. |
 | **Performance** | Medium | Ingestion latency must remain within human interaction limits (<5s triage, <2s query). |
-| **Recoverability** | Medium | Auto-healing container tasks and transactional event queues minimize data loss. |
+| **Recoverability** | Medium | Auto-healing service tasks and transactional event queues minimize data loss. |
 
 ---
 
@@ -149,7 +149,7 @@ We prioritize Helix system attributes according to these criteria:
 ## 7. Architectural Decision Framework
 Before adopting any technology or choosing a design pattern, developers must evaluate choices against these questions:
 1. **Coupling:** Does this change reduce dependencies between core services?
-2. **Observability:** Can we trace a message through this component using OpenTelemetry?
+2. **Observability:** Can we trace a message through this component using a distributed tracing standard?
 3. **Deployment:** Can this component be deployed on-premise without cloud vendor dependencies?
 4. **Skills:** Can a standard open-source developer understand and modify this component?
 5. **Standardization:** Does this align with the frozen Domain Model (`HELIX-DOMAIN-001`)?
@@ -187,7 +187,7 @@ The following designs are prohibited in Helix:
 * **Business Logic Duplication:** Domain logic must belong to a single microservice context boundary.
 * **Hardcoded Routing Rules:** Regional settings or classification maps must never be hardcoded into service modules.
 * **Silent Failures:** Swallowing exceptions without logging or failing to redirect bad tasks to dead-letter queues is prohibited.
-* **Vendor Lock-in:** Using proprietary cloud services that prevent local, containerized deployment is prohibited.
+* **Vendor Lock-in:** Using proprietary cloud services that prevent local deployment is prohibited.
 * **Skipping ADRs:** Making significant structural changes without proposing an RFC or logging an ADR is prohibited.
 
 ---
