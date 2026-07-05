@@ -81,7 +81,7 @@ flowchart TB
 
     %% Core Container Interactions
     WE -->|Reads / Writes state| ODB
-    WE -->|Propagates facts & checks history| KG
+    WE -->|Propagates facts and checks history| KG
     WE -->|Triggers custom step hooks| PR
     WE -->|Enqueues alerts| NE
 
@@ -377,6 +377,6 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 * [ ] **Constitution Alignment:** Conforms to all Twelve Laws of the Helix Constitution.
 * [ ] **C4 Level 2 Standards:** Identifies distinct container boundaries (Frontend, Edge, Platform, Core, Data, Analytics).
 * [ ] **Diagram Sync:** Mermaid and PlantUML models display identical container definitions and relations.
-* [ ] **UML & Markdown Sync:** Attributes listed in the text match definitions inside the visual schemas.
+* [ ] **UML and Markdown Sync:** Attributes listed in the text match definitions inside the visual schemas.
 * [ ] **No Microservices Internal Detail:** Avoids discussing internal components, code classes, packages, or specific vendor technologies.
 * [ ] **Checklist Compliance:** Ends with this validation gate.

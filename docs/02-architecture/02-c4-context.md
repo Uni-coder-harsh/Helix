@@ -47,7 +47,7 @@ flowchart TB
     EM["Email Gateway (System)"] ::: ext
 
     %% Government & Knowledge Integrations
-    GIS["Gov GIS & Asset Registry (System)"] ::: ext
+    GIS["Gov GIS and Asset Registry (System)"] ::: ext
     OD["Gov Open Data Portal (System)"] ::: ext
     Cen["Census Demographics (System)"] ::: ext
     Wth["Weather API (System)"] ::: ext
@@ -75,21 +75,21 @@ flowchart TB
     HOS -->|Dispatches summary digests to| EM
 
     %% Human Console Interactions
-    Rep -->|Views dashboards & Audits outcomes in| HOS
-    Off -->|Triages, views drafts & signs decisions on| HOS
+    Rep -->|Views dashboards and Audits outcomes in| HOS
+    Off -->|Triages, views drafts and signs decisions on| HOS
     HOS -->|Routes work orders to| Dep
-    Dep -->|Assigns tasks & receives updates from| Fld
-    Fld -->|Pulls task lists & uploads repair photos to| HOS
+    Dep -->|Assigns tasks and receives updates from| Fld
+    Fld -->|Pulls task lists and uploads repair photos to| HOS
     DAd -->|Configures local priority parameters in| HOS
-    PAd -->|Configures deployments & secrets for| HOS
-    Dev -->|Builds custom plugins & extends APIs for| HOS
+    PAd -->|Configures deployments and secrets for| HOS
+    Dev -->|Builds custom plugins and extends APIs for| HOS
 
     %% Core to External Queries
     HOS -->|Queries municipal budget limits| OD
     HOS -->|Validates asset locations| GIS
     HOS -->|Validates voter contexts| Cen
     HOS -->|Retrieves climate status metrics| Wth
-    HOS -->|Verifies site layouts & landscapes| Sat
+    HOS -->|Verifies site layouts and landscapes| Sat
     HOS -->|Retrieves policy documents| Pol
     HOS -->|Triggers device push notifications| Ntf
 
@@ -216,7 +216,7 @@ Helix isolates platform components into three clear trust zones:
 ---
 
 ## 7. Design Rationale
-* **Mermaid & PlantUML Dual Specification:** We maintain both configurations to serve different needs. Mermaid renders directly in our browser-based documentation portal. PlantUML is kept as our version-controlled industry standard to generate PDF specifications, presentation slides, and formal architecture models.
+* **Mermaid and PlantUML Dual Specification:** We maintain both configurations to serve different needs. Mermaid renders directly in our browser-based documentation portal. PlantUML is kept as our version-controlled industry standard to generate PDF specifications, presentation slides, and formal architecture models.
 * **Decoupled Boundary Routing:** Routing issues directly to existing Department Systems prevents duplicate tracking and respects municipal task workflows already in place.
 
 ---
