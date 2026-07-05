@@ -59,9 +59,22 @@ plugins:
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
-  - Vision: vision.md
+  - Product Discovery & Definition:
+      - Overview: 01-product/README.md
+      - Project Charter: 01-product/00-project-charter.md
+      - Vision: 01-product/01-vision.md
+      - Mission: 01-product/02-mission.md
+      - Product Philosophy: 01-product/03-product-philosophy.md
+      - Problem Analysis: 01-product/04-problem-analysis.md
+      - User Personas: 01-product/05-user-personas.md
+      - User Journeys: 01-product/06-user-journeys.md
+      - Functional Requirements: 01-product/07-functional-requirements.md
+      - Non-Functional Requirements: 01-product/08-non-functional-requirements.md
+      - Success Metrics: 01-product/09-success-metrics.md
+      - Product Roadmap: 01-product/10-product-roadmap.md
+      - Project Scope: 01-product/11-project-scope.md
+      - Risk Analysis: 01-product/12-risk-analysis.md
   - Architecture: architecture.md
-  - Product: product.md
   - AI: ai.md
   - Infrastructure: infrastructure.md
   - API: api.md
