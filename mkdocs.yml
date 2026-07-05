@@ -67,16 +67,17 @@ nav:
       - Vision: 01-product/01-vision.md
       - Mission: 01-product/02-mission.md
       - Product Philosophy: 01-product/03-product-philosophy.md
-      - Governance Design Principles: 01-product/04-governance-principles.md
-      - Problem Analysis: 01-product/05-problem-analysis.md
-      - User Personas: 01-product/06-user-personas.md
-      - User Journeys: 01-product/07-user-journeys.md
-      - Functional Requirements: 01-product/08-functional-requirements.md
-      - Non-Functional Requirements: 01-product/09-non-functional-requirements.md
-      - Success Metrics: 01-product/10-success-metrics.md
-      - Product Roadmap: 01-product/11-product-roadmap.md
-      - Project Scope: 01-product/12-project-scope.md
-      - Risk Analysis: 01-product/13-risk-analysis.md
+      - Governance Design Principles: 01-product/04-governance-design-principles.md
+      - Governance Domain Model: 01-product/05-governance-domain-model.md
+      - Problem Analysis: 01-product/06-problem-analysis.md
+      - User Personas: 01-product/07-user-personas.md
+      - User Journeys: 01-product/08-user-journeys.md
+      - Functional Requirements: 01-product/09-functional-requirements.md
+      - Non-Functional Requirements: 01-product/10-non-functional-requirements.md
+      - Success Metrics: 01-product/11-success-metrics.md
+      - Product Roadmap: 01-product/12-product-roadmap.md
+      - Project Scope: 01-product/13-project-scope.md
+      - Risk Analysis: 01-product/14-risk-analysis.md
   - Architecture: architecture.md
   - AI: ai.md
   - Infrastructure: infrastructure.md
