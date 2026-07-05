@@ -19,8 +19,9 @@ This log records every significant action, decision, change, and status update i
 | `LOG-011` | 2026-07-05T18:50:00+05:30 | Phase 1A | Frozen Governance Domain Model (HELIX-DOMAIN-001) | Completed |
 | `LOG-012` | 2026-07-05T19:00:00+05:30 | Phase 2 | Initialized Architecture Track & Drafted Principles (HELIX-ARCH-000) | Completed |
 | `LOG-013` | 2026-07-05T19:15:00+05:30 | Phase 2 | Frozen Architecture Principles (v1.0.0) & Drafted System Context (HELIX-ARCH-001) | Completed |
-| `LOG-014` | 2026-07-05T19:30:00+05:30 | Phase 2 | Refined C4 Level 1 Context Diagram (HELIX-ARCH-002) | Completed |
+| `LOG-014` | 2026-07-05T19:30:00+05:30 | Phase 2 | Frozen C4 Level 1 Context Diagram (HELIX-ARCH-002) | Completed |
 | `LOG-015` | 2026-07-05T19:45:00+05:30 | Phase 2 | Drafted C4 Level 2 Container Diagram (HELIX-ARCH-003) | Completed |
+| `LOG-016` | 2026-07-05T19:55:00+05:30 | Phase 2 | Refined C4 Level 2 Container Diagram (HELIX-ARCH-003) | Completed |
 
 ---
 
@@ -159,17 +160,24 @@ This log records every significant action, decision, change, and status update i
   - Drafted `docs/02-architecture/01-system-context.md` (HELIX-ARCH-001) defining actors, external dependencies, system boundaries, and trust zones.
 - **Issues/Resolutions:** None.
 
-### `LOG-014` (2026-07-05T19:30:00+05:30) - Frozen System Context (v1.0.0) & Refined C4 Level 1 Context Diagram (HELIX-ARCH-002)
+### `LOG-014` (2026-07-05T19:30:00+05:30) - Frozen System Context (v1.0.0) & Frozen C4 Level 1 Context Diagram (HELIX-ARCH-002)
 - **Phase:** Phase 2 (Architecture)
 - **Status:** Completed
 - **Changes:**
-  - Frozen `docs/02-architecture/01-system-context.md` (HELIX-ARCH-001) to v1.0.0 after addressing review feedback (refined Platform Admin roles, added government ERP boundaries, and introduced the GIS/Asset Registry external system).
-  - Refined `docs/02-architecture/02-c4-context.md` (HELIX-ARCH-002) to remove implementation leakages (like protocols, queues, vector segments) and introduce the Department System external system actor. Fixed Mermaid quoting bugs.
+  - Frozen `docs/02-architecture/01-system-context.md` (HELIX-ARCH-001) to v1.0.0.
+  - Frozen `docs/02-architecture/02-c4-context.md` (HELIX-ARCH-002) to v1.0.0 after resolving syntax issues in the Mermaid flowchart (quoted subgraph labels and unidirectional relationships) and softening technology-level terminology.
 - **Issues/Resolutions:** None.
 
 ### `LOG-015` (2026-07-05T19:45:00+05:30) - Drafted C4 Level 2 Container Diagram (HELIX-ARCH-003)
 - **Phase:** Phase 2 (Architecture)
 - **Status:** Completed
 - **Changes:**
-  - Drafted `docs/02-architecture/03-c4-container.md` (HELIX-ARCH-003) illustrating C4 Level 2 containers (Frontend, Edge, Platform, Core, Data stores) with Mermaid and PlantUML representations.
+  - Drafted initial `docs/02-architecture/03-c4-container.md` (HELIX-ARCH-003) container-level specification diagram.
+- **Issues/Resolutions:** None.
+
+### `LOG-016` (2026-07-05T19:55:00+05:30) - Refined C4 Level 2 Container Diagram (HELIX-ARCH-003)
+- **Phase:** Phase 2 (Architecture)
+- **Status:** Completed
+- **Changes:**
+  - Refined `docs/02-architecture/03-c4-container.md` (HELIX-ARCH-003) to fix Mermaid syntax, remove Platform-level logging/monitoring services, extract Analytics into a dedicated processing container section, and annotate Knowledge Graph index separation rules.
 - **Issues/Resolutions:** None.

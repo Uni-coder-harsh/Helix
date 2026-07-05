@@ -1,7 +1,7 @@
 ---
 spec_id: "HELIX-ARCH-003"
 status: "Draft"
-version: "0.1.0"
+version: "0.2.0"
 owner: "@harsh"
 reviewers: "Architecture Review Board"
 last_updated: "2026-07-05"
@@ -32,37 +32,38 @@ flowchart TB
     classDef boundary stroke:#333,stroke-dasharray: 5 5,fill:none;
 
     %% Subgraphs for Logical Boundaries
-    subgraph FrontendBound [Frontend Containers]
-        AP["Admin Portal<br/><i>SPA</i>"] ::: container
-        CP["Citizen Portal<br/><i>SPA</i>"] ::: container
-        MA["Mobile App<br/><i>Mobile Client</i>"] ::: container
+    subgraph FrontendBound ["Frontend Containers"]
+        AP["Admin Portal (SPA)"] ::: container
+        CP["Citizen Portal (SPA)"] ::: container
+        MA["Mobile App (Mobile Client)"] ::: container
     end
 
-    subgraph EdgeBound [Edge Containers]
-        WAC["WhatsApp Connector<br/><i>Service</i>"] ::: container
-        SMC["SMS Connector<br/><i>Service</i>"] ::: container
-        EMC["Email Connector<br/><i>Service</i>"] ::: container
+    subgraph EdgeBound ["Edge Containers"]
+        WAC["WhatsApp Connector (Service)"] ::: container
+        SMC["SMS Connector (Service)"] ::: container
+        EMC["Email Connector (Service)"] ::: container
     end
 
-    subgraph PlatformBound [Platform Containers]
-        GW["API Gateway<br/><i>Service</i>"] ::: container
-        ID["Identity Service<br/><i>Service</i>"] ::: container
-        MON["Monitoring Service<br/><i>Service</i>"] ::: container
-        LOG["Logging Service<br/><i>Service</i>"] ::: container
+    subgraph PlatformBound ["Platform Containers"]
+        GW["API Gateway (Service)"] ::: container
+        ID["Identity Service (Service)"] ::: container
     end
 
-    subgraph CoreBound [Core Containers]
-        WE["Workflow Engine<br/><i>Service</i>"] ::: container
-        AO["AI Orchestrator<br/><i>Service</i>"] ::: container
-        PR["Plugin Runtime<br/><i>Service</i>"] ::: container
-        NE["Notification Engine<br/><i>Service</i>"] ::: container
+    subgraph CoreBound ["Core Containers"]
+        WE["Workflow Engine (Service)"] ::: container
+        AO["AI Orchestrator (Service)"] ::: container
+        PR["Plugin Runtime (Service)"] ::: container
+        NE["Notification Engine (Service)"] ::: container
     end
 
-    subgraph DataBound [Data Store Containers]
-        ODB["Operational DB<br/><i>Relational Database</i>"] ::: db
-        KG["Knowledge Graph<br/><i>Graph/Vector Store</i>"] ::: db
-        OBJ["Object Storage<br/><i>File Store</i>"] ::: db
-        ANL["Analytics Platform<br/><i>Data Warehouse</i>"] ::: db
+    subgraph DataBound ["Data Store Containers"]
+        ODB["Operational DB (Relational Database)"] ::: db
+        KG["Knowledge Graph (Graph Database)"] ::: db
+        OBJ["Object Storage (File Store)"] ::: db
+    end
+
+    subgraph AnalyticsBound ["Analytics Containers"]
+        ANL["Analytics Platform (Processing Engine)"] ::: container
     end
 
     %% Routing connections
@@ -101,6 +102,7 @@ flowchart TB
     style PlatformBound fill:#E9ECEF,stroke:#343A40,stroke-width:2px;
     style CoreBound fill:#FFE8CC,stroke:#FD7E14,stroke-width:2px;
     style DataBound fill:#E3FAF5,stroke:#0CA678,stroke-width:2px;
+    style AnalyticsBound fill:#E8F5E9,stroke:#2B8A3E,stroke-width:2px;
 ```
 
 ---
@@ -134,14 +136,12 @@ System_Boundary(edge, "Edge Containers") {
 System_Boundary(platform, "Platform Services") {
     Container(api_gateway, "API Gateway", "Reverse Proxy / Service", "Single entry point for client channels; enforces routing, authentication, and rate limits.")
     Container(identity_svc, "Identity Service", "OAuth2 / Directory Service", "Authenticates administrators, officers, and engineers; validates role capabilities.")
-    Container(monitoring_svc, "Monitoring Service", "Telemetry Service", "Gathers system performance metrics across containers.")
-    Container(logging_svc, "Logging Service", "Telemetry Service", "Aggregates execution logs and traces.")
 }
 
 System_Boundary(core, "Core Containers") {
     Container(workflow_eng, "Workflow Engine", "Stateful Service", "Manages lifecycle transitions of Issues, Tasks, Workflows, and Decisions.")
     Container(ai_orch, "AI Orchestrator", "Service", "Coordinates classification, policy semantic query retrieval, and drafting recommendations.")
-    Container(plugin_rt, "Plugin Runtime", "Service Sandbox", "Loads and runs isolated regional bindings and model connectors dynamically.")
+    Container(plugin_rt, "Plugin Runtime", "Service Sandbox", "Loads and runs isolated regional bindings dynamically.")
     Container(notification_eng, "Notification Engine", "Service Queue", "Resolves channel routing rules and schedules notifications to citizens and officers.")
 }
 
@@ -149,7 +149,10 @@ System_Boundary(data, "Data Store Containers") {
     ContainerDb(operational_db, "Operational Database", "Relational Database", "Stores persistent states for Issues, Tasks, Accounts, and Decisions.")
     ContainerDb(knowledge_graph, "Knowledge Graph", "Graph/Vector Database", "Maintains constituency mappings, assets, policy documents, and vector search embeddings.")
     Container(object_storage, "Object Storage", "File Storage", "Persists unstructured media uploads (citizen photos, official circular PDFs).")
-    Container(analytics_platform, "Analytics Platform", "Data Warehouse", "Compiles outcomes, timings, and metrics to report historical constituency trends.")
+}
+
+System_Boundary(analytics, "Analytics Containers") {
+    Container(analytics_platform, "Analytics Platform", "Processing Engine", "Compiles outcomes, timings, and metrics to report historical constituency trends.")
 }
 
 Rel(citizen_portal, api_gateway, "Sends queries and reports to")
@@ -194,8 +197,8 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 * **Responsibilities:**
   * Displays queue summaries and prioritized task lists.
   * Captures officer edits on AI recommendation response drafts.
-  * Submits cryptographic transaction signatures for status transitions.
-* **Interfaces:** Outgoing HTTP JSON requests to the API Gateway.
+  * Submits transaction signatures for status transitions.
+* **Interfaces:** Outgoing requests to the API Gateway.
 * **Dependencies:** API Gateway.
 
 #### CON-002: Citizen Portal
@@ -203,7 +206,7 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 * **Responsibilities:**
   * Captures issue text description and geolocation indicators.
   * Displays history status updates.
-* **Interfaces:** Outgoing HTTP JSON requests to the API Gateway.
+* **Interfaces:** Outgoing requests to the API Gateway.
 * **Dependencies:** API Gateway.
 
 #### CON-003: Mobile App
@@ -211,7 +214,7 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 * **Responsibilities:**
   * Exposes task queue lists and location navigation targets.
   * Captures geotagged completion photos and status validations.
-* **Interfaces:** Outgoing HTTP JSON requests to the API Gateway.
+* **Interfaces:** Outgoing requests to the API Gateway.
 * **Dependencies:** API Gateway.
 
 ---
@@ -221,9 +224,9 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 #### CON-004: WhatsApp Connector
 * **Purpose:** Interface bridge for citizen interactions via WhatsApp.
 * **Responsibilities:**
-  * Listens to WhatsApp webhook events, parsing incoming media payloads.
+  * Listens to WhatsApp events, parsing incoming media payloads.
   * Dispatches scheduled alert templates to citizens.
-* **Interfaces:** Ingress HTTP webhooks; egress HTTP JSON requests to the API Gateway.
+* **Interfaces:** Ingress webhooks; egress requests to the API Gateway.
 * **Dependencies:** API Gateway.
 
 #### CON-005: SMS Connector
@@ -231,20 +234,23 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 * **Responsibilities:**
   * Parses simple text reports and forwards payload schemas.
   * Sends text notifications.
-* **Interfaces:** HTTP callback handlers; egress HTTP to the API Gateway.
+* **Interfaces:** Carrier callback handlers; egress HTTP to the API Gateway.
 * **Dependencies:** API Gateway.
 
 #### CON-006: Email Connector
-* **Purpose:** SMTP mail ingestion and digest distribution node.
+* **Purpose:** Mail ingestion and digest distribution node.
 * **Responsibilities:**
   * Parses circular attachments from incoming mail.
   * Distributes digest mail circular summaries to officers.
-* **Interfaces:** SMTP handlers; egress HTTP to the API Gateway.
+* **Interfaces:** Mail handlers; egress HTTP to the API Gateway.
 * **Dependencies:** API Gateway.
 
 ---
 
 ### 3.3. Platform Containers
+
+> [!NOTE]
+> Operational infrastructure tooling (e.g. logging engines, tracing sinks, performance telemetry collection agents) is excluded from the application container schema. These concerns are managed inside `HELIX-ARCH-008: Deployment Architecture`.
 
 #### CON-007: API Gateway
 * **Purpose:** Unified gateway facade and routing proxy.
@@ -252,7 +258,7 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
   * Validates identity headers against the Identity Service.
   * Implements rate-limits and backpressure guards.
   * Routes traffic to core workflow engines and orchestrators.
-* **Interfaces:** Ingress HTTPS endpoint; egress routing paths to internal containers.
+* **Interfaces:** Ingress public endpoints; egress routing paths to internal containers.
 * **Dependencies:** Identity Service, Workflow Engine, AI Orchestrator.
 
 #### CON-008: Identity Service
@@ -263,51 +269,37 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 * **Interfaces:** Core internal RPC lookup.
 * **Dependencies:** None.
 
-#### CON-009: Monitoring Service
-* **Purpose:** Operational metrics collector.
-* **Responsibilities:**
-  * Aggregates CPU, memory, and performance metrics across containers.
-* **Interfaces:** Pull metrics scraping endpoints.
-* **Dependencies:** Core Services.
-
-#### CON-010: Logging Service
-* **Purpose:** Aggregated logging and trace sink.
-* **Responsibilities:**
-  * Ingests trace logs to capture distributed transaction context paths.
-* **Interfaces:** Log capture streams.
-* **Dependencies:** Core Services.
-
 ---
 
 ### 3.4. Core Containers
 
-#### CON-011: Workflow Engine
+#### CON-009: Workflow Engine
 * **Purpose:** Orchestration engine for Issue and Task state paths.
 * **Responsibilities:**
   * Enforces state machine definitions.
   * Records signed approvals to transition issue states.
   * Emits event transaction records.
-* **Interfaces:** Core internal REST/gRPC endpoints.
+* **Interfaces:** Core internal service endpoints.
 * **Dependencies:** Operational Database, Knowledge Graph, Plugin Runtime, Notification Engine.
 
-#### CON-012: AI Orchestrator
+#### CON-010: AI Orchestrator
 * **Purpose:** Coordination logic for recommendation pipelines.
 * **Responsibilities:**
   * Directs incoming messages to classification modules.
   * Fetches grounding facts from the Knowledge Graph.
   * Requests text generation from the Plugin Runtime.
-* **Interfaces:** Core internal REST/gRPC endpoints.
+* **Interfaces:** Core internal service endpoints.
 * **Dependencies:** Knowledge Graph, Plugin Runtime.
 
-#### CON-013: Plugin Runtime
+#### CON-011: Plugin Runtime
 * **Purpose:** Isolated execution sandbox for external plugin tasks.
 * **Responsibilities:**
   * Loads external provider interfaces dynamically.
-  * Executes out-of-process model execution calls.
+  * Executes model execution calls.
 * **Interfaces:** Abstract plugin SDK loop interfaces.
 * **Dependencies:** Object Storage.
 
-#### CON-014: Notification Engine
+#### CON-012: Notification Engine
 * **Purpose:** Delivery scheduler for citizen and officer messages.
 * **Responsibilities:**
   * Resolves user contact channel preferences.
@@ -319,33 +311,42 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 
 ### 3.5. Data Store Containers
 
-#### CON-015: Operational Database
+#### CON-013: Operational Database
 * **Purpose:** Structured storage for operational transactions.
 * **Responsibilities:**
   * Guarantees ACID transactional compliance for Issues and Tasks.
 * **Interfaces:** Database client query protocols.
 * **Dependencies:** None.
 
-#### CON-016: Knowledge Graph
+#### CON-014: Knowledge Graph
 * **Purpose:** Entity topology and policy vector semantic registry.
 * **Responsibilities:**
-  * Stores constituency networks, assets, and policy regulations.
+  * Maintains constituency networks, assets, and policy regulations.
   * Provides vector search indexes.
 * **Interfaces:** Database client query protocols.
 * **Dependencies:** None.
+* **Traceability:**
+  > [!NOTE]
+  > Future versions of the architecture may separate vector semantic indexing from the graph storage container.
 
-#### CON-017: Object Storage
+#### CON-015: Object Storage
 * **Purpose:** Blob file repository.
 * **Responsibilities:**
   * Stores binary circular PDFs and upload verification images.
 * **Interfaces:** Simple storage query endpoints.
 * **Dependencies:** None.
 
-#### CON-018: Analytics Platform
-* **Purpose:** Aggregation warehouse for outcome statistics.
+---
+
+### 3.6. Analytics Containers
+
+#### CON-016: Analytics Platform
+* **Purpose:** Analytical query and report processing engine.
 * **Responsibilities:**
-  * Compiles metrics to calculate historical constituency performance patterns.
-* **Interfaces:** SQL/Query data views.
+  * Extracts metrics from the Operational Database.
+  * Aggregates outcome statistics from the Knowledge Graph.
+  * Renders report queries indicating historical constituency performance patterns.
+* **Interfaces:** Internal query client APIs.
 * **Dependencies:** Operational Database, Knowledge Graph.
 
 ---
@@ -358,7 +359,7 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 ---
 
 ## 5. Architectural Constraints
-* **PII Leakage Boundary:** The API Gateway and Ingestion Connectors must execute PII masking operations before routing text payloads to core containers.
+* **PII Leakage Boundary:** The API Gateway and Ingestion Connectors must execute PII masking operations before routing payloads to core containers.
 * **Permissive Licenses:** All core and platform containers must be constructed utilizing components that are free from copyleft license restrictions.
 * **Isolation of Plugins:** The Plugin Runtime must sandbox third-party plugin executions to prevent memory or process failure cascades into the core engines.
 
@@ -366,7 +367,7 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 
 ## 6. Design Decisions
 * **API Gateway Routing Pattern:** Integrating a single API Gateway protects internal services from direct public traffic, standardizes request sanitization, and centralizes rate-limiting guards.
-* **decoupled Analytics Store:** Separating the Analytics database from the primary Operational database prevents reporting queries from degrading transactional workflow execution performance.
+* **Decoupled Analytics Container:** Separating analytical calculations from primary data repositories protects database performance from reporting query execution peaks.
 
 ---
 
@@ -374,7 +375,7 @@ Rel(analytics_platform, knowledge_graph, "Correlates outcomes from")
 
 * [ ] **Charter Alignment:** Directly matches the core principles defined in `HELIX-SPEC-000`.
 * [ ] **Constitution Alignment:** Conforms to all Twelve Laws of the Helix Constitution.
-* [ ] **C4 Level 2 Standards:** Identifies distinct container boundaries (Frontend, Edge, Platform, Core, Data).
+* [ ] **C4 Level 2 Standards:** Identifies distinct container boundaries (Frontend, Edge, Platform, Core, Data, Analytics).
 * [ ] **Diagram Sync:** Mermaid and PlantUML models display identical container definitions and relations.
 * [ ] **UML & Markdown Sync:** Attributes listed in the text match definitions inside the visual schemas.
 * [ ] **No Microservices Internal Detail:** Avoids discussing internal components, code classes, packages, or specific vendor technologies.

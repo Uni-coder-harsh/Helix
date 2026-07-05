@@ -1,7 +1,7 @@
 ---
 spec_id: "HELIX-ARCH-002"
-status: "Draft"
-version: "0.2.0"
+status: "Frozen"
+version: "1.0.0"
 owner: "@harsh"
 reviewers: "Architecture Review Board"
 last_updated: "2026-07-05"
@@ -11,7 +11,7 @@ related_rfc: []
 related_requirements: []
 doc_type: "Explanation"
 diataxis_category: "Explanation"
-lifecycle: "Draft"
+lifecycle: "Frozen"
 ---
 
 # HELIX-ARCH-002: C4 Level 1 Context Diagram
@@ -57,7 +57,7 @@ flowchart TB
     Dep["Department System (System)"] ::: ext
 
     %% Helix Core System Boundary
-    subgraph HelixBoundary [Helix System Boundary]
+    subgraph HelixBoundary ["Helix System Boundary"]
         HOS["Helix Governance OS"] ::: core
     end
 
@@ -67,19 +67,22 @@ flowchart TB
     Cit -->|Submits circular forms to| EM
 
     %% Channel Intermediaries to Core
-    WA <-->|Forwards inputs / Status alerts| HOS
-    SMS <-->|Forwards text / SMS updates| HOS
-    EM <-->|Mails documents / Digest reports| HOS
+    WA -->|Forwards inputs to| HOS
+    HOS -->|Dispatches notifications to| WA
+    SMS -->|Forwards text to| HOS
+    HOS -->|Dispatches SMS updates to| SMS
+    EM -->|Mails documents to| HOS
+    HOS -->|Dispatches summary digests to| EM
 
     %% Human Console Interactions
-    Rep <-->|Views dashboards & Audits outcomes| HOS
-    Off <-->|Triages, views drafts & signs decisions| HOS
-    HOS <-->|Routes work orders to| Dep
-    Dep <-->|Assigns tasks & receives updates from| Fld
-    Fld <-->|Pulls task lists & uploads repair photos| HOS
-    DAd -->|Configures local priority parameters| HOS
-    PAd -->|Configures deployments & secrets| HOS
-    Dev -->|Builds custom plugins & extends APIs| HOS
+    Rep -->|Views dashboards & Audits outcomes in| HOS
+    Off -->|Triages, views drafts & signs decisions on| HOS
+    HOS -->|Routes work orders to| Dep
+    Dep -->|Assigns tasks & receives updates from| Fld
+    Fld -->|Pulls task lists & uploads repair photos to| HOS
+    DAd -->|Configures local priority parameters in| HOS
+    PAd -->|Configures deployments & secrets for| HOS
+    Dev -->|Builds custom plugins & extends APIs for| HOS
 
     %% Core to External Queries
     HOS -->|Queries municipal budget limits| OD
@@ -98,10 +101,7 @@ flowchart TB
 
 ## 2. C4 Context Diagram (PlantUML)
 
-This version-controlled C4-PlantUML code block serves as our industry-standard documentation source.
-
-> [!NOTE]
-> In production environments, the C4 PlantUML standard library files should be vendored locally to prevent deployment dependencies on remote HTTP resource availability.
+This version-controlled model defines the C4 Context structure:
 
 ```plantuml
 @startuml
@@ -175,27 +175,27 @@ Rel(helix, policy_repo, "Retrieves policy documents from")
 This section outlines the business intent of the context relationships:
 
 ### 3.1. Human Interactions with Helix
-* **Citizen $\rightarrow$ Ingest Intermediaries:** Citizens transmit reports asynchronously via consumer channels. No structural Helix authorization credentials are required at this stage.
-* **Representative $\leftrightarrow$ Helix:** Read-only access to constituency performance metrics and outcomes. Access requires authenticated identity tokens.
+* **Citizen $\rightarrow$ Ingest Intermediaries:** Citizens transmit reports asynchronously via consumer channels. No structural Helix credentials are required at this stage.
+* **Representative $\leftrightarrow$ Helix:** Read-only access to constituency performance metrics and outcomes. Access requires authenticated identity authorization.
 * **Officer $\leftrightarrow$ Helix:** Full read-write triage workstation context. Officers approve AI drafts, sign decisions, and delegate task items.
 * **Field Engineer $\leftrightarrow$ Helix:** Updates field tasks from mobile interfaces. Sends repair verification data (geotagged images, operator notes).
-* **District Administrator $\rightarrow$ Helix:** district admins write policy files, update officer routing directories, and modify local prioritizations via configuration files.
+* **District Administrator $\rightarrow$ Helix:** district admins write policy files, update officer routing directories, and modify local prioritizations via configuration interfaces.
 * **Platform Administrator $\leftrightarrow$ Helix:** Deploys software packages, provisions access keys, sets up environment configurations, and gathers performance telemetry.
-* **Developer $\leftrightarrow$ Helix:** Builds plugin packages, checks API models, and implements external bindings via the Plugin SDK interface boundaries.
+* **Developer $\leftrightarrow$ Helix:** Builds plugin packages, checks API models, and implements external bindings via the abstract extension interface boundaries.
 
 ### 3.2. Helix Core to External Integrations
 * **Helix $\rightarrow$ Government GIS / Asset Registry:** Read-only query to match an issue's geo-coordinates against municipal asset databases. Checks if the target pipe, road, or utility is registered under government domain responsibility.
 * **Helix $\rightarrow$ Policy Circular Repository:** Aggregates gazette records and regulatory texts to ground system recommendations.
 * **Helix $\rightarrow$ Weather & Satellite Systems:** Imports data streams to calculate risk metrics. For example, satellite image scans provide proof of road erosion, while weather alerts flag flood-prone assets.
 * **Helix $\rightarrow$ Census / Demographic Registries:** Validates citizen registration attributes to check if the applicant lives within the administrative boundaries required for a scheme.
-* **Helix $\leftrightarrow$ Department System:** Routes assigned work tasks to the department's existing enterprise systems. The department manages the deployment of its staff and field engineers.
+* **Helix $\leftrightarrow$ Department System:** Routes assigned work tasks to the department's existing workflow systems. The department manages the deployment of its staff and field engineers.
 
 ---
 
 ## 4. Trust Boundary Explanations
 
-Helix isolates platform components into three clear trust tiers:
-* **The Public Ingestion Boundary:** WhatsApp, SMS, and Email systems belong to the Public Zone. Payload verification filters, input size limiters, and PII scanners run at this boundary to clean all incoming strings before they enter internal contexts.
+Helix isolates platform components into three clear trust zones:
+* **The Public Ingestion Boundary:** WhatsApp, SMS, and Email systems belong to the Public Zone. Payload verification filters, input size limiters, and PII scanners clean all incoming strings before they enter internal contexts.
 * **The Administrative Workstation Boundary:** The officer dashboard web consoles communicate across a secure Government LAN/WAN boundary. Sessions require Multi-Factor Authentication (MFA), and all transactions are cryptographically signed.
 * **The Internal Operational Core:** Direct connection routes between services, databases, and message brokers are isolated within a private virtual network. No external IP route may reach these databases directly.
 
