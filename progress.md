@@ -9,6 +9,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-001` | 2026-07-05T16:30:00+05:30 | Phase 0 | Repository Initialization & Core Standards | Completed |
 | `LOG-002` | 2026-07-05T16:45:00+05:30 | Phase 0 | Setup Developer Tooling & Core Directories | Completed |
 | `LOG-003` | 2026-07-05T17:15:00+05:30 | Phase 1A | Drafted Core Project Charter & Initialized Product Discovery | Completed |
+| `LOG-004` | 2026-07-05T17:30:00+05:30 | Phase 1A | Refined Project Charter (v1.0.0-Frozen) via Architecture Review | Completed |
 
 ---
 
@@ -46,4 +47,17 @@ This log records every significant action, decision, change, and status update i
   - Re-structured MkDocs nav tree inside `mkdocs.yml` to support the nested Product Discovery & Definition workflow.
   - Created placeholder templates under `docs/01-product/` for subsequent Phase 1 discovery documents.
   - Cleared obsolete root-level `product.md` and `vision.md` files.
+- **Issues/Resolutions:** None.
+
+### `LOG-004` (2026-07-05T17:30:00+05:30) - Refined Project Charter (v1.0.0-Frozen) via Architecture Review
+- **Phase:** Phase 1A (Product Discovery)
+- **Status:** Completed
+- **Changes:**
+  - Completed architecture review iteration for the main Project Charter (`00-project-charter.md`).
+  - Refined the Project Vision to be concrete and grounded.
+  - Formulated the 12 core laws of the Helix Constitution.
+  - Added explicit system Non-Goals, Terminology glossary, System Constraints, and specific Performance Targets.
+  - Documented Governance Ethics standards and operational Success Principles.
+  - Standardized all document headers with self-describing metadata (status, version, owner, reviewers, doc_type, diataxis_category).
+  - Marked `00-project-charter.md` status as "Frozen" (v1.0.0).
 - **Issues/Resolutions:** None.
