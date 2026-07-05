@@ -1,7 +1,7 @@
 ---
 spec_id: "HELIX-DOMAIN-001"
-status: "Draft"
-version: "0.1.0"
+status: "Frozen"
+version: "1.0.0"
 owner: "@harsh"
 reviewers: "Architecture Review Board"
 last_updated: "2026-07-05"
@@ -11,7 +11,7 @@ related_rfc: []
 related_requirements: []
 doc_type: "Explanation"
 diataxis_category: "Explanation"
-lifecycle: "Draft"
+lifecycle: "Frozen"
 ---
 
 # HELIX-DOMAIN-001: Governance Domain Model
@@ -244,12 +244,12 @@ graph TD
 * **Example:** "Approved repair dispatch signature log."
 
 #### DOM-021: Outcome
-* **Definition:** The measurable real-world result of resolving an issue or deploying a project.
-* **Purpose:** Measures system impact and citizen satisfaction.
+* **Definition:** The measurable real-world impact, citizen satisfaction level, or performance metric recorded for a system entity.
+* **Purpose:** Tracks administrative health indexes, regional progress, and service delivery performance.
 * **Lifecycle:** `Recorded` $\rightarrow$ `Verified`.
-* **Relationships:** Measures `Issue` or `Project` (1:1).
+* **Relationships:** Evaluates an `Issue`, `Project`, `Scheme`, `Administrative Unit`, or `Constituency` (N:1).
 * **Ownership:** Owned by the Constituency.
-* **Example:** "Sanitation response resolved in 12 hours with a citizen rating of 5/5."
+* **Example:** "Constituency-wide water availability score improved by 18%, or local Panchayat cleanliness index verified at 94%."
 
 ---
 
