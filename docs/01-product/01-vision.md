@@ -1,7 +1,7 @@
 ---
 spec_id: "HELIX-SPEC-001"
-status: "Draft"
-version: "0.1.0"
+status: "Frozen"
+version: "1.0.0"
 owner: "@harsh"
 reviewers: "Architecture Review Board"
 last_updated: "2026-07-05"
@@ -11,7 +11,7 @@ related_rfc: []
 related_requirements: []
 doc_type: "Explanation"
 diataxis_category: "Explanation"
-lifecycle: "Draft"
+lifecycle: "Frozen"
 ---
 
 # HELIX-SPEC-001: The Vision for AI-Native Public Governance
@@ -46,7 +46,7 @@ In Helix, artificial intelligence does not act as an autonomous decision-maker, 
 ---
 
 ## 4. Continuous Institutional Memory
-helix changes how public offices retain knowledge:
+Helix changes how public offices retain knowledge:
 * **Knowledge Preservation:** Historically, constituency data disappeared when staff rotated or terms ended. Helix continuously maps citizen interactions, resolution steps, policy documents, and asset registries into a persistent knowledge graph.
 * **Instant Onboarding:** Newly appointed officers or elected representatives instantly inherit years of localized context. They can query the system to understand historical community priorities, previous resolutions, and recurring infrastructure bottlenecks.
 * **Self-Improving Workflows:** Over time, the office's past successes and edits to drafts serve as a local context library, making automated classifications and response drafts more precise and relevant to local needs.
