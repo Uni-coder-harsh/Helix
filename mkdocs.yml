@@ -1,0 +1,75 @@
+site_name: Helix Engineering Portal
+site_description: Internal Engineering and Architecture Portal for Project Helix
+site_author: Helix Project Team
+
+theme:
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.annotate
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+plugins:
+  - search
+
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - Vision: vision.md
+  - Architecture: architecture.md
+  - Product: product.md
+  - AI: ai.md
+  - Infrastructure: infrastructure.md
+  - API: api.md
+  - Plugins: plugins.md
+  - Datasets: datasets.md
+  - Security: security.md
+  - Operations: operations.md
+  - Deployment: deployment.md
+  - Roadmap: roadmap.md
+  - Research: research.md
+  - Contributing: contributing.md
