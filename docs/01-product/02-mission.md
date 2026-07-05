@@ -1,7 +1,7 @@
 ---
 spec_id: "HELIX-SPEC-002"
-status: "Draft"
-version: "0.1.0"
+status: "Frozen"
+version: "1.0.0"
 owner: "@harsh"
 reviewers: "Architecture Review Board"
 last_updated: "2026-07-05"
@@ -11,7 +11,7 @@ related_rfc: []
 related_requirements: []
 doc_type: "Explanation"
 diataxis_category: "Explanation"
-lifecycle: "Draft"
+lifecycle: "Frozen"
 ---
 
 # HELIX-SPEC-002: The Mission of Helix
@@ -109,7 +109,7 @@ graph TD
 
 ### 9.2. Phase B: Constituency Pilot
 * **Focus:** Integration with official constituency communication channels, loading real policy documents, and training operators.
-* **Target:** Active deployment in one partner MP or District office to handle live community issues under strict human review.
+* **Target:** Active deployment in one constituency or local administrative office to handle live community issues under strict human review.
 
 ### 9.3. Phase C: Federated Enterprise Platform
 * **Focus:** Introduce multi-tenant scaling, federated synchronization between offices, advanced security hardening, and on-premise offline hosting.
