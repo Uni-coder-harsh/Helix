@@ -78,7 +78,17 @@ nav:
       - Product Roadmap: 01-product/12-product-roadmap.md
       - Project Scope: 01-product/13-project-scope.md
       - Risk Analysis: 01-product/14-risk-analysis.md
-  - Architecture: architecture.md
+  - Architecture:
+      - Overview: 02-architecture/README.md
+      - Architecture Principles: 02-architecture/00-architecture-principles.md
+      - System Context: 02-architecture/01-system-context.md
+      - C4 Context Diagram: 02-architecture/02-c4-context.md
+      - C4 Container Diagram: 02-architecture/03-c4-container.md
+      - Component Architecture: 02-architecture/04-component-architecture.md
+      - Event Driven Architecture: 02-architecture/05-event-architecture.md
+      - Microservice Boundaries: 02-architecture/06-microservice-boundaries.md
+      - Plugin Architecture: 02-architecture/07-plugin-architecture.md
+      - Deployment Architecture: 02-architecture/08-deployment-architecture.md
   - AI: ai.md
   - Infrastructure: infrastructure.md
   - API: api.md

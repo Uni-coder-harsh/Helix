@@ -17,6 +17,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-009` | 2026-07-05T18:30:00+05:30 | Phase 1A | Frozen Philosophy (v1.0.0) & Drafted Governance Design Principles (HELIX-SPEC-004) | Completed |
 | `LOG-010` | 2026-07-05T18:45:00+05:30 | Phase 1A | Frozen Principles (v1.0.0) & Drafted Governance Domain Model (HELIX-DOMAIN-001) | Completed |
 | `LOG-011` | 2026-07-05T18:50:00+05:30 | Phase 1A | Frozen Governance Domain Model (HELIX-DOMAIN-001) | Completed |
+| `LOG-012` | 2026-07-05T19:00:00+05:30 | Phase 2 | Initialized Architecture Track & Drafted Principles (HELIX-ARCH-000) | Completed |
 
 ---
 
@@ -134,4 +135,15 @@ This log records every significant action, decision, change, and status update i
 - **Status:** Completed
 - **Changes:**
   - Frozen `docs/01-product/05-governance-domain-model.md` (HELIX-DOMAIN-001) to v1.0.0 after addressing review feedback (generalized the `Outcome` entity to measure Scheme, Unit, and Constituency impact).
+- **Issues/Resolutions:** None.
+
+### `LOG-012` (2026-07-05T19:00:00+05:30) - Initialized Architecture Track & Drafted Principles (HELIX-ARCH-000)
+- **Phase:** Phase 2 (Architecture)
+- **Status:** Completed
+- **Changes:**
+  - Initialized the Architecture track nested structure under `docs/02-architecture/`.
+  - Drafted `docs/02-architecture/00-architecture-principles.md` (HELIX-ARCH-000) detailing architecture drivers, core principles (ARCH-P-001 to ARCH-P-010), constraints, quality attributes, and ADR review governance model.
+  - Setup placeholders for all C4 context, event-driven architecture, and plugin sdk specifications (`01` through `08`).
+  - Adjusted `mkdocs.yml` navigation structure to support nested architecture files.
+  - Cleared obsolete root-level `docs/architecture.md`.
 - **Issues/Resolutions:** None.
