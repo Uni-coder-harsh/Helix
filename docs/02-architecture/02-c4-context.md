@@ -33,32 +33,32 @@ flowchart TB
     classDef boundary stroke:#333,stroke-dasharray: 5 5,fill:none;
 
     %% Actors
-    Cit["Citizen (Person)"] ::: actor
-    Rep["Representative (Person)"] ::: actor
-    Off["Officer (Person)"] ::: actor
-    Fld["Field Engineer (Person)"] ::: actor
-    DAd["District Administrator (Person)"] ::: actor
-    PAd["Platform Administrator (Person)"] ::: actor
-    Dev["Developer (Person)"] ::: actor
+    Cit["Citizen (Person)"]
+    Rep["Representative (Person)"]
+    Off["Officer (Person)"]
+    Fld["Field Engineer (Person)"]
+    DAd["District Administrator (Person)"]
+    PAd["Platform Administrator (Person)"]
+    Dev["Developer (Person)"]
 
     %% Ingestion/Notification Intermediaries
-    WA["WhatsApp API (System)"] ::: ext
-    SMS["SMS Gateway (System)"] ::: ext
-    EM["Email Gateway (System)"] ::: ext
+    WA["WhatsApp API (System)"]
+    SMS["SMS Gateway (System)"]
+    EM["Email Gateway (System)"]
 
     %% Government & Knowledge Integrations
-    GIS["Gov GIS and Asset Registry (System)"] ::: ext
-    OD["Gov Open Data Portal (System)"] ::: ext
-    Cen["Census Demographics (System)"] ::: ext
-    Wth["Weather API (System)"] ::: ext
-    Sat["Satellite Imagery (System)"] ::: ext
-    Pol["Policy Circular Repo (System)"] ::: ext
-    Ntf["Push Notification Provider (System)"] ::: ext
-    Dep["Department System (System)"] ::: ext
+    GIS["Gov GIS and Asset Registry (System)"]
+    OD["Gov Open Data Portal (System)"]
+    Cen["Census Demographics (System)"]
+    Wth["Weather API (System)"]
+    Sat["Satellite Imagery (System)"]
+    Pol["Policy Circular Repo (System)"]
+    Ntf["Push Notification Provider (System)"]
+    Dep["Department System (System)"]
 
     %% Helix Core System Boundary
     subgraph HelixBoundary ["Helix System Boundary"]
-        HOS["Helix Governance OS"] ::: core
+        HOS["Helix Governance OS"]
     end
 
     %% Citizen Interactions
@@ -92,6 +92,11 @@ flowchart TB
     HOS -->|Verifies site layouts and landscapes| Sat
     HOS -->|Retrieves policy documents| Pol
     HOS -->|Triggers device push notifications| Ntf
+
+    %% Apply Style Classes
+    class Cit,Rep,Off,Fld,DAd,PAd,Dev actor;
+    class WA,SMS,EM,GIS,OD,Cen,Wth,Sat,Pol,Ntf,Dep ext;
+    class HOS core;
 
     %% Apply graph styles
     style HelixBoundary fill:#FFF5F0,stroke:#D44000,stroke-width:2px;

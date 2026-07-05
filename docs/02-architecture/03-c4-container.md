@@ -33,37 +33,37 @@ flowchart TB
 
     %% Subgraphs for Logical Boundaries
     subgraph FrontendBound ["Frontend Containers"]
-        AP["Admin Portal (SPA)"] ::: container
-        CP["Citizen Portal (SPA)"] ::: container
-        MA["Mobile App (Mobile Client)"] ::: container
+        AP["Admin Portal (SPA)"]
+        CP["Citizen Portal (SPA)"]
+        MA["Mobile App (Mobile Client)"]
     end
 
     subgraph EdgeBound ["Edge Containers"]
-        WAC["WhatsApp Connector (Service)"] ::: container
-        SMC["SMS Connector (Service)"] ::: container
-        EMC["Email Connector (Service)"] ::: container
+        WAC["WhatsApp Connector (Service)"]
+        SMC["SMS Connector (Service)"]
+        EMC["Email Connector (Service)"]
     end
 
     subgraph PlatformBound ["Platform Containers"]
-        GW["API Gateway (Service)"] ::: container
-        ID["Identity Service (Service)"] ::: container
+        GW["API Gateway (Service)"]
+        ID["Identity Service (Service)"]
     end
 
     subgraph CoreBound ["Core Containers"]
-        WE["Workflow Engine (Service)"] ::: container
-        AO["AI Orchestrator (Service)"] ::: container
-        PR["Plugin Runtime (Service)"] ::: container
-        NE["Notification Engine (Service)"] ::: container
+        WE["Workflow Engine (Service)"]
+        AO["AI Orchestrator (Service)"]
+        PR["Plugin Runtime (Service)"]
+        NE["Notification Engine (Service)"]
     end
 
     subgraph DataBound ["Data Store Containers"]
-        ODB["Operational DB (Relational Database)"] ::: db
-        KG["Knowledge Graph (Graph Database)"] ::: db
-        OBJ["Object Storage (File Store)"] ::: db
+        ODB["Operational DB (Relational Database)"]
+        KG["Knowledge Graph (Graph Database)"]
+        OBJ["Object Storage (File Store)"]
     end
 
     subgraph AnalyticsBound ["Analytics Containers"]
-        ANL["Analytics Platform (Processing Engine)"] ::: container
+        ANL["Analytics Platform (Processing Engine)"]
     end
 
     %% Routing connections
@@ -95,6 +95,10 @@ flowchart TB
     PR -->|Saves and loads images / documents| OBJ
     ANL -->|Reads metrics| ODB
     ANL -->|Aggregates performance outcomes| KG
+
+    %% Apply Style Classes
+    class AP,CP,MA,WAC,SMC,EMC,GW,ID,WE,AO,PR,NE,ANL container;
+    class ODB,KG,OBJ db;
 
     %% Apply graph styles
     style FrontendBound fill:#F8F9FA,stroke:#6C757D,stroke-width:2px;
