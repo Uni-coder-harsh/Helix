@@ -59,6 +59,8 @@ plugins:
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
+  - Culture:
+      - Constitution: culture/00-helix-constitution.md
   - Product Discovery & Definition:
       - Overview: 01-product/README.md
       - Project Charter: 01-product/00-project-charter.md

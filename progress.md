@@ -10,6 +10,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-002` | 2026-07-05T16:45:00+05:30 | Phase 0 | Setup Developer Tooling & Core Directories | Completed |
 | `LOG-003` | 2026-07-05T17:15:00+05:30 | Phase 1A | Drafted Core Project Charter & Initialized Product Discovery | Completed |
 | `LOG-004` | 2026-07-05T17:30:00+05:30 | Phase 1A | Refined Project Charter (v1.0.0-Frozen) via Architecture Review | Completed |
+| `LOG-005` | 2026-07-05T17:45:00+05:30 | Phase 1A | Finalized Project Charter & Drafted Helix Constitution | Completed |
 
 ---
 
@@ -60,4 +61,17 @@ This log records every significant action, decision, change, and status update i
   - Documented Governance Ethics standards and operational Success Principles.
   - Standardized all document headers with self-describing metadata (status, version, owner, reviewers, doc_type, diataxis_category).
   - Marked `00-project-charter.md` status as "Frozen" (v1.0.0).
+- **Issues/Resolutions:** None.
+
+### `LOG-005` (2026-07-05T17:45:00+05:30) - Finalized Project Charter & Drafted Helix Constitution
+- **Phase:** Phase 1A (Product Discovery)
+- **Status:** Completed
+- **Changes:**
+  - Moved "The Twelve Laws of Helix" out of the Project Charter into a dedicated document `docs/culture/00-helix-constitution.md`.
+  - Linked the new Constitution tab in `mkdocs.yml`.
+  - Refined HELIX-SPEC-000 (`docs/01-product/00-project-charter.md`) to point to the external constitution.
+  - Softened Infrastructure-as-Code (IaC) constraints for local development/prototyping scopes.
+  - Updated AI Reasoning specifications to be model-independent and focused on verifiability and grounding.
+  - Added new **Architectural Characteristics** prioritization matrix and **Risk Philosophy** (Correctness > Availability > Convenience).
+  - Standardized the self-describing metadata headers across all documents, utilizing the `spec_id` and document `lifecycle` tags.
 - **Issues/Resolutions:** None.
