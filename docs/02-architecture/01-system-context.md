@@ -1,7 +1,7 @@
 ---
 spec_id: "HELIX-ARCH-001"
-status: "Draft"
-version: "0.1.0"
+status: "Frozen"
+version: "1.0.0"
 owner: "@harsh"
 reviewers: "Architecture Review Board"
 last_updated: "2026-07-05"
@@ -11,7 +11,7 @@ related_rfc: []
 related_requirements: []
 doc_type: "Explanation"
 diataxis_category: "Explanation"
-lifecycle: "Draft"
+lifecycle: "Frozen"
 ---
 
 # HELIX-ARCH-001: System Context
@@ -73,7 +73,7 @@ graph TD
 * **Interaction with Helix:** Modifies system configuration files and uploads updated circulars into the policy document store.
 
 ### 3.6. Platform Administrator (DOM-002) - Operations Actor
-* **Responsibilities:** Monitors system telemetry, provisions and de-provisions access tokens, and manages plugin registrations.
+* **Responsibilities:** Manages platform configuration, deployments, secrets, monitoring and plugin lifecycle.
 * **Goals:** System uptime, security compliance, and clean integration changes.
 * **Interaction with Helix:** Manages deployments, registers plugin DLLs/classes, and monitors logging metrics.
 
@@ -93,6 +93,7 @@ Helix communicates with several external systems to ingest messages, fetch metad
 | **SMS Gateway** | Backup channel for text ingestion and notification updates. | Bidirectional | Untrusted |
 | **Email Gateway** | Ingestion channel for complex documents; dispatches officer report digests. | Bidirectional | Untrusted |
 | **Government Open Data** | Fetches public department metrics, budget records, and project lists. | Read-Only | Semi-Trusted |
+| **Government GIS / Asset Registry** | Existing government asset database (roads, schools, hospitals, water pipelines, etc.) | Read-Only | Semi-Trusted |
 | **Census/Demographics** | Resolves address coordinates or verifies eligibility data. | Read-Only | Semi-Trusted |
 | **GIS/Mapping Service** | Resolves geospatial coordinates (latitude/longitude) to address boundaries. | Bidirectional | Semi-Trusted |
 | **Weather API** | Fetches climate status records to evaluate and rank issue priority levels. | Read-Only | Untrusted |
@@ -121,6 +122,7 @@ Helix explicitly excludes the following concerns from its system boundary:
 * **Payment/Financial systems:** Actual budget distributions or accounting ledgers (Helix only models proposed budgets).
 * **Government Identity Providers (IdP):** Citizen national IDs, administrative Active Directory instances (Helix delegates to external OAuth/SAML tokens).
 * **Local Broker/Database Hosts:** The physical hardware hosting the databases or event buses (Helix only owns the application connection client configurations).
+* **Existing Government ERPs:** Existing corporate software platforms and financial/human resources records databases. Helix integrates with these systems but never replaces them.
 
 ---
 
