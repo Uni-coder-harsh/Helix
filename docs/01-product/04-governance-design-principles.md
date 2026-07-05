@@ -1,7 +1,7 @@
 ---
 spec_id: "HELIX-SPEC-004"
-status: "Draft"
-version: "0.1.0"
+status: "Frozen"
+version: "1.0.0"
 owner: "@harsh"
 reviewers: "Architecture Review Board"
 last_updated: "2026-07-05"
@@ -11,7 +11,7 @@ related_rfc: []
 related_requirements: []
 doc_type: "Explanation"
 diataxis_category: "Explanation"
-lifecycle: "Draft"
+lifecycle: "Frozen"
 ---
 
 # HELIX-SPEC-004: Governance Design Principles
@@ -51,7 +51,7 @@ Governance Design Principles bridge the gap between abstract user values and eng
 * **Statement:** User interfaces shall hide technical metadata, configuration parameters, and detailed audit trails behind clean disclosure prompts, displaying only the critical task variables initially.
 * **Rationale:** Officers are constantly context switching. Presenting too much information at once increases cognitive overhead, causing triaging delays.
 * **Expected User Impact:** Focus-optimized administrative workspaces where critical actions are prominent and telemetry is accessible on demand.
-* **Engineering Implication:** Frontends must restrict initial payload calls to summary models, lazily retrieving detailed parameters (e.g. system logs, confidence traces) via discrete API endpoints upon request.
+* **Engineering Implication:** User interfaces shall present basic transaction summaries initially, lazily retrieving granular metadata and audit parameters only upon active operator request.
 * **Related Helix Laws:** Law 8 (Evidence before intelligence).
 * **Related Specifications:** HELIX-SPEC-003 (Progressive Disclosure).
 
@@ -81,7 +81,7 @@ Governance Design Principles bridge the gap between abstract user values and eng
 * **Statement:** Helix AI engines shall draft recommendations only when supporting facts are found in the verified policy repository.
 * **Rationale:** Hallucinated answers or speculative interpretations of policy documents damage systemic trust. It is always better to report a lack of information than to present a guess.
 * **Expected User Impact:** Operators receive only grounded, audit-ready recommendations, eliminating policy compliance errors.
-* **Engineering Implication:** Ingest and RAG pipelines must execute strict similarity threshold checks on retrieved policy snippets, triggering a fallback empty draft if threshold metrics are not met.
+* **Engineering Implication:** The recommendation services must perform similarity threshold verification checks on retrieved policy fragments, falling back to a clean manual workspace if validation criteria are not met.
 * **Related Helix Laws:** Law 8 (Evidence before intelligence).
 * **Related Specifications:** HELIX-SPEC-000 (Evidence-Based Outputs), HELIX-SPEC-003 (AI Experience).
 
@@ -101,7 +101,7 @@ Governance Design Principles bridge the gap between abstract user values and eng
 * **Statement:** User interfaces must support screen readers, feature clear color contrast, allow keyboard-only navigation, and accept voice interfaces.
 * **Rationale:** Civic software must serve all citizens, regardless of visual, cognitive, or physical abilities.
 * **Expected User Impact:** Complete equitability of access for both citizens and administrators.
-* **Engineering Implication:** Automated CI/CD pipelines must run lint checks for ARIA attributes, semantic HTML elements, and color metrics on all frontend modules.
+* **Engineering Implication:** The build and test pipeline must validate user interfaces against accessibility standards and metadata requirements.
 * **Related Helix Laws:** Law 9 (Accessibility is mandatory).
 * **Related Specifications:** HELIX-SPEC-003 (Accessibility by Default).
 
@@ -111,7 +111,7 @@ Governance Design Principles bridge the gap between abstract user values and eng
 * **Statement:** Ingestion and classification layers must parse regional dialects, phonetic script mixes (e.g., Hinglish), and transliterated roman formats.
 * **Rationale:** Citizens communicate using conversational colloquial formats, not standardized administrative dictionary languages.
 * **Expected User Impact:** Language variations are understood instantly, removing translation barriers.
-* **Engineering Implication:** The NLP pipelines must use multilingual encoders trained on regional colloquial text datasets before triaging.
+* **Engineering Implication:** The triaging parser must utilize processing layers capable of resolving phonetic transliterations and local scripts.
 * **Related Helix Laws:** Law 1, Law 5 (Configuration over customization).
 * **Related Specifications:** HELIX-SPEC-001 (Multilingual Ingestion), HELIX-SPEC-003 (Local Context).
 
@@ -121,7 +121,7 @@ Governance Design Principles bridge the gap between abstract user values and eng
 * **Statement:** Issue logs, resolutions, policy links, and asset assignments must be stored in a unified knowledge graph.
 * **Rationale:** constituency context is historically lost when personnel shift. Preserving historical context maps ensures ongoing public administration consistency.
 * **Expected User Impact:** Instant context search of historic community patterns, providing seamless onboarding.
-* **Engineering Implication:** Data writes to transactional databases must trigger asynchronous events that update nodes and relationships in the knowledge store.
+* **Engineering Implication:** Transactional changes must propagate updates to the persistent constituency registry asynchronously.
 * **Related Helix Laws:** Law 4 (Strengthen institutional memory).
 * **Related Specifications:** HELIX-SPEC-001 (Institutional Memory), HELIX-SPEC-003 (Trust).
 
@@ -131,7 +131,7 @@ Governance Design Principles bridge the gap between abstract user values and eng
 * **Statement:** The system shall present all interactions, issues, and resolutions associated with a citizen in a single, chronological history timeline view.
 * **Rationale:** Administrators need complete context to resolve current issues effectively, avoiding fragmented investigations of duplicate submissions.
 * **Expected User Impact:** Immediate visibility into citizen grievance history, preventing duplicate triages.
-* **Engineering Implication:** The user management schema must resolve issues by contact key (e.g. phone number, email) to expose history logs in API calls.
+* **Engineering Implication:** The system must resolve and index issues using standard identifier keys to aggregate historic citizen timelines.
 * **Related Helix Laws:** Law 7 (No duplicated truth).
 * **Related Specifications:** HELIX-SPEC-003 (Administrative Experience).
 
@@ -141,7 +141,7 @@ Governance Design Principles bridge the gap between abstract user values and eng
 * **Statement:** Grievances, status changes, assignments, and approvals must be emitted as discrete system events via a message bus.
 * **Rationale:** Monolithic updates are fragile under heavy load. Event-driven architectures ensure asynchronous processing, decoupled service components, and transaction resilience.
 * **Expected User Impact:** Immediate message intake confirmation, high system availability, and reliable background task delivery.
-* **Engineering Implication:** The backend microservices must consume from and produce to decoupled event topics with explicit dead-letter queues.
+* **Engineering Implication:** Core systems must utilize transactional event streams to coordinate tasks asynchronously with decoupled handling.
 * **Related Helix Laws:** Law 10, Law 12 (Production quality).
 * **Related Specifications:** HELIX-SPEC-000 (Event-Driven Architecture).
 
@@ -151,7 +151,7 @@ Governance Design Principles bridge the gap between abstract user values and eng
 * **Statement:** Integrations with model endpoints, messaging APIs, and databases must use structured plugin interfaces; core codebase modifications for regional changes are prohibited.
 * **Rationale:** Forking core logic to support new providers leads to fragmented, unmaintainable codebase variations.
 * **Expected User Impact:** Fast deployment configurations without code rewrites.
-* **Engineering Implication:** The platform core must expose dynamic loading parameters for external classes implementing defined python interface templates.
+* **Engineering Implication:** The platform core shall expose standardized extension points that allow integrations without modifying core behavior.
 * **Related Helix Laws:** Law 6 (Plugins over forks).
 * **Related Specifications:** HELIX-SPEC-000 (Plugin-First Architecture).
 
@@ -161,7 +161,7 @@ Governance Design Principles bridge the gap between abstract user values and eng
 * **Statement:** Variations in schemas, priority rules, and local translations must be configured via parameter files rather than customized scripts.
 * **Rationale:** Keeping the codebase unified allows bug fixes and performance updates to scale across all deployments.
 * **Expected User Impact:** Fast localized onboarding of new constituency nodes.
-* **Engineering Implication:** Local schemas, routing logic, and translation files must load from a centralized folder structure at startup.
+* **Engineering Implication:** Local schemas, routing rules, and translations must be parsed from configurable sources at service initiation.
 * **Related Helix Laws:** Law 5 (Configuration over customization).
 * **Related Specifications:** HELIX-SPEC-000 (Build once, deploy anywhere).
 
@@ -171,7 +171,7 @@ Governance Design Principles bridge the gap between abstract user values and eng
 * **Statement:** PII (Personally Identifiable Information) must be encrypted at rest and in transit, and masked in data streams passed to external AI models.
 * **Rationale:** Citizens trust public systems only when their privacy is strictly protected.
 * **Expected User Impact:** Complete security of personal data logs.
-* **Engineering Implication:** Ingest routers must run PII masking filters on text streams before forwarding payloads to external LLM endpoints.
+* **Engineering Implication:** The ingestion process must mask sensitive identifier values before forwarding data to external processing boundaries.
 * **Related Helix Laws:** Law 7, Law 12.
 * **Related Specifications:** HELIX-SPEC-000 (Security by Design), HELIX-SPEC-003 (Trust).
 
@@ -193,18 +193,18 @@ Governance Design Principles bridge the gap between abstract user values and eng
 | :--- | :--- | :--- | :---: | :--- |
 | **GDP-001** | Zero-friction entry | Semantic classifier triage routing | Law 1 | HELIX-SPEC-001 |
 | **GDP-002** | Rapid 30s intake | Async entity extraction pipelines | Law 1 | HELIX-SPEC-002 |
-| **GDP-003** | Low cognitive load | Lazy loading & summary payloads | Law 8 | HELIX-SPEC-003 |
+| **GDP-003** | Low cognitive load | UI progressive disclosure parameters | Law 8 | HELIX-SPEC-003 |
 | **GDP-004** | Operational safety | Permission sign-off checks | Law 3 | HELIX-SPEC-000 |
 | **GDP-005** | Audit readiness | Schema logic trace & citation fields | Law 2 | HELIX-SPEC-000 |
-| **GDP-006** | Truth-grounded results | RAG context similarity thresholds | Law 8 | HELIX-SPEC-000 |
+| **GDP-006** | Truth-grounded results | Verification filters on context query | Law 8 | HELIX-SPEC-000 |
 | **GDP-007** | Workflows integration | Inline edit text area models | Law 10 | HELIX-SPEC-003 |
-| **GDP-008** | Equal community access | CI frontend linting & validation tests | Law 9 | HELIX-SPEC-003 |
-| **GDP-009** | Dialect comprehension | Multilingual dialect NLP encoders | Law 1 | HELIX-SPEC-001 |
-| **GDP-010** | Persistent history search | Transaction async DB to Graph sync | Law 4 | HELIX-SPEC-001 |
-| **GDP-011** | Duplicate prevention | Profile matching on intake keys | Law 7 | HELIX-SPEC-003 |
-| **GDP-012** | Ingestion reliability | Microservices event bus architecture | Law 10 | HELIX-SPEC-000 |
-| **GDP-013** | Provider flexibility | Python Dynamic loading interface SDK | Law 6 | HELIX-SPEC-000 |
-| **GDP-014** | Fast onboarding | Local JSON config map folders | Law 5 | HELIX-SPEC-000 |
+| **GDP-008** | Equal community access | Pipeline automated validations checks | Law 9 | HELIX-SPEC-003 |
+| **GDP-009** | Dialect comprehension | Multi-lingual phonetic script parsers | Law 1 | HELIX-SPEC-001 |
+| **GDP-010** | Persistent history search | Async transactional database sync | Law 4 | HELIX-SPEC-001 |
+| **GDP-011** | Duplicate prevention | Profile matching on identifier keys | Law 7 | HELIX-SPEC-003 |
+| **GDP-012** | Ingestion reliability | Decoupled asynchronous event streams | Law 10 | HELIX-SPEC-000 |
+| **GDP-013** | Provider flexibility | Standardized core extension points | Law 6 | HELIX-SPEC-000 |
+| **GDP-014** | Fast onboarding | Configurable source parameters | Law 5 | HELIX-SPEC-000 |
 | **GDP-015** | PII protection | Context masking ingest filter loops | Law 7 | HELIX-SPEC-000 |
 | **GDP-016** | Low error rate | Automatic fallback queues | Law 8 | HELIX-SPEC-003 |
 
