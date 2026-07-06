@@ -30,6 +30,13 @@ class LLMProvider(ABC):
         """Generate a response for the given list of messages."""
         pass
 
+    @staticmethod
+    def get_provider() -> "LLMProvider":
+        provider_type = os.environ.get("LLM_PROVIDER", "gemini").lower()
+        if provider_type == "mock":
+            return MockProvider()
+        return GeminiAdapter()
+
 
 class GeminiAdapter(LLMProvider):
     """
