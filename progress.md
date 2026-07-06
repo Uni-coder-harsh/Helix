@@ -26,7 +26,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-018` | 2026-07-06T13:30:00+05:30 | Phase 2 | Re-ordered Architectural Roadmap & Updated Navigation | Completed |
 | `LOG-019` | 2026-07-06T13:35:00+05:30 | Phase 2 | Drafted Event-Driven Architecture Spec & Initialized ADR Stream | Completed |
 | `LOG-020` | 2026-07-06T13:40:00+05:30 | Phase 2 | Frozen Event-Driven Architecture (HELIX-ARCH-004) & Event Catalog (HELIX-ARCH-005) | Completed |
-| `LOG-021` | 2026-07-06T13:45:00+05:30 | Phase 2 | Drafted Component Architecture Spec (HELIX-ARCH-006) | Completed |
+| `LOG-021` | 2026-07-06T13:45:00+05:30 | Phase 2 | Frozen Component Architecture (HELIX-ARCH-006) | Completed |
 
 ---
 
@@ -225,12 +225,15 @@ This log records every significant action, decision, change, and status update i
   - Formulated event metadata envelope structures, schema version compatibility rules, and deprecation policies in the catalog.
 - **Issues/Resolutions:** None.
 
-### `LOG-021` (2026-07-06T13:45:00+05:30) - Drafted Component Architecture Spec (HELIX-ARCH-006)
+### `LOG-021` (2026-07-06T13:45:00+05:30) - Frozen Component Architecture (HELIX-ARCH-006)
 - **Phase:** Phase 2 (Architecture)
 - **Status:** Completed
 - **Changes:**
-  - Drafted the primary `docs/02-architecture/06-component-architecture.md` (HELIX-ARCH-006) defining 14 core logical system building blocks: API Gateway, Identity Service, Citizen Intake, Workflow Engine, AI Orchestrator, Knowledge Service, Notification Service, Plugin Runtime, Audit Service, Analytics Service, Administration Service, Configuration Service, Object Storage, and Search Service.
-  - Specified Bounded Domains, Responsibilities, Inputs/Outputs, Dependencies, Events Produced/Consumed, Failure Behaviours, and Scaling Strategies for each component.
-  - Established a comprehensive Traceability Matrix mapping all components to their domains, event boundaries, active ADRs, and parent specifications.
-  - Added a Design Validation Checklist to guide downstream development reviews.
+  - Frozen `docs/02-architecture/06-component-architecture.md` (HELIX-ARCH-006) as v1.0.0 based on review approval.
+  - Removed all implementation-specific leakage from components, replacing technology-dependent terms (HTTP/gRPC, JWT, OAuth, read replicas, etc.) with conceptual architectural abstractions.
+  - Renamed "Object Storage" to "Media Service", detailing its lifecycle and service ownership responsibilities.
+  - Refactored Knowledge and Search Service boundaries, splitting relationship graphs/policies from semantic/lexical search and ranking responsibilities.
+  - Added an architectural invariant to the AI Orchestrator guaranteeing it remains advisory and holds no executive state mutation authority.
+  - Reframed the Analytics Service into the Decision Intelligence Service.
+  - Updated the Traceability Matrix and validation checklists to align with these refinements.
 - **Issues/Resolutions:** None.
