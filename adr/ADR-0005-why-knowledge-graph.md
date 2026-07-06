@@ -1,4 +1,4 @@
-# ADR-0004: Why Knowledge Graph?
+# ADR-0005: Why Knowledge Graph?
 
 ## Status
 Accepted

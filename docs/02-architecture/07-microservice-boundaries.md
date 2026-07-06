@@ -6,7 +6,7 @@ owner: "@harsh"
 reviewers: "Architecture Review Board"
 last_updated: "2026-07-06"
 dependencies: ["HELIX-ARCH-000", "HELIX-ARCH-003", "HELIX-ARCH-004", "HELIX-ARCH-006"]
-related_adr: ["ADR-0001", "ADR-0002", "ADR-0003", "ADR-0004"]
+related_adr: ["ADR-0001", "ADR-0002", "ADR-0003"]
 related_rfc: []
 related_requirements: []
 doc_type: "Explanation"
@@ -55,8 +55,8 @@ Applying the service creation rule, the 14 logical components are compiled into 
  ▼                                      ▼                                      ▼
 [ Identity Service ]           [ Governance Service ]               [ AI Platform Service ]
    (User Accounts)                - Citizen Ingestion                  - AI Orchestration
-                                  - Workflow Engine                    - Knowledge Graph
-                                  - Administration                     - Search Indexes
+                                  - Workflow Engine                    - Knowledge Assets
+                                  - Administration                     - Inference Assets
                                   - Notification Orchestrator
                                         │ (Plugin Intercept Hooks)
                                         ▼
@@ -86,16 +86,19 @@ Applying the service creation rule, the 14 logical components are compiled into 
   * *Independent Capability:* Yes (governs active workflow states and citizen intake).
   * *Independent Scaling:* Yes (heavy database read/write transaction load).
   * *Distinct Lifecycle:* Yes (highest frequency of business logic changes).
-  * *Distinct Data:* Yes (owns Issues, Tasks, and SLA tables).
+  * *Distinct Data:* Yes (owns Issues, Tasks, and SLA datasets).
   * *Independent Deployment:* Yes.
   * *Independent Team:* Yes (owned by Core Workflows Team).
   * *Score:* 6/6. **Justified.**
 
 ### 3.3. AI Platform Service
 * **Purpose:** Consolidates the AI Orchestrator, Search Service, and Knowledge Service into a single logical service block. Maps policy rules, runs search indexes, and serves AI recommendations.
+* **Asset Split Boundaries:** To maintain clear boundaries and prevent coupling inside this service, assets are split logically:
+  * **Knowledge Assets:** Structural graph nodes, geographic/ward hierarchies, policy schemas, and domain relationship models. Managed by the Knowledge component.
+  * **Inference & Retrieval Assets:** AI model parameters, search index segments, vector database mappings, recommendation histories, and runtime reasoning execution states. Managed by the AI Orchestrator and Search components.
 * **Justification Mapping:**
   * *Independent Capability:* Yes (cognitive reasoning and search retrieval).
-  * *Independent Scaling:* Yes (computationally heavy, GPU/large RAM requirements for vector databases and graph caches).
+  * *Independent Scaling:* Yes (computationally heavy, high memory/compute requirements for relationship graph traversals and semantic search indexes).
   * *Distinct Lifecycle:* Yes (driven by model updates, search indexing logic, and graph structure refactoring).
   * *Distinct Data:* Yes (owns Knowledge Graph, search indexes, and vector embeddings).
   * *Independent Deployment:* Yes.
@@ -108,7 +111,7 @@ Applying the service creation rule, the 14 logical components are compiled into 
   * *Independent Capability:* Yes (identity and security access control).
   * *Independent Scaling:* Yes (highly read-heavy, low latency requirements).
   * *Distinct Lifecycle:* Yes (infrequent updates, changes demand high-security review).
-  * *Distinct Data:* Yes (owns User Credentials, Session logs, and RBAC tables).
+  * *Distinct Data:* Yes (owns User Credentials, Session logs, and RBAC datasets).
   * *Independent Deployment:* Yes (must remain functional even during core workflow downtime).
   * *Independent Team:* Yes (owned by Security Team).
   * *Score:* 6/6. **Justified.**
@@ -130,7 +133,7 @@ Applying the service creation rule, the 14 logical components are compiled into 
   * *Independent Capability:* Yes (analytical processing and business intelligence).
   * *Independent Scaling:* Yes (batch-aggregation heavy, streaming computations).
   * *Distinct Lifecycle:* Yes (bi-weekly updates driven by administrative reporting requirements).
-  * *Distinct Data:* Yes (owns aggregated metrics data cache).
+  * *Distinct Data:* Yes (owns aggregated metrics dataset).
   * *Independent Deployment:* Yes.
   * *Independent Team:* Yes (owned by Data Analytics Team).
   * *Score:* 6/6. **Justified.**
@@ -141,7 +144,7 @@ Applying the service creation rule, the 14 logical components are compiled into 
   * *Independent Capability:* Yes (blob asset management).
   * *Independent Scaling:* Yes (high network IO bandwidth consumption).
   * *Distinct Lifecycle:* Yes (tied to storage driver configurations).
-  * *Distinct Data:* Yes (owns media metadata and storage key indexes).
+  * *Distinct Data:* Yes (owns media metadata and storage references).
   * *Independent Deployment:* Yes.
   * *Independent Team:* No (owned by Platform Team).
   * *Score:* 5/6. **Justified.**
@@ -152,39 +155,39 @@ Applying the service creation rule, the 14 logical components are compiled into 
 
 To prevent data corruption, Helix enforces a strict data ownership rule: **Only one service may own and write to a specific database domain.** Other services must access data either asynchronously via event subscriptions, or by querying read-only replicas of the owning service's database.
 
-| Domain Entities | Owner Service | Data Store Pattern | Primary Write Actor | Read Access Policy |
+| Domain Entities | Owner Service | Data Store Boundaries | Primary Write Actor | Read Access Policy |
 | :--- | :--- | :--- | :--- | :--- |
-| **Issues, Tasks, SLAs** | Governance Service | Relational database (ACID transactional) | Workflow Engine | Read replicas, Async events |
-| **User Credentials, RBAC** | Identity Service | Relational database (highly cached) | Identity Manager | API Gateway token verification |
-| **Media Files, Metadata** | Media Service | Relational metadata + Blob Store keys | Media Manager | Signed URL token generation |
-| **Knowledge Graph, Policies**| AI Platform Service | Graph database | Knowledge Manager | Graph-RAG queries (Internal to AI) |
-| **Search Indexes** | AI Platform Service | Search index store | Search Indexer | API Gateway search routing |
-| **Recommendations, Anomaly** | AI Platform Service | Memory/Inference logs | AI Orchestrator | Workflow Engine review console |
-| **Audit Logs** | Audit Service | Immutable transaction log | Audit Logger | Security Compliance Portal |
-| **Performance Aggregates** | Decision Intel Service| Analytics database cache | Analytics Stream Engine | Administrative dashboards |
+| **Issues, Tasks, SLAs** | Governance Service | Transactional State Store | Workflow Engine | Read replicas, Asynchronous events |
+| **User Credentials, RBAC** | Identity Service | Cached Security Store | Identity Manager | Security token verification |
+| **Media Files, Metadata** | Media Service | Metadata and Asset Link Store | Media Manager | Shared access token generation |
+| **Knowledge Graph, Policies**| AI Platform Service | Relationship Graph Store | Knowledge Manager | Semantic grounding queries |
+| **Search Indexes** | AI Platform Service | Search Index Store | Search Indexer | External search routing |
+| **Recommendations, Anomaly** | AI Platform Service | Inference and Suggestion Log | AI Orchestrator | Workflow Engine review console |
+| **Audit Logs** | Audit Service | Immutable Security Log | Audit Logger | Security Compliance Portal |
+| **Performance Aggregates** | Decision Intel Service| Analytical Metric Store | Analytics Stream Engine | Administrative dashboards |
 
 ---
 
 ## 5. Service Communication Specifications
 
-### 5.1. Sync vs. Async Communication Rules
-* **Synchronous (gRPC / HTTP API):** Reserved for real-time validation checks, security validation, or request-reply operations that cannot proceed without immediate return data (e.g. gateway authentication checking, sandboxed hook execution).
-* **Asynchronous (Event-Driven Bus):** The default communication protocol for all state changes, notification requests, audit archiving, and downstream analytical updates. Ensures total temporal decoupling.
+### 5.1. Synchronous vs. Asynchronous Communication Rules
+* **Synchronous Requests (Queries/Commands):** Reserved for real-time validation checks, security validation, or request-reply operations that cannot proceed without immediate return data (e.g. token validation, sandboxed hook execution).
+* **Asynchronous Events:** The default communication protocol for all state changes, notification requests, audit archiving, and downstream analytical updates. Ensures total temporal decoupling.
 
 ### 5.2. Service Communication Matrix
 
-| Source Service | Target Service | Sync Interface | Async Events | Forbidden Communication |
+| Source Service | Target Service | Synchronous Interface | Asynchronous Events | Forbidden Communication |
 | :--- | :--- | :--- | :--- | :--- |
-| **API Gateway** | Governance Service | REST/gRPC (Intake routing) | None | Direct Database access |
-| **API Gateway** | AI Platform Service | REST/gRPC (Search queries) | None | Direct Database access |
-| **API Gateway** | Identity Service | REST/gRPC (Token verify) | None | Direct Database access |
+| **API Gateway** | Governance Service | Synchronous Command / Request | None | Direct Database access |
+| **API Gateway** | AI Platform Service | Synchronous Query | None | Direct Database access |
+| **API Gateway** | Identity Service | Synchronous Request (Verification) | None | Direct Database access |
 | **Governance** | AI Platform Service | None | `IssueValidated`, `EvidenceAttached` | Synchronous blocking queries |
-| **Governance** | Plugin Runtime | gRPC (Hook execution) | None | Direct database writes to Plugin |
-| **Governance** | Media Service | gRPC (Verify file hash) | None | Bypassing Media API |
-| **AI Platform** | Media Service | gRPC (Fetch binary) | None | Direct filesystem access |
+| **Governance** | Plugin Runtime | Synchronous Command (Hook run) | None | Direct database writes to Plugin |
+| **Governance** | Media Service | Synchronous Query (File check) | None | Bypassing Media API |
+| **AI Platform** | Media Service | Synchronous Request (Fetch file) | None | Direct filesystem access |
 | **AI Platform** | Governance Service | None | `RecommendationGenerated` | Synchronous state mutation calls |
 | **Plugin Runtime** | Governance Service | None | `PluginResponseReturned` | Synchronous API callbacks |
-| **Decision Intel** | Governance Service | None (Uses replica reads) | None | Writing to Governance tables |
+| **Decision Intel** | Governance Service | None (Replica Query reads) | None | Writing to Governance tables |
 | **All Services** | Audit Service | None | `AccessLogGenerated` | Blocking synchronous audits |
 
 ### 5.3. Dependency Rules & Forbidden Topologies
@@ -212,9 +215,10 @@ backend/
 │   ├── plugin/                    # Isolated sandbox manager
 │   └── decision-intelligence/     # Analytical computations and aggregates
 ├── shared/
+│   ├── domain/                    # Centralized ubiquitous language, value objects, and enums
 │   ├── contracts/                 # Unified domain configurations
 │   ├── events/                    # Event Catalog JSON-Schema/Protobuf models
-│   ├── protos/                    # Central gRPC boundary interfaces
+│   ├── protos/                    # Central API boundary interfaces
 │   └── sdk/                       # Standard Plugin development SDK
 └── libs/
     ├── telemetry/                 # Shared OpenTelemetry configuration
@@ -268,3 +272,11 @@ Verify implementation configurations against these architectural rules before de
 * [ ] **Outbox Integrated:** Do state-mutating services compile event releases within their primary database transactions?
 * [ ] **Repository Compliance:** Does the folder directory structure map exactly to the `backend/services/` monorepo layout?
 * [ ] **Evolution Track Defined:** Is the module prepared to bootstrap as a process-level package (Phase 1) prior to network boundary separation?
+
+---
+
+## 9. Related ADRs
+
+* [ADR-0001: Why Event-Driven Architecture?](file:///home/harsh/Desktop/CodeNova/Helix/adr/ADR-0001-why-event-driven-architecture.md)
+* [ADR-0002: Microservice Strategy](file:///home/harsh/Desktop/CodeNova/Helix/adr/ADR-0002-microservice-strategy.md)
+* [ADR-0003: Modular Monolith First](file:///home/harsh/Desktop/CodeNova/Helix/adr/ADR-0003-modular-monolith-first.md)

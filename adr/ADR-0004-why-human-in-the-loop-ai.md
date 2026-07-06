@@ -1,4 +1,4 @@
-# ADR-0003: Why Human-in-the-Loop AI?
+# ADR-0004: Why Human-in-the-Loop AI?
 
 ## Status
 Accepted

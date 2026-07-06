@@ -1,4 +1,4 @@
-# ADR-0002: Why Plugin Architecture?
+# ADR-0006: Why Plugin Architecture?
 
 ## Status
 Accepted

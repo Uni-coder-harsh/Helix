@@ -6,7 +6,7 @@ owner: "@harsh"
 reviewers: "Architecture Review Board"
 last_updated: "2026-07-06"
 dependencies: ["HELIX-ARCH-000"]
-related_adr: ["ADR-0002"]
+related_adr: ["ADR-0006"]
 related_rfc: []
 related_requirements: []
 doc_type: "Explanation"
