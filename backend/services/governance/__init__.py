@@ -186,6 +186,29 @@ async def get_dashboard_stats(
     return query_service.get_dashboard_stats()
 
 
+@router.get("/issues/{issue_id}/context", response_model=dict[str, Any])
+async def get_issue_context(
+    issue_id: str,
+    query_service: GovernanceQueryService = Depends(get_query_service),
+) -> dict[str, Any]:
+    """Retrieve the full decision context (policies, schemes, assets, impact, alternatives) for an issue."""
+    issues = query_service.list_pending_issues()
+    issue = next((i for i in issues if str(i["id"]) == issue_id), None)
+    if not issue:
+        raise HTTPException(status_code=404, detail="Issue not found")
+
+    from services.governance.workflows import rec_builder
+
+    rec_details = rec_builder.build_recommendation(
+        issue_id=uuid.UUID(issue_id),
+        category=issue["category"],
+        latitude=issue["latitude"],
+        longitude=issue["longitude"],
+    )
+    rec_details["priority"] = str(rec_details["priority"].name)
+    return rec_details
+
+
 # Spatial Engine Integration Endpoints
 
 

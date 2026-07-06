@@ -62,6 +62,14 @@ async def test_complete_vertical_slice() -> None:
         assert rec_data["status"] == "PROPOSED"
         assert "standard SLA" in rec_data["rationale"]
 
+        # 4b. GET issue decision context
+        response = await client.get(f"/governance/issues/{issue_id}/context")
+        assert response.status_code == 200
+        ctx_data = response.json()
+        assert ctx_data["priority"] == "HIGH"
+        assert ctx_data["suggested_department"] == "Municipal Sanitation Department"
+        assert len(ctx_data["supporting_evidence"]) > 0
+
         # 5. POST accept recommendation (Officer action)
         response = await client.post(
             f"/governance/recommendations/{recommendation_id}/accept"
