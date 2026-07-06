@@ -3,13 +3,22 @@ import uuid
 from helix_platform.event_bus import EventBus
 from helix_platform.logging import get_logger
 from helix_platform.persistence import SessionLocal
-from services.governance.models import IssueDB, RecommendationDB
+
+# Domain, Query, Repositories, Services
+from services.governance.application.services import (
+    IssueApplicationService,
+    RecommendationApplicationService,
+    TriageDecisionPolicy,
+)
+from services.governance.infrastructure.repositories import (
+    SQLAlchemyIssueRepository,
+    SQLAlchemyRecommendationRepository,
+)
 from shared.domain.enums import Priority
 from shared.domain.events import (
     IssueIngestedEvent,
     IssueTriagedEvent,
     RecommendationAcceptedEvent,
-    RecommendationProposedEvent,
     RecommendationRejectedEvent,
 )
 
@@ -19,40 +28,17 @@ logger = get_logger("workflows")
 async def handle_issue_ingested(event: IssueIngestedEvent) -> None:
     """Workflow handler for automated issue triage upon ingestion."""
     logger.info("handling_issue_ingested", issue_id=str(event.issue_id))
+
+    # 1. Evaluate Decision Policy to obtain Priority Heuristics
+    priority = TriageDecisionPolicy.evaluate(event.category)
+    department_id = uuid.uuid4()  # Mock department assignment
+
+    # 2. Invoke Application Service to transition and save state
     db = SessionLocal()
     try:
-        issue = db.query(IssueDB).filter(IssueDB.id == str(event.issue_id)).first()
-        if not issue:
-            logger.warning("issue_not_found_for_triage", issue_id=str(event.issue_id))
-            return
-
-        # Perform automatic triage rules
-        issue.status = "TRIAGE"
-
-        # Priority Rule heuristics
-        cat_lower = issue.category.lower()
-        if "sanitation" in cat_lower or "garbage" in cat_lower:
-            issue.priority = "HIGH"
-        elif "road" in cat_lower or "pothole" in cat_lower or "traffic" in cat_lower:
-            issue.priority = "MEDIUM"
-        else:
-            issue.priority = "LOW"
-
-        db.commit()
-        logger.info(
-            "issue_triaged_automatically",
-            issue_id=issue.id,
-            priority=issue.priority,
-        )
-
-        # Trigger transition: publish IssueTriagedEvent
-        # (representing validated/triaged state)
-        triage_event = IssueTriagedEvent(
-            issue_id=uuid.UUID(issue.id),
-            department_id=uuid.uuid4(),  # Mock department assignment
-            priority=Priority(issue.priority),
-        )
-        EventBus.publish(triage_event)
+        repo = SQLAlchemyIssueRepository(db)
+        service = IssueApplicationService(repo)
+        await service.triage_issue(event.issue_id, department_id, priority)
     finally:
         db.close()
 
@@ -66,51 +52,38 @@ async def handle_issue_triaged(event: IssueTriagedEvent) -> None:
         "handling_issue_triaged_for_recommendation",
         issue_id=str(event.issue_id),
     )
+
+    # Load issue category from repository to simulate policy RAG/Rules
     db = SessionLocal()
     try:
-        issue = db.query(IssueDB).filter(IssueDB.id == str(event.issue_id)).first()
+        issue_repo = SQLAlchemyIssueRepository(db)
+        issue = issue_repo.get_by_id(event.issue_id)
         if not issue:
             return
 
-        # Simulate RAG / Policy and recommendation generation
         category = issue.category
         suggested_dept = (
             "Municipal Sanitation Department"
             if category == "sanitation"
             else "Public Works Department"
         )
-        confidence = 0.90 if issue.priority == "HIGH" else 0.75
+        confidence = 0.90 if event.priority == Priority.HIGH else 0.75
 
         rationale = (
             f"Based on governance policies for Category: {category}. "
             f"Standard resolution timeline requires dispatch within 48 hours."
         )
 
-        # Persist Recommendation
-        rec = RecommendationDB(
-            id=str(uuid.uuid4()),
-            issue_id=issue.id,
-            suggested_category=category,
-            suggested_department=suggested_dept,
-            confidence_score=confidence,
+        # Invoke Application Service to propose and save recommendation
+        rec_repo = SQLAlchemyRecommendationRepository(db)
+        rec_service = RecommendationApplicationService(rec_repo)
+        await rec_service.propose_recommendation(
+            issue_id=event.issue_id,
+            category=category,
+            department=suggested_dept,
+            confidence=confidence,
             rationale=rationale,
-            status="PROPOSED",
         )
-        db.add(rec)
-        db.commit()
-        logger.info(
-            "ai_recommendation_generated",
-            recommendation_id=rec.id,
-            issue_id=issue.id,
-        )
-
-        # Publish recommendation proposed event
-        proposed_event = RecommendationProposedEvent(
-            recommendation_id=uuid.UUID(rec.id),
-            issue_id=uuid.UUID(issue.id),
-            content=rationale,
-        )
-        EventBus.publish(proposed_event)
     finally:
         db.close()
 

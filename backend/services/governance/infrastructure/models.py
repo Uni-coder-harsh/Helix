@@ -21,6 +21,7 @@ class IssueDB(Base):
     location_address = Column(String(505), nullable=False)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
+    department_id = Column(String(36), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 
 

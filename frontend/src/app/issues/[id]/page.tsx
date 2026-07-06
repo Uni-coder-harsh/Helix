@@ -36,7 +36,7 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
               status:
                 found.status === "INTAKE"
                   ? "Submitted"
-                  : found.status === "TRIAGE"
+                  : found.status === "TRIAGE" || found.status === "TRIAGED"
                   ? "Validated"
                   : found.status === "ASSIGNED"
                   ? "Assigned"

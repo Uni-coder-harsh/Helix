@@ -34,6 +34,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-026` | 2026-07-06T14:50:00+05:30 | Phase 3 | Scaffolded AI Platform Foundation (HELIX-ARCH-007) | Completed |
 | `LOG-027` | 2026-07-06T15:30:00+05:30 | Phase 3 | Tightened Engineering Quality & Build Automation | Completed |
 | `LOG-028` | 2026-07-06T18:20:00+05:30 | Sprint 2 | Vertical Slice Implementation (P0) | Completed |
+| `LOG-029` | 2026-07-06T18:45:00+05:30 | Sprint 2.1 | Clean Architecture Stabilization | Completed |
 
 ---
 
@@ -348,3 +349,17 @@ This log records every significant action, decision, change, and status update i
   - Hooked up Next.js dashboards (Citizen Report modal/list, Officer Queue, Issue Details) to interact dynamically with backend APIs.
 - **Issues/Resolutions:**
   - *Async event loop error in synchronous FastAPI handlers:* Encountered `no running event loop` when publishing events from synchronous endpoints. Resolved by converting route signatures to `async def`.
+
+### `LOG-029` (2026-07-06T18:45:00+05:30) - Clean Architecture Stabilization
+- **Phase:** Sprint 2.1 (Refactoring)
+- **Status:** Completed
+- **Changes:**
+  - **Repository Abstraction Layer:** Defined repository interfaces (`IssueRepository`, `RecommendationRepository`, `NotificationRepository`) in `backend/shared/domain/repositories/` package.
+  - **Infrastructure Encapsulation:** Moved database models (`IssueDB`, `RecommendationDB`) and their SQLAlchemy queries to the infrastructure layer under `backend/services/governance/infrastructure/`.
+  - **Application Service Layer:** Introduced application services (`IssueApplicationService`, `RecommendationApplicationService`, `OfficerApplicationService`) to coordinate use-case workflows, execute domain logic, and interact with repository interfaces.
+  - **Triage Policy Engine:** Defined `TriageDecisionPolicy` to evaluate priority heuristics inside the application layer, resolving hardcoded conditional checks in event handler listeners.
+  - **CQRS Query Segregation:** Created `GovernanceQueryService` and `SQLAlchemyGovernanceQueryService` to query database read models directly, segregating commands from reads.
+  - **End-to-End Test Suite:** Verified that the integration test suite successfully validates the clean architecture workflow with zero errors.
+- **Issues/Resolutions:**
+  - *Missing persistent department assignments in SQLAlchemy models:* The domain aggregate `add_task` invariant requires a `department_id` to be present. Added `department_id` column to `IssueDB` and mapped it in repository `save` and `get_by_id` functions.
+  - *Status enum mapping mismatch in tests:* Domain states set by `Issue.triage` are set as `TRIAGED` (DDD enum name) rather than the mock string `TRIAGE`. Aligned integration test assertions and Next.js status displays to accept both `TRIAGE` and `TRIAGED`.

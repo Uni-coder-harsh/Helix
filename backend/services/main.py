@@ -42,7 +42,7 @@ from services.governance.workflows import register_subscriptions
 
 register_subscriptions()
 
-import services.governance.models  # noqa: F401
+import services.governance.infrastructure.models  # noqa: F401
 from helix_platform.persistence import Base
 
 Base.metadata.create_all(bind=engine)

@@ -33,7 +33,7 @@ export default function OfficerDashboard() {
             status:
               item.status === "INTAKE"
                 ? "Submitted"
-                : item.status === "TRIAGE"
+                : item.status === "TRIAGE" || item.status === "TRIAGED"
                 ? "Validated"
                 : item.status === "ASSIGNED"
                 ? "Assigned"

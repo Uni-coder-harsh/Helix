@@ -47,7 +47,7 @@ async def test_complete_vertical_slice() -> None:
             (item for item in pending_list if item["id"] == issue_id), None
         )
         assert issue_item is not None
-        assert issue_item["status"] == "TRIAGE"
+        assert issue_item["status"] == "TRIAGED"
         assert issue_item["priority"] == "HIGH"  # Triage logic maps sanitation to HIGH
         assert issue_item["has_recommendation"] is True
         recommendation_id = issue_item["recommendation_id"]
