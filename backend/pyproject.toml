@@ -57,12 +57,14 @@ select = [
     "PTH",  # flake8-use-pathlib
     "RUF",  # Ruff-specific rules
 ]
-ignore = ["A002", "B024", "N818"]
+ignore = ["A002", "B024", "N818", "B008"]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**/*.py" = ["E501", "PTH", "SIM"]
+"**/tests/**/*.py" = ["E501", "PTH", "SIM", "E402"]
 "**/evaluation/**/*.py" = ["E501"]
 "**/ai_platform/**/*.py" = ["E501"]
+"services/main.py" = ["E402", "E501"]
+"services/governance/**/*.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.13"

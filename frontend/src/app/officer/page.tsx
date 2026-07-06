@@ -15,6 +15,58 @@ export default function OfficerDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [activeTab, setActiveTab] = useState<"all" | "pending_ai" | "in_progress">("all");
 
+  React.useEffect(() => {
+    fetch("http://localhost:8000/governance/issues/pending")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: Issue[] = data.map((item) => ({
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            category:
+              item.category === "sanitation"
+                ? "Water Supply & Sanitation"
+                : item.category === "roads"
+                ? "Roads & Sidewalks"
+                : item.category,
+            status:
+              item.status === "INTAKE"
+                ? "Submitted"
+                : item.status === "TRIAGE"
+                ? "Validated"
+                : item.status === "ASSIGNED"
+                ? "Assigned"
+                : item.status === "REJECTED"
+                ? "Rejected"
+                : item.status,
+            priority:
+              item.priority === "HIGH"
+                ? "High"
+                : item.priority === "MEDIUM"
+                ? "Medium"
+                : "Low",
+            citizenName: "Jan Doe",
+            createdAt: item.created_at || new Date().toISOString(),
+            updatedAt: item.created_at || new Date().toISOString(),
+            constituency: "Central Bengaluru",
+            location: { lat: item.latitude, lng: item.longitude },
+            upvotes: 1,
+            updates: [],
+            aiDraftResponse:
+              "AI analysis completed. Standard resolution timeline initiated.",
+          }));
+          setIssues((prev) => {
+            const mockOnly = prev.filter(
+              (p) => !p.id.includes("-") && !data.some((d) => d.id === p.id)
+            );
+            return [...mapped, ...mockOnly];
+          });
+        }
+      })
+      .catch((err) => console.log("Backend not running, using mock data:", err));
+  }, []);
+
   const handleUpdateStatus = (id: string, newStatus: Issue["status"]) => {
     setIssues(prevIssues =>
       prevIssues.map(issue => {

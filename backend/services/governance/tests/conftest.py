@@ -3,12 +3,12 @@ import sys
 from collections.abc import Generator
 from pathlib import Path
 
-# Add backend directory to sys.path so tests can find platform and services modules
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+# Add backend directory to sys.path
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent.parent))
 
-# Ensure test environment is configured before any import loads configuration
+# Ensure test environment
 os.environ["HELIX_ENV"] = "test"
-os.environ["DATABASE_URL"] = "sqlite:///test.db"
+os.environ["DATABASE_URL"] = "sqlite:///governance_test.db"
 
 import pytest
 from fastapi.testclient import TestClient
@@ -24,13 +24,13 @@ def setup_db() -> Generator[None]:
     yield
     Base.metadata.drop_all(bind=engine)
     # Remove test database file
-    db_file = Path("test.db")
+    db_file = Path("governance_test.db")
     if db_file.exists():
         db_file.unlink()
 
 
 @pytest.fixture
 def client() -> Generator[TestClient]:
-    """Generates a FastAPI TestClient."""
+    """Generates a FastAPI TestClient for Governance testing."""
     with TestClient(app) as test_client:
         yield test_client

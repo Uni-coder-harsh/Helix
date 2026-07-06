@@ -23,6 +23,56 @@ export default function CitizenDashboard() {
   const [newPriority, setNewPriority] = useState<Issue["priority"]>("Medium");
   const [newConstituency, setNewConstituency] = useState("Central Bengaluru");
 
+  React.useEffect(() => {
+    fetch("http://localhost:8000/governance/issues/pending")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: Issue[] = data.map((item) => ({
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            category:
+              item.category === "sanitation"
+                ? "Water Supply & Sanitation"
+                : item.category === "roads"
+                ? "Roads & Sidewalks"
+                : item.category,
+            status: item.status,
+            priority:
+              item.priority === "HIGH"
+                ? "High"
+                : item.priority === "MEDIUM"
+                ? "Medium"
+                : "Low",
+            citizenName: "Jan Doe",
+            createdAt: item.created_at || new Date().toISOString(),
+            updatedAt: item.created_at || new Date().toISOString(),
+            constituency: "Central Bengaluru",
+            location: { lat: item.latitude, lng: item.longitude },
+            upvotes: 1,
+            updates: [
+              {
+                timestamp: item.created_at || new Date().toISOString(),
+                status: item.status,
+                note: `Issue ingested in ${item.status} status.`,
+                author: "System Engine",
+              },
+            ],
+            aiDraftResponse:
+              "AI analysis completed. Standard resolution timeline initiated.",
+          }));
+          setIssues((prev) => {
+            const mockOnly = prev.filter(
+              (p) => !p.id.includes("-") && !data.some((d) => d.id === p.id)
+            );
+            return [...mapped, ...mockOnly];
+          });
+        }
+      })
+      .catch((err) => console.log("Backend not running, using mock data:", err));
+  }, []);
+
   const handleUpvote = (id: string) => {
     if (votedIssues[id]) return; // prevent multiple upvotes in session
 
@@ -41,37 +91,63 @@ export default function CitizenDashboard() {
     e.preventDefault();
     if (!newTitle || !newDescription) return;
 
-    const newIssue: Issue = {
-      id: `ISS-${1000 + issues.length + 1}`,
+    const payload = {
+      citizen_id: "00000000-0000-0000-0000-000000000000",
       title: newTitle,
       description: newDescription,
-      category: newCategory,
-      status: "Submitted",
-      priority: newPriority,
-      citizenName: "Jan Doe (You)",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      constituency: newConstituency,
-      location: { lat: 12.97 + (Math.random() - 0.5) * 0.05, lng: 77.59 + (Math.random() - 0.5) * 0.05 },
-      upvotes: 1,
-      updates: [
-        {
-          timestamp: new Date().toISOString(),
-          status: "Submitted",
-          note: "Issue logged by citizen via dashboard portal.",
-          author: "Jan Doe (Citizen)"
-        }
-      ],
-      aiDraftResponse: "AI analysis initiated. Checking regional logs and historical reports."
+      category: newCategory.toLowerCase().replace(" & ", "_").replace(" ", "_"),
+      latitude: 12.9716,
+      longitude: 77.5946,
+      formatted_address: newConstituency,
     };
 
-    setIssues([newIssue, ...issues]);
-    setIsModalOpen(false);
+    fetch("http://localhost:8000/governance/issues", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.log("Post failed, falling back to mock simulation:", err);
+        const newIssue: Issue = {
+          id: `ISS-${1000 + issues.length + 1}`,
+          title: newTitle,
+          description: newDescription,
+          category: newCategory,
+          status: "Submitted",
+          priority: newPriority,
+          citizenName: "Jan Doe (You)",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          constituency: newConstituency,
+          location: {
+            lat: 12.97 + (Math.random() - 0.5) * 0.05,
+            lng: 77.59 + (Math.random() - 0.5) * 0.05,
+          },
+          upvotes: 1,
+          updates: [
+            {
+              timestamp: new Date().toISOString(),
+              status: "Submitted",
+              note: "Issue logged by citizen via dashboard portal.",
+              author: "Jan Doe (Citizen)",
+            },
+          ],
+          aiDraftResponse:
+            "AI analysis initiated. Checking regional logs and historical reports.",
+        };
 
-    // Reset forms
-    setNewTitle("");
-    setNewDescription("");
-    setNewPriority("Medium");
+        setIssues([newIssue, ...issues]);
+        setIsModalOpen(false);
+
+        // Reset forms
+        setNewTitle("");
+        setNewDescription("");
+        setNewPriority("Medium");
+      });
   };
 
   const filteredIssues = issues.filter(issue =>

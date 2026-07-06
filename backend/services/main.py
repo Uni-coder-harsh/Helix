@@ -37,7 +37,18 @@ settings = get_settings()
 # 3. Setup OpenTelemetry
 setup_telemetry(settings.APP_NAME)
 
-# 4. Create FastAPI instance
+# 4. Initialize database and register subscriptions at startup
+from services.governance.workflows import register_subscriptions
+
+register_subscriptions()
+
+import services.governance.models  # noqa: F401
+from helix_platform.persistence import Base
+
+Base.metadata.create_all(bind=engine)
+
+
+# 5. Create FastAPI instance
 app = FastAPI(
     title="Helix Governance OS Core API",
     description="Modular monolith containing all 7 Helix core services.",
@@ -92,6 +103,16 @@ class LoggingAndCorrelationMiddleware(BaseHTTPMiddleware):
             )
             raise e
 
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.add_middleware(LoggingAndCorrelationMiddleware)
 

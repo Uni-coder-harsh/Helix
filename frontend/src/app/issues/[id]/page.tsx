@@ -14,12 +14,79 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
   const [draftResponse, setDraftResponse] = useState("");
   const [dispatcherNote, setDispatcherNote] = useState("");
   const [isSuccessMsg, setIsSuccessMsg] = useState(false);
+  const [recommendationId, setRecommendationId] = useState<string | null>(null);
 
   useEffect(() => {
-    const found = mockIssues.find((i) => i.id === params.id);
-    if (found) {
-      setIssue(found);
-      setDraftResponse(found.aiDraftResponse || "");
+    if (params.id.includes("-")) {
+      fetch("http://localhost:8000/governance/issues/pending")
+        .then((res) => res.json())
+        .then((data) => {
+          const found = data.find((i: any) => i.id === params.id);
+          if (found) {
+            const mapped: Issue = {
+              id: found.id,
+              title: found.title,
+              description: found.description,
+              category:
+                found.category === "sanitation"
+                  ? "Water Supply & Sanitation"
+                  : found.category === "roads"
+                  ? "Roads & Sidewalks"
+                  : found.category,
+              status:
+                found.status === "INTAKE"
+                  ? "Submitted"
+                  : found.status === "TRIAGE"
+                  ? "Validated"
+                  : found.status === "ASSIGNED"
+                  ? "Assigned"
+                  : found.status === "REJECTED"
+                  ? "Rejected"
+                  : found.status,
+              priority:
+                found.priority === "HIGH"
+                  ? "High"
+                  : found.priority === "MEDIUM"
+                  ? "Medium"
+                  : "Low",
+              citizenName: "Jan Doe",
+              createdAt: found.created_at || new Date().toISOString(),
+              updatedAt: found.created_at || new Date().toISOString(),
+              constituency: "Central Bengaluru",
+              location: { lat: found.latitude, lng: found.longitude },
+              upvotes: 1,
+              updates: [
+                {
+                  timestamp: found.created_at || new Date().toISOString(),
+                  status: found.status,
+                  note: `Issue logged in system. Status: ${found.status}`,
+                  author: "System Engine",
+                },
+              ],
+              aiDraftResponse: "AI recommendation pending...",
+            };
+            setIssue(mapped);
+
+            // Fetch Recommendation
+            fetch(`http://localhost:8000/governance/recommendations/${found.id}`)
+              .then((r) => r.json())
+              .then((rec) => {
+                setRecommendationId(rec.id);
+                setDraftResponse(rec.rationale);
+                setIssue((prev) =>
+                  prev ? { ...prev, aiDraftResponse: rec.rationale } : null
+                );
+              })
+              .catch((err) => console.log("Failed to fetch recommendation:", err));
+          }
+        })
+        .catch((err) => console.log("Failed to load issue details:", err));
+    } else {
+      const found = mockIssues.find((i) => i.id === params.id);
+      if (found) {
+        setIssue(found);
+        setDraftResponse(found.aiDraftResponse || "");
+      }
     }
   }, [params.id]);
 
@@ -63,26 +130,57 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
 
   const handleApproveDraft = () => {
     if (!issue) return;
-    setIsSuccessMsg(true);
-    setTimeout(() => setIsSuccessMsg(false), 3000);
 
-    // Append to timeline
-    const timestamp = new Date().toISOString();
-    const newUpdate: IssueUpdate = {
-      timestamp,
-      status: issue.status,
-      note: `AI Draft response approved and dispatched to citizen: "${draftResponse}"`,
-      author: "Officer Suresh Rao (Operations Console)"
-    };
+    if (issue.id.includes("-") && recommendationId) {
+      fetch(`http://localhost:8000/governance/recommendations/${recommendationId}/accept`, {
+        method: "POST",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setIsSuccessMsg(true);
+          setTimeout(() => setIsSuccessMsg(false), 3000);
 
-    setIssue((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        updatedAt: timestamp,
-        updates: [newUpdate, ...prev.updates]
+          const timestamp = new Date().toISOString();
+          const newUpdate: IssueUpdate = {
+            timestamp,
+            status: "Assigned",
+            note: `AI recommendation approved. Decision ID: ${data.decision_id}. Dispatch SMS sent to citizen.`,
+            author: "Officer Suresh Rao (Operations Console)",
+          };
+          setIssue((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  status: "Assigned",
+                  updatedAt: timestamp,
+                  updates: [newUpdate, ...prev.updates],
+                }
+              : null
+          );
+        })
+        .catch((err) => console.log("Failed to accept recommendation:", err));
+    } else {
+      setIsSuccessMsg(true);
+      setTimeout(() => setIsSuccessMsg(false), 3000);
+
+      // Append to timeline
+      const timestamp = new Date().toISOString();
+      const newUpdate: IssueUpdate = {
+        timestamp,
+        status: issue.status,
+        note: `AI Draft response approved and dispatched to citizen: "${draftResponse}"`,
+        author: "Officer Suresh Rao (Operations Console)"
       };
-    });
+
+      setIssue((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          updatedAt: timestamp,
+          updates: [newUpdate, ...prev.updates]
+        };
+      });
+    }
   };
 
   return (
