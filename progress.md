@@ -35,6 +35,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-027` | 2026-07-06T15:30:00+05:30 | Phase 3 | Tightened Engineering Quality & Build Automation | Completed |
 | `LOG-028` | 2026-07-06T18:20:00+05:30 | Sprint 2 | Vertical Slice Implementation (P0) | Completed |
 | `LOG-029` | 2026-07-06T18:45:00+05:30 | Sprint 2.1 | Clean Architecture Stabilization | Completed |
+| `LOG-030` | 2026-07-06T19:10:00+05:30 | Sprint 3 | Governance Decision & GIS Engine MVP | Completed |
 
 ---
 
@@ -363,3 +364,17 @@ This log records every significant action, decision, change, and status update i
 - **Issues/Resolutions:**
   - *Missing persistent department assignments in SQLAlchemy models:* The domain aggregate `add_task` invariant requires a `department_id` to be present. Added `department_id` column to `IssueDB` and mapped it in repository `save` and `get_by_id` functions.
   - *Status enum mapping mismatch in tests:* Domain states set by `Issue.triage` are set as `TRIAGED` (DDD enum name) rather than the mock string `TRIAGE`. Aligned integration test assertions and Next.js status displays to accept both `TRIAGE` and `TRIAGED`.
+
+### `LOG-030` (2026-07-06T19:10:00+05:30) - Governance Decision & GIS Engine MVP
+- **Phase:** Sprint 3 (Governance Intelligence MVP)
+- **Status:** Completed
+- **Changes:**
+  - **Knowledge Layer (Prompt D):** Defined PolicyStore, SchemeStore, AssetStore, DepartmentStore, and AdministrativeHierarchy contracts. Implemented in-memory stores populated with realistic municipal policies, subsidies, and ward facilities.
+  - **Governance Intelligence (Prompt A):** Implemented UrgencyEngine, ImpactEngine, PriorityEngine, and EvidenceAggregator to evaluate priorities, affected populations, policy compliance, and alternative actions without LLMs.
+  - **Explainable Recommendations:** Upgraded `workflows.py` triage handler to produce rich reasoning chains, SLAs, and suggested departments using the RecommendationBuilder.
+  - **GIS & Spatial Engine (Prompt B):** Created a GeoService and SpatialIndex supporting Haversine calculations, ray-casting polygon boundary checks, heatmap aggregation, and marker clustering.
+  - **Spatial REST APIs:** Exposed boundaries GeoJSON, weighted heatmaps, and issue clusters via FastAPI endpoints in `backend/services/governance/`.
+  - **Testing Coverage:** Wrote comprehensive unit tests for GIS engines and decision intelligence components (`test_spatial.py` and `test_intelligence.py`), passing all 39 tests cleanly.
+- **Issues/Resolutions:**
+  - *Floating point rounding assertion failure:* Fixed test comparison for float urgency score by utilizing `pytest.approx(0.9)`.
+  - *Unused argument warning:* Prefixed unused method parameters with underscores and returned `issue_id` inside recommendation dictionaries to satisfy ruff linter.

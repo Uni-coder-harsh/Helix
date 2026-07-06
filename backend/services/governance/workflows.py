@@ -3,6 +3,8 @@ import uuid
 from helix_platform.event_bus import EventBus
 from helix_platform.logging import get_logger
 from helix_platform.persistence import SessionLocal
+from services.governance.application.intelligence import RecommendationBuilder
+from services.governance.application.knowledge_service import KnowledgeService
 
 # Domain, Query, Repositories, Services
 from services.governance.application.services import (
@@ -10,11 +12,20 @@ from services.governance.application.services import (
     RecommendationApplicationService,
     TriageDecisionPolicy,
 )
+
+# Knowledge Layer & Governance Intelligence Engine
+from services.governance.infrastructure.knowledge.stores import (
+    InMemoryAdministrativeHierarchy,
+    InMemoryAssetStore,
+    InMemoryDepartmentStore,
+    InMemoryKnowledgeSearch,
+    InMemoryPolicyStore,
+    InMemorySchemeStore,
+)
 from services.governance.infrastructure.repositories import (
     SQLAlchemyIssueRepository,
     SQLAlchemyRecommendationRepository,
 )
-from shared.domain.enums import Priority
 from shared.domain.events import (
     IssueIngestedEvent,
     IssueTriagedEvent,
@@ -23,6 +34,25 @@ from shared.domain.events import (
 )
 
 logger = get_logger("workflows")
+
+# Initialize unified knowledge dependencies
+policy_store = InMemoryPolicyStore()
+scheme_store = InMemorySchemeStore()
+asset_store = InMemoryAssetStore()
+hierarchy_store = InMemoryAdministrativeHierarchy()
+dept_store = InMemoryDepartmentStore()
+search_engine = InMemoryKnowledgeSearch(policy_store, scheme_store, asset_store)
+
+knowledge_service = KnowledgeService(
+    policies=policy_store,
+    schemes=scheme_store,
+    assets=asset_store,
+    hierarchy=hierarchy_store,
+    departments=dept_store,
+    search=search_engine,
+)
+
+rec_builder = RecommendationBuilder(knowledge_service)
 
 
 async def handle_issue_ingested(event: IssueIngestedEvent) -> None:
@@ -61,17 +91,12 @@ async def handle_issue_triaged(event: IssueTriagedEvent) -> None:
         if not issue:
             return
 
-        category = issue.category
-        suggested_dept = (
-            "Municipal Sanitation Department"
-            if category == "sanitation"
-            else "Public Works Department"
-        )
-        confidence = 0.90 if event.priority == Priority.HIGH else 0.75
-
-        rationale = (
-            f"Based on governance policies for Category: {category}. "
-            f"Standard resolution timeline requires dispatch within 48 hours."
+        # Build explainable recommendation using our new Governance Intelligence Engine
+        rec_details = rec_builder.build_recommendation(
+            issue_id=event.issue_id,
+            category=issue.category,
+            latitude=issue.location.latitude,
+            longitude=issue.location.longitude,
         )
 
         # Invoke Application Service to propose and save recommendation
@@ -79,10 +104,10 @@ async def handle_issue_triaged(event: IssueTriagedEvent) -> None:
         rec_service = RecommendationApplicationService(rec_repo)
         await rec_service.propose_recommendation(
             issue_id=event.issue_id,
-            category=category,
-            department=suggested_dept,
-            confidence=confidence,
-            rationale=rationale,
+            category=issue.category,
+            department=rec_details["suggested_department"],
+            confidence=rec_details["confidence"],
+            rationale=rec_details["reasoning_chain"],
         )
     finally:
         db.close()

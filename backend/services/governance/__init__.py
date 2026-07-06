@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from helix_platform.persistence import get_db
+from helix_platform.spatial import GeoService, IssueClustering
 from services.governance.application.queries import GovernanceQueryService
 
 # Application & Domain Layers
@@ -183,3 +184,37 @@ async def get_dashboard_stats(
 ) -> dict[str, int]:
     """Compute summary statistics for issues grouped by status mapping."""
     return query_service.get_dashboard_stats()
+
+
+# Spatial Engine Integration Endpoints
+
+
+def get_geo_service() -> GeoService:
+    return GeoService()
+
+
+@router.get("/spatial/boundaries", response_model=dict[str, Any])
+async def get_spatial_boundaries(
+    geo_service: GeoService = Depends(get_geo_service),
+) -> dict[str, Any]:
+    """Retrieve GeoJSON features representing constituency and ward boundaries."""
+    return geo_service.get_boundaries_as_geojson()
+
+
+@router.get("/spatial/heatmap", response_model=list[dict[str, Any]])
+async def get_spatial_heatmap(
+    query_service: GovernanceQueryService = Depends(get_query_service),
+    geo_service: GeoService = Depends(get_geo_service),
+) -> list[dict[str, Any]]:
+    """Retrieve weighted heatmap coordinates of all lodged complaints."""
+    issues = query_service.list_pending_issues()
+    return geo_service.generate_heatmap_data(issues)
+
+
+@router.get("/spatial/clusters", response_model=list[dict[str, Any]])
+async def get_spatial_clusters(
+    query_service: GovernanceQueryService = Depends(get_query_service),
+) -> list[dict[str, Any]]:
+    """Retrieve clustered issue markers for map visualization."""
+    issues = query_service.list_pending_issues()
+    return IssueClustering.cluster_issues(issues, radius_km=0.5)

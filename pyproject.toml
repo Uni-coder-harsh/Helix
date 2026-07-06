@@ -30,8 +30,11 @@ ignore = ["A002", "B024", "N818", "B008"]
 "**/tests/**/*.py" = ["E501", "PTH", "SIM", "E402"]
 "**/evaluation/**/*.py" = ["E501"]
 "**/ai_platform/**/*.py" = ["E501"]
+"**/spatial/**/*.py" = ["E501"]
+"**/knowledge/**/*.py" = ["E501"]
 "backend/services/main.py" = ["E402", "E501"]
 "backend/services/governance/**/*.py" = ["E501"]
+"backend/shared/domain/**/*.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.13"

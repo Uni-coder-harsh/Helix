@@ -60,7 +60,7 @@ async def test_complete_vertical_slice() -> None:
         assert rec_data["id"] == recommendation_id
         assert rec_data["suggested_category"] == "sanitation"
         assert rec_data["status"] == "PROPOSED"
-        assert "Standard resolution timeline" in rec_data["rationale"]
+        assert "standard SLA" in rec_data["rationale"]
 
         # 5. POST accept recommendation (Officer action)
         response = await client.post(

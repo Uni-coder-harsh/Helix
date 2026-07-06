@@ -26,6 +26,5 @@ class OutboxEvent(Base):
     def __repr__(self) -> str:
         processed = self.processed_at is not None
         return (
-            f"<OutboxEvent id={self.id} type={self.event_type} "
-            f"processed={processed}>"
+            f"<OutboxEvent id={self.id} type={self.event_type} processed={processed}>"
         )
