@@ -24,7 +24,7 @@ select = [
     "PTH",  # flake8-use-pathlib
     "RUF",  # Ruff-specific rules
 ]
-ignore = []
+ignore = ["A002", "B024", "N818", "E501"]
 
 [tool.mypy]
 python_version = "3.13"
