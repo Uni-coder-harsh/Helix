@@ -1,0 +1,155 @@
+"use client";
+
+import React, { useState } from "react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ToggleLeft, ToggleRight, Shield, Cpu, RefreshCw, Layers, CheckCircle } from "lucide-react";
+
+export default function SettingsPage() {
+  const [apiDelay, setApiDelay] = useState(true);
+  const [autoTriage, setAutoTriage] = useState(false);
+  const [whatsappNotify, setWhatsappNotify] = useState(true);
+  const [emailNotify, setEmailNotify] = useState(true);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleSave = () => {
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2500);
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Settings & Admin Console</h1>
+        <p className="text-xs text-muted-foreground">Manage connector runtimes, AI validation parameters, and dashboard mock latency profiles.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Core Configurations */}
+        <div className="md:col-span-2 space-y-6">
+          <Card className="p-6">
+            <h3 className="font-bold text-sm mb-4 tracking-tight">Engine Simulation & Latency Settings</h3>
+            <div className="space-y-4">
+              {/* Setting 1: Mock Latency */}
+              <div className="flex items-center justify-between border-b pb-3">
+                <div className="space-y-0.5">
+                  <div className="font-semibold text-xs text-slate-800 dark:text-slate-200">Simulated Network Latency</div>
+                  <p className="text-[10px] text-muted-foreground">Introduces a 500ms delay on dispatch operations to simulate remote servers.</p>
+                </div>
+                <button onClick={() => setApiDelay(!apiDelay)} className="text-primary focus:outline-none">
+                  {apiDelay ? <ToggleRight className="h-9 w-9" /> : <ToggleLeft className="h-9 w-9 text-slate-400" />}
+                </button>
+              </div>
+
+              {/* Setting 2: Auto Triage */}
+              <div className="flex items-center justify-between border-b pb-3">
+                <div className="space-y-0.5">
+                  <div className="font-semibold text-xs text-slate-800 dark:text-slate-200">AI Auto-Triage Dispatch</div>
+                  <p className="text-[10px] text-muted-foreground">Automatically dispatches verified issues with upvote score &gt; 100 without officer queue check.</p>
+                </div>
+                <button onClick={() => setAutoTriage(!autoTriage)} className="text-primary focus:outline-none">
+                  {autoTriage ? <ToggleRight className="h-9 w-9" /> : <ToggleLeft className="h-9 w-9 text-slate-400" />}
+                </button>
+              </div>
+
+              {/* Setting 3: WhatsApp Notification */}
+              <div className="flex items-center justify-between border-b pb-3">
+                <div className="space-y-0.5">
+                  <div className="font-semibold text-xs text-slate-800 dark:text-slate-200">WhatsApp Alert Dispatcher (CON-004)</div>
+                  <p className="text-[10px] text-muted-foreground">Sends outbound progress webhook templates to citizens when status shifts.</p>
+                </div>
+                <button onClick={() => setWhatsappNotify(!whatsappNotify)} className="text-primary focus:outline-none">
+                  {whatsappNotify ? <ToggleRight className="h-9 w-9" /> : <ToggleLeft className="h-9 w-9 text-slate-400" />}
+                </button>
+              </div>
+
+              {/* Setting 4: Email Notification */}
+              <div className="flex items-center justify-between pb-3">
+                <div className="space-y-0.5">
+                  <div className="font-semibold text-xs text-slate-800 dark:text-slate-200">Email digest dispatch (CON-006)</div>
+                  <p className="text-[10px] text-muted-foreground">Dispatches weekly summary logs to the respective ward MLAs and ward councilors.</p>
+                </div>
+                <button onClick={() => setEmailNotify(!emailNotify)} className="text-primary focus:outline-none">
+                  {emailNotify ? <ToggleRight className="h-9 w-9" /> : <ToggleLeft className="h-9 w-9 text-slate-400" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t flex items-center justify-between gap-4">
+              <Button onClick={handleSave} className="bg-primary text-primary-foreground text-xs h-9 font-semibold px-6 shadow">
+                Save Simulation Configurations
+              </Button>
+              {isSaved && (
+                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                  <CheckCircle className="h-4 w-4" /> System parameters updated.
+                </span>
+              )}
+            </div>
+          </Card>
+
+          {/* System Info */}
+          <Card className="p-6">
+            <h3 className="font-bold text-sm mb-4 tracking-tight">Helix Architectural Alignment</h3>
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="border p-3 rounded-lg">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Microservice Spec ID</div>
+                <div className="font-bold font-mono mt-1 text-indigo-600 dark:text-indigo-400">HELIX-ARCH-007</div>
+              </div>
+              <div className="border p-3 rounded-lg">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Shared Value Schema</div>
+                <div className="font-bold font-mono mt-1">v1.0.0 (Modular Monolith)</div>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Plugin and Security Adapters */}
+        <div className="space-y-6">
+          <Card className="p-4 space-y-4">
+            <h4 className="font-bold text-xs flex items-center gap-1.5"><Layers className="h-4 w-4 text-indigo-500" /> Active Plugin Runtime</h4>
+            <div className="space-y-3">
+              <div className="border p-2.5 rounded-lg flex items-center justify-between text-xs">
+                <div className="space-y-0.5">
+                  <span className="font-bold">WhatsApp Connector</span>
+                  <p className="text-[9px] text-muted-foreground font-mono">CON-004 &bull; v1.2</p>
+                </div>
+                <Badge variant="success">Active</Badge>
+              </div>
+              <div className="border p-2.5 rounded-lg flex items-center justify-between text-xs">
+                <div className="space-y-0.5">
+                  <span className="font-bold">SMS Connector</span>
+                  <p className="text-[9px] text-muted-foreground font-mono">CON-005 &bull; v1.0</p>
+                </div>
+                <Badge variant="success">Active</Badge>
+              </div>
+              <div className="border p-2.5 rounded-lg flex items-center justify-between text-xs">
+                <div className="space-y-0.5">
+                  <span className="font-bold">Email Connector</span>
+                  <p className="text-[9px] text-muted-foreground font-mono">CON-006 &bull; v1.4</p>
+                </div>
+                <Badge variant="success">Active</Badge>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 space-y-2 text-xs">
+            <h4 className="font-bold text-xs flex items-center gap-1.5"><Shield className="h-4 w-4 text-emerald-500" /> Identity Authority</h4>
+            <p className="text-slate-500 leading-normal">
+              Authentication and role validation managed by Helix Identity Service bounded context. Role constraints are mapped directly to municipal trust zones.
+            </p>
+            <div className="pt-2">
+              <span className="text-[10px] text-slate-400 font-semibold uppercase">Current Role Matrix:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                <Badge variant="secondary">Officer</Badge>
+                <Badge variant="secondary">Citizen</Badge>
+                <Badge variant="secondary">Field Crew</Badge>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

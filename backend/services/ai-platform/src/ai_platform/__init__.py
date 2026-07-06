@@ -1,0 +1,104 @@
+# Helix AI Platform Service Monorepo Package Foundation
+# Phase 1: Modular Monolith Framework
+
+from ai_platform.core import (
+    Document,
+    EmbeddingProvider,
+    EmbeddingResponse,
+    GeminiAdapter,
+    GeminiEmbeddingAdapter,
+    InMemoryPromptRegistry,
+    InMemoryVectorStore,
+    LLMMessage,
+    LLMProvider,
+    LLMResponse,
+    MockEmbeddingProvider,
+    MockProvider,
+    PromptTemplate,
+    PromptVersionControl,
+    RAGContext,
+    RAGPipeline,
+    VectorStore,
+)
+from ai_platform.engines import (
+    EvidenceAssessment,
+    EvidenceEngine,
+    EvidenceFile,
+    InMemoryPolicyRegistry,
+    LLMEvidenceEngine,
+    LLMReasoningEngine,
+    OrchestratedRecommendationEngine,
+    PolicyDocument,
+    PolicyRetrievalInterface,
+    ReasoningEngine,
+    ReasoningOutcome,
+    ReasoningStep,
+    Recommendation,
+    RecommendationEngine,
+)
+from ai_platform.evaluation import (
+    EvalCase,
+    EvalCaseResult,
+    EvalMetricResult,
+    EvalSuiteResult,
+    EvaluationSuite,
+    get_default_evaluation_dataset,
+)
+from ai_platform.safety import (
+    ConfidenceScorer,
+    GroundingLayer,
+    GroundingResult,
+    HallucinationGuard,
+    SafetyGuard,
+)
+
+__version__ = "1.0.0"
+
+__all__ = [
+    "ConfidenceScorer",
+    "Document",
+    "EmbeddingProvider",
+    "EmbeddingResponse",
+    # Evaluation
+    "EvalCase",
+    "EvalCaseResult",
+    "EvalMetricResult",
+    "EvalSuiteResult",
+    "EvaluationSuite",
+    "EvidenceAssessment",
+    "EvidenceEngine",
+    "EvidenceFile",
+    "GeminiAdapter",
+    "GeminiEmbeddingAdapter",
+    "GroundingLayer",
+    "GroundingResult",
+    "HallucinationGuard",
+    "InMemoryPolicyRegistry",
+    "InMemoryPromptRegistry",
+    "InMemoryVectorStore",
+    "LLMEvidenceEngine",
+    # Core
+    "LLMMessage",
+    "LLMProvider",
+    "LLMReasoningEngine",
+    "LLMResponse",
+    "MockEmbeddingProvider",
+    "MockProvider",
+    "OrchestratedRecommendationEngine",
+    # Engines
+    "PolicyDocument",
+    "PolicyRetrievalInterface",
+    "PromptTemplate",
+    "PromptVersionControl",
+    "RAGContext",
+    "RAGPipeline",
+    "ReasoningEngine",
+    "ReasoningOutcome",
+    "ReasoningStep",
+    "Recommendation",
+    "RecommendationEngine",
+    # Safety
+    "SafetyGuard",
+    "VectorStore",
+    "get_default_evaluation_dataset",
+]
