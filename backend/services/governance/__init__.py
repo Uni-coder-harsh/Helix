@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from helix_platform.persistence import get_db
 from helix_platform.spatial import GeoService, IssueClustering
 from services.governance.application.copilot import GovernanceCopilotService
+from services.governance.application.proactive import ProactiveIntelligenceService
 from services.governance.application.queries import GovernanceQueryService
 
 # Application & Domain Layers
@@ -279,3 +280,17 @@ async def execute_copilot_query(
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+def get_proactive_service(
+    query_service: GovernanceQueryService = Depends(get_query_service),
+) -> ProactiveIntelligenceService:
+    return ProactiveIntelligenceService(query_service=query_service)
+
+
+@router.get("/proactive/morning-brief", response_model=dict[str, Any])
+async def get_morning_briefing(
+    proactive_service: ProactiveIntelligenceService = Depends(get_proactive_service),
+) -> dict[str, Any]:
+    """Retrieve proactive MLA morning briefings, risk alerts, and forecast trends."""
+    return proactive_service.get_morning_briefing()

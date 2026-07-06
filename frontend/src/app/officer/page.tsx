@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { mockIssues, Issue, IssueUpdate } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -17,6 +17,9 @@ import {
   Activity,
   ArrowRight,
   ShieldAlert,
+  Sun,
+  ShieldAlert as AlertOctagon,
+  Sparkles,
 } from "lucide-react";
 
 export default function OfficerDashboard() {
@@ -26,7 +29,69 @@ export default function OfficerDashboard() {
   const [activeTab, setActiveTab] = useState<"all" | "pending_ai" | "in_progress">("all");
   const [loading, setLoading] = useState(true);
 
+  // Proactive Briefing State
+  const [briefing, setBriefing] = useState<any>(null);
+  const [loadingBriefing, setLoadingBriefing] = useState(true);
+
   useEffect(() => {
+    // 1. Fetch Proactive Morning Briefing
+    fetch("http://localhost:8000/governance/proactive/morning-brief")
+      .then((res) => res.json())
+      .then((data) => {
+        setBriefing(data);
+        setLoadingBriefing(false);
+      })
+      .catch((err) => {
+        console.log("Offline, falling back to mock briefing:", err);
+        setBriefing({
+          constituency: "Central Bengaluru Constituency",
+          overall_health_score: 78,
+          overall_health_trend: "UP",
+          morning_brief:
+            "Good Morning MLA Suresh Rao. This week: \n• Water complaints have risen by 27% due to pipeline maintenance in Sector 4.\n• Ward 12 sanitation metrics require immediate intervention.\n• PMGSY road upgrade project in Ward 8 is running stable.\n• Urgent dispatch warning: Hospital route utility block is approaching SLA breach.",
+          category_forecasts: [
+            {
+              category: "Water & Sanitation",
+              current_score: 61,
+              forecast_direction: "DOWN",
+              reasoning: "Substandard utility capacity under monsoon overload risk.",
+            },
+            {
+              category: "Roads & Sidewalks",
+              current_score: 82,
+              forecast_direction: "UP",
+              reasoning: "Recent PMGSY pothole repairs completed in Ward 5.",
+            },
+            {
+              category: "Electricity & Power",
+              current_score: 90,
+              forecast_direction: "STABLE",
+              reasoning: "Smart grid distribution transformers cleared standard checks.",
+            },
+          ],
+          risk_alerts: [
+            {
+              issue_id: "ISSUE-001",
+              title: "Broken Main Pipeline Shivaji Nagar W12",
+              category: "Water Supply & Sanitation",
+              risk_level: "CRITICAL",
+              sla_remaining: "2.5 Hours",
+              impact_weight: "4,320 Citizens",
+            },
+            {
+              issue_id: "ISSUE-002",
+              title: "Utility Dig Block near Clinic Road Sector 4",
+              category: "Roads & Sidewalks",
+              risk_level: "HIGH",
+              sla_remaining: "5.0 Hours",
+              impact_weight: "350 Citizens",
+            },
+          ],
+        });
+        setLoadingBriefing(false);
+      });
+
+    // 2. Fetch pending issues
     fetch("http://localhost:8000/governance/issues/pending")
       .then((res) => res.json())
       .then((data) => {
@@ -129,9 +194,50 @@ export default function OfficerDashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Constituency Decision Dashboard</h1>
-          <p className="text-xs text-muted-foreground">Constituency metrics, warnings, and AI recommendation queues.</p>
+          <p className="text-xs text-muted-foreground">
+            Proactive constituency health indexing, morning briefings, and triage logs.
+          </p>
         </div>
       </div>
+
+      {/* NEW: Proactive Morning Briefing & Alerts Header section */}
+      {!loadingBriefing && briefing && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+          {/* Proactive Greeting Card */}
+          <Card className="lg:col-span-2 p-5 border-2 border-indigo-500/20 bg-indigo-500/[0.01] space-y-4">
+            <div className="flex items-center gap-2 border-b pb-2 border-slate-100 dark:border-slate-800">
+              <Sun className="h-5 w-5 text-indigo-500" />
+              <h2 className="text-sm font-bold tracking-wider uppercase text-indigo-500 flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4" /> Proactive Morning Briefing
+              </h2>
+            </div>
+            <div className="font-sans text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line bg-card p-4 rounded-xl border">
+              {briefing.morning_brief}
+            </div>
+          </Card>
+
+          {/* Risk Alerts Panel */}
+          <Card className="p-5 border-red-500/20 bg-red-500/[0.01] space-y-3 flex flex-col justify-between">
+            <div className="flex items-center gap-1.5 border-b pb-2 border-slate-100 dark:border-slate-800">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <h3 className="text-sm font-bold text-red-500 uppercase tracking-wider">Critical SLA Risks</h3>
+            </div>
+            <div className="space-y-2">
+              {briefing.risk_alerts.map((alert: any, idx: number) => (
+                <div key={idx} className="border p-2.5 rounded-lg bg-card text-xs flex justify-between items-center gap-2 hover:border-red-500/30 transition">
+                  <div className="truncate">
+                    <p className="font-bold truncate text-slate-800 dark:text-slate-200">{alert.title}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{alert.impact_weight} affected</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <Badge variant="destructive" className="text-[9px] font-mono">{alert.sla_remaining}</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Constituency Health score Widget */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -192,7 +298,7 @@ export default function OfficerDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4 flex items-center space-x-3 bg-card">
           <div className="p-2 bg-red-500/10 text-red-500 rounded-lg">
-            <AlertTriangle className="h-5 w-5" />
+            <AlertOctagon className="h-5 w-5" />
           </div>
           <div>
             <div className="text-[10px] text-muted-foreground font-semibold uppercase">Pending Triage</div>
