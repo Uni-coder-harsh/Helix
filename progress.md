@@ -26,6 +26,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-018` | 2026-07-06T13:30:00+05:30 | Phase 2 | Re-ordered Architectural Roadmap & Updated Navigation | Completed |
 | `LOG-019` | 2026-07-06T13:35:00+05:30 | Phase 2 | Drafted Event-Driven Architecture Spec & Initialized ADR Stream | Completed |
 | `LOG-020` | 2026-07-06T13:40:00+05:30 | Phase 2 | Frozen Event-Driven Architecture (HELIX-ARCH-004) & Event Catalog (HELIX-ARCH-005) | Completed |
+| `LOG-021` | 2026-07-06T13:45:00+05:30 | Phase 2 | Drafted Component Architecture Spec (HELIX-ARCH-006) | Completed |
 
 ---
 
@@ -222,4 +223,14 @@ This log records every significant action, decision, change, and status update i
   - Frozen `docs/02-architecture/04-event-driven-architecture.md` (HELIX-ARCH-004) as v1.0.0, including requested updates clarifying the Outbox Pattern implementation nature and legal data retention overlaps on citizen data shredding.
   - Frozen the canonical registry `docs/02-architecture/05-event-catalog.md` (HELIX-ARCH-005) as v1.0.0 based on review approval, detailing 21 standard platform events grouped across 7 functional categories (Citizen, Workflow, AI, Notification, Admin, Audit, Plugin) with exact Event ID, Trigger, Ordering Key, PII classification, and Payload summary mappings. Also refined the IssueValidated event to assign Workflow Engine as the sole producing authority context.
   - Formulated event metadata envelope structures, schema version compatibility rules, and deprecation policies in the catalog.
+- **Issues/Resolutions:** None.
+
+### `LOG-021` (2026-07-06T13:45:00+05:30) - Drafted Component Architecture Spec (HELIX-ARCH-006)
+- **Phase:** Phase 2 (Architecture)
+- **Status:** Completed
+- **Changes:**
+  - Drafted the primary `docs/02-architecture/06-component-architecture.md` (HELIX-ARCH-006) defining 14 core logical system building blocks: API Gateway, Identity Service, Citizen Intake, Workflow Engine, AI Orchestrator, Knowledge Service, Notification Service, Plugin Runtime, Audit Service, Analytics Service, Administration Service, Configuration Service, Object Storage, and Search Service.
+  - Specified Bounded Domains, Responsibilities, Inputs/Outputs, Dependencies, Events Produced/Consumed, Failure Behaviours, and Scaling Strategies for each component.
+  - Established a comprehensive Traceability Matrix mapping all components to their domains, event boundaries, active ADRs, and parent specifications.
+  - Added a Design Validation Checklist to guide downstream development reviews.
 - **Issues/Resolutions:** None.
