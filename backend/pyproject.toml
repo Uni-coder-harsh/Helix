@@ -32,8 +32,6 @@ managed = true
 [tool.uv.workspace]
 members = [
     "services/ai-platform",
-    "shared",
-    "helix_platform",
 ]
 
 [tool.ruff]

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from helix_platform.persistence import get_db
 from helix_platform.spatial import GeoService, IssueClustering
+from services.governance.application.agents import DecisionPipelineOrchestrator
 from services.governance.application.copilot import GovernanceCopilotService
 from services.governance.application.proactive import ProactiveIntelligenceService
 from services.governance.application.queries import GovernanceQueryService
@@ -294,3 +295,38 @@ async def get_morning_briefing(
 ) -> dict[str, Any]:
     """Retrieve proactive MLA morning briefings, risk alerts, and forecast trends."""
     return proactive_service.get_morning_briefing()
+
+
+def get_pipeline_orchestrator() -> DecisionPipelineOrchestrator:
+    return DecisionPipelineOrchestrator()
+
+
+@router.get("/issues/{issue_id}/decision-pipeline", response_model=dict[str, Any])
+async def get_issue_decision_pipeline(
+    issue_id: str,
+    query_service: GovernanceQueryService = Depends(get_query_service),
+    orchestrator: DecisionPipelineOrchestrator = Depends(get_pipeline_orchestrator),
+) -> dict[str, Any]:
+    """Execute the multi-agent decision pipeline for a target issue and retrieve execution telemetry."""
+    issues = query_service.list_pending_issues()
+    issue = next((i for i in issues if str(i["id"]) == issue_id), None)
+    if not issue:
+        # Check mock issues if DB has no record
+        from lib.mock_data import mockIssues
+
+        mock_issue = next((i for i in mockIssues if i.id == issue_id), None)
+        if mock_issue:
+            issue = {
+                "id": mock_issue.id,
+                "title": mock_issue.title,
+                "description": mock_issue.description,
+                "category": mock_issue.category,
+                "latitude": mock_issue.location.lat,
+                "longitude": mock_issue.location.lng,
+                "status": mock_issue.status,
+                "priority": mock_issue.priority,
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Issue record not found.")
+
+    return orchestrator.run_pipeline(issue)
