@@ -194,16 +194,15 @@ class OrchestratedRecommendationEngine(RecommendationEngine):
                 "required_keys": ["location", "waste_type"],
                 "description": "Requires photo showing location landmarks and types of garbage.",
             }
-        elif category == "roads":
+        if category == "roads":
             return {
                 "required_keys": ["gps_coordinates", "pothole_dimensions_estimate"],
                 "description": "Requires geotagged photos and dimensional assessment.",
             }
-        else:
-            return {
-                "required_keys": ["description"],
-                "description": "Basic narrative description required.",
-            }
+        return {
+            "required_keys": ["description"],
+            "description": "Basic narrative description required.",
+        }
 
     def _determine_suggested_action(
         self,
@@ -221,13 +220,13 @@ class OrchestratedRecommendationEngine(RecommendationEngine):
 
         if verdict == "APPROVE" or verdict == "VALIDATED":
             return "DISPATCH_FIELD_REPAIR"
-        elif verdict == "REJECT" or verdict == "REJECTED":
+        if verdict == "REJECT" or verdict == "REJECTED":
             return "REJECT_COMPLAINT"
-        else:
-            return "ROUTE_TO_HUMAN_OPERATOR"
+        return "ROUTE_TO_HUMAN_OPERATOR"
 
     def _calculate_priority_score(self, metadata: dict[str, Any], action: str) -> float:
-        # Standard priority calculations based on category and user/location risk parameters
+        # Standard priority calculations based on category and
+        # user/location risk parameters
         if action in ["ROUTE_TO_HUMAN_SAFETY_OFFICER", "ROUTE_TO_HUMAN_RE-EVALUATION"]:
             return 80.0  # High priority for audit reviews
 

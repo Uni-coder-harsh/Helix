@@ -1,10 +1,11 @@
+# ruff: noqa: E402
 import os
 import sys
 from collections.abc import Generator
 from pathlib import Path
 
 # Add backend directory to sys.path so tests can find platform and services modules
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 # Ensure test environment is configured before any import loads configuration
 os.environ["HELIX_ENV"] = "test"
@@ -18,7 +19,7 @@ from services.main import app
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_db() -> Generator[None, None, None]:
+def setup_db() -> Generator[None]:
     """Sets up test SQLite database before session and tears it down after."""
     Base.metadata.create_all(bind=engine)
     yield
@@ -30,7 +31,7 @@ def setup_db() -> Generator[None, None, None]:
 
 
 @pytest.fixture
-def client() -> Generator[TestClient, None, None]:
+def client() -> Generator[TestClient]:
     """Generates a FastAPI TestClient."""
     with TestClient(app) as test_client:
         yield test_client

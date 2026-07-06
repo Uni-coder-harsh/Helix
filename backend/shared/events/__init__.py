@@ -1,13 +1,10 @@
 import datetime
 import uuid
-from typing import Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
-T = TypeVar("T", bound=BaseModel)
 
-
-class EventEnvelope(BaseModel, Generic[T]):
+class EventEnvelope[T: BaseModel](BaseModel):
     """Standardized event envelope wrapping all platform domain events."""
 
     event_id: str = Field(default_factory=lambda: str(uuid.uuid4()))

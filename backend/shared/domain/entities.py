@@ -291,7 +291,8 @@ class Task(BaseEntity[uuid.UUID]):
     def complete(self, completion_notes: str) -> None:
         if self._status != TaskStatus.ASSIGNED:
             raise InvalidStateTransitionException(
-                f"Task must be ASSIGNED before it can be completed. Current: {self._status}"
+                "Task must be ASSIGNED before it can be completed. "
+                f"Current: {self._status}"
             )
         if not completion_notes or not completion_notes.strip():
             raise ValidationException("Completion notes cannot be empty.")
@@ -452,7 +453,8 @@ class Issue(AggregateRoot[uuid.UUID]):
         for task in self._tasks:
             if task.status != TaskStatus.VERIFIED:
                 raise ValidationException(
-                    f"All tasks must be verified before resolving the issue. Task {task.id} is {task.status.value}."
+                    "All tasks must be verified before resolving the issue. "
+                    f"Task {task.id} is {task.status.value}."
                 )
 
         self._status = IssueStatus.RESOLVED
@@ -576,7 +578,8 @@ class Evidence(BaseEntity[uuid.UUID]):
     def verify(self) -> None:
         if self._status != EvidenceStatus.EXTRACTED:
             raise InvalidStateTransitionException(
-                f"Evidence can only be verified from EXTRACTED state. Current: {self._status}"
+                "Evidence can only be verified from EXTRACTED state. "
+                f"Current: {self._status}"
             )
         self._status = EvidenceStatus.VERIFIED
 
@@ -624,7 +627,8 @@ class Recommendation(AggregateRoot[uuid.UUID]):
     def accept(self, decision_id: uuid.UUID) -> None:
         if self._status != RecommendationStatus.PROPOSED:
             raise InvalidStateTransitionException(
-                f"Recommendation can only be accepted if it is PROPOSED. Current: {self._status}"
+                "Recommendation can only be accepted if it is PROPOSED. "
+                f"Current: {self._status}"
             )
         self._status = RecommendationStatus.ACCEPTED
         self.record_event(RecommendationAcceptedEvent(self.id, decision_id))
@@ -632,7 +636,8 @@ class Recommendation(AggregateRoot[uuid.UUID]):
     def reject(self, reason: str) -> None:
         if self._status != RecommendationStatus.PROPOSED:
             raise InvalidStateTransitionException(
-                f"Recommendation can only be rejected if it is PROPOSED. Current: {self._status}"
+                "Recommendation can only be rejected if it is PROPOSED. "
+                f"Current: {self._status}"
             )
         if not reason or not reason.strip():
             raise ValidationException("Reason for rejection must be provided.")
@@ -668,7 +673,8 @@ class Decision(BaseEntity[uuid.UUID]):
     def sign(self) -> None:
         if self._status != DecisionStatus.PROPOSED:
             raise InvalidStateTransitionException(
-                f"Decision can only be signed from PROPOSED state. Current: {self._status}"
+                "Decision can only be signed from PROPOSED state. "
+                f"Current: {self._status}"
             )
         self._status = DecisionStatus.SIGNED
 

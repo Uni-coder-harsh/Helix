@@ -140,6 +140,7 @@ class MockProvider(LLMProvider):
     async def generate(
         self, messages: list[LLMMessage], config: dict[str, Any] | None = None
     ) -> LLMResponse:
+        _ = config
         self.calls.append(messages)
         last_content = messages[-1].content if messages else ""
 

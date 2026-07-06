@@ -24,4 +24,8 @@ class OutboxEvent(Base):
     processed_at = Column(DateTime, nullable=True)
 
     def __repr__(self) -> str:
-        return f"<OutboxEvent id={self.id} type={self.event_type} processed={self.processed_at is not None}>"
+        processed = self.processed_at is not None
+        return (
+            f"<OutboxEvent id={self.id} type={self.event_type} "
+            f"processed={processed}>"
+        )

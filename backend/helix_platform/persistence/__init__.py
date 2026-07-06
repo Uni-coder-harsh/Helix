@@ -21,8 +21,11 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-def get_db() -> Generator[SessionLocal, None, None]:  # type: ignore[valid-type]
-    """FastAPI dependency provider to yield a database session and close it after request."""
+def get_db() -> Generator[SessionLocal]:  # type: ignore[valid-type]
+    """FastAPI dependency provider to yield a database session.
+
+    Closes it after the request completes.
+    """
     db = SessionLocal()
     try:
         yield db

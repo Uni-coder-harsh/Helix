@@ -1,9 +1,9 @@
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
 
 
-class IssueStatus(str, Enum):
+class IssueStatus(StrEnum):
     """Workflow Engine issue statuses from ubiquitous language (HELIX-DOMAIN-001)."""
 
     DRAFT = "DRAFT"
@@ -15,7 +15,7 @@ class IssueStatus(str, Enum):
     CLOSED = "CLOSED"
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     """Task states within execution cycles."""
 
     PENDING = "PENDING"
@@ -24,7 +24,7 @@ class TaskStatus(str, Enum):
     FAILED = "FAILED"
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     """Security RBAC user roles."""
 
     CITIZEN = "CITIZEN"

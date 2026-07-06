@@ -60,12 +60,14 @@ class ProdConfig(BaseConfig):
 
 @lru_cache
 def get_settings() -> BaseConfig:
-    """Returns the configuration instance based on the HELIX_ENV environment variable."""
+    """Returns the configuration instance.
+
+    Loads the config based on the HELIX_ENV environment variable.
+    """
     env = os.getenv("HELIX_ENV", "dev").lower()
     if env == "prod":
         return ProdConfig()  # type: ignore[call-arg]
-    elif env == "test":
+    if env == "test":
         # Return development config with DEBUG log level for tests
         return DevConfig(LOG_LEVEL="DEBUG")
-    else:
-        return DevConfig()
+    return DevConfig()

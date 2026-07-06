@@ -1,9 +1,7 @@
 import uuid
 from abc import ABC
 from datetime import UTC, datetime
-from typing import Any, Generic, TypeVar
-
-TId = TypeVar("TId")
+from typing import Any
 
 
 class DomainException(Exception):
@@ -44,7 +42,7 @@ class DomainEvent(ABC):
         return hash(self.event_id)
 
 
-class BaseEntity(Generic[TId], ABC):
+class BaseEntity[TId](ABC):
     """Base class for all Domain Entities."""
 
     def __init__(self, id: TId) -> None:
@@ -67,7 +65,7 @@ class BaseEntity(Generic[TId], ABC):
         return hash((type(self), self.id))
 
 
-class AggregateRoot(BaseEntity[TId], Generic[TId], ABC):
+class AggregateRoot[TId](BaseEntity[TId], ABC):
     """Base class for all Aggregate Roots, which manage domain events."""
 
     def __init__(self, id: TId) -> None:
@@ -89,7 +87,10 @@ class AggregateRoot(BaseEntity[TId], Generic[TId], ABC):
 
 
 class ValueObject(ABC):
-    """Base class for all Value Objects. Value objects are compared by their attributes."""
+    """Base class for all Value Objects.
+
+    Value objects are compared by their attributes.
+    """
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, ValueObject):

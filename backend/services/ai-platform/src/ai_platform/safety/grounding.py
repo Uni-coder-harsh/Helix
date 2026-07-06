@@ -43,7 +43,8 @@ class GroundingLayer:
         for applied_id in reasoning_outcome.policies_applied:
             if applied_id not in retrieved_ids:
                 warnings.append(
-                    f"Reasoning referenced policy '{applied_id}' which was not in retrieved context."
+                    f"Reasoning referenced policy '{applied_id}' "
+                    "which was not in retrieved context."
                 )
 
         # 2. Compute token/number overlap matching
@@ -52,19 +53,22 @@ class GroundingLayer:
         source_numbers = set(re.findall(r"\b\d+\b", combined_sources))
 
         unsupported_numbers = rationale_numbers - source_numbers
-        # Filter out standard low numbers or index counters (0, 1, 2, 5) to avoid false flags
+        # Filter out standard low numbers or index counters (0, 1, 2, 5)
+        # to avoid false flags
         unsupported_numbers = {num for num in unsupported_numbers if int(num) > 5}
 
         if unsupported_numbers:
             warnings.append(
-                f"Rationale contains numerical facts/limits not found in sources: {list(unsupported_numbers)}"
+                "Rationale contains numerical facts/limits not found in "
+                f"sources: {list(unsupported_numbers)}"
             )
 
         # 3. Term overlap ratio
         rationale_words = self._tokenize(reasoning_outcome.rationale)
         source_words = self._tokenize(combined_sources)
 
-        # We look for key terms (length > 5) in rationale that are also present in sources
+        # We look for key terms (length > 5) in rationale that are also
+        # present in sources
         key_rationale_words = {w for w in rationale_words if len(w) > 5}
         if not key_rationale_words:
             grounding_score = 1.0
