@@ -36,6 +36,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-028` | 2026-07-06T18:20:00+05:30 | Sprint 2 | Vertical Slice Implementation (P0) | Completed |
 | `LOG-029` | 2026-07-06T18:45:00+05:30 | Sprint 2.1 | Clean Architecture Stabilization | Completed |
 | `LOG-030` | 2026-07-06T19:10:00+05:30 | Sprint 3 | Governance Decision & GIS Engine MVP | Completed |
+| `LOG-031` | 2026-07-06T19:40:00+05:30 | Sprint 4.1 | Decision Brief & Constituency Dashboard Polish | Completed |
 
 ---
 
@@ -378,3 +379,16 @@ This log records every significant action, decision, change, and status update i
 - **Issues/Resolutions:**
   - *Floating point rounding assertion failure:* Fixed test comparison for float urgency score by utilizing `pytest.approx(0.9)`.
   - *Unused argument warning:* Prefixed unused method parameters with underscores and returned `issue_id` inside recommendation dictionaries to satisfy ruff linter.
+
+### `LOG-031` (2026-07-06T19:40:00+05:30) - Decision Brief & Constituency Dashboard Polish
+- **Phase:** Sprint 4.1 (Product Experience Polish)
+- **Status:** Completed
+- **Changes:**
+  - **Constituency Health Dashboard:** Added a visual health rating console (78/100, +2.4% weekly trend) and category breakdown indexes (Roads, Water, Electricity, Healthcare, Education) to the Officer Dashboard.
+  - **Decision Brief Workspace:** Restructured the Single Issue workspace into a Decision Brief layout containing:
+    - *Impact Summary:* Showing population affected (4,320), nearby assets, budget scheme, SLA, and department.
+    - *Explainability Tree:* Graphical flow illustrating triage rules and geo-proximity factors.
+    - *Evidence Card Grid:* Visual grid outlining photo attachments, satellite grids, duplicate complaints (e.g. 18 tickets), and regulatory acts.
+    - *Matrix Comparison:* Tabular comparison of options (Accelerated, Outsource, Defer) detailing costs, timelines, and risks.
+  - **REST API updates:** Verified endpoints and updated Next.js to fetch from `/context` routes with client fallbacks.
+- **Issues/Resolutions:** None.

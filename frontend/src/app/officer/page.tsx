@@ -1,21 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { mockIssues, Issue, IssueUpdate } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { Search, AlertTriangle, CheckCircle2, Clock, Play } from "lucide-react";
+import {
+  Search,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  ArrowRight,
+  ShieldAlert,
+} from "lucide-react";
 
 export default function OfficerDashboard() {
   const [issues, setIssues] = useState<Issue[]>(mockIssues);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [activeTab, setActiveTab] = useState<"all" | "pending_ai" | "in_progress">("all");
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetch("http://localhost:8000/governance/issues/pending")
       .then((res) => res.json())
       .then((data) => {
@@ -63,26 +74,30 @@ export default function OfficerDashboard() {
             return [...mapped, ...mockOnly];
           });
         }
+        setLoading(false);
       })
-      .catch((err) => console.log("Backend not running, using mock data:", err));
+      .catch((err) => {
+        console.log("Backend not running, using mock data:", err);
+        setLoading(false);
+      });
   }, []);
 
   const handleUpdateStatus = (id: string, newStatus: Issue["status"]) => {
-    setIssues(prevIssues =>
-      prevIssues.map(issue => {
+    setIssues((prevIssues) =>
+      prevIssues.map((issue) => {
         if (issue.id === id) {
           const timestamp = new Date().toISOString();
           const newUpdate: IssueUpdate = {
             timestamp,
             status: newStatus,
             note: `Status updated to ${newStatus.replace("_", " ")} by Officer सुरेश.`,
-            author: "Officer Suresh Rao (Admin)"
+            author: "Officer Suresh Rao (Admin)",
           };
           return {
             ...issue,
             status: newStatus,
             updatedAt: timestamp,
-            updates: [newUpdate, ...issue.updates]
+            updates: [newUpdate, ...issue.updates],
           };
         }
         return issue;
@@ -90,8 +105,7 @@ export default function OfficerDashboard() {
     );
   };
 
-  // Filter issues based on criteria
-  const filteredIssues = issues.filter(issue => {
+  const filteredIssues = issues.filter((issue) => {
     const matchesSearch =
       issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       issue.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -114,38 +128,97 @@ export default function OfficerDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Officer Operations Console</h1>
-          <p className="text-xs text-muted-foreground">Triage, dispatch, and resolve municipal service tickets.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Constituency Decision Dashboard</h1>
+          <p className="text-xs text-muted-foreground">Constituency metrics, warnings, and AI recommendation queues.</p>
+        </div>
+      </div>
+
+      {/* Constituency Health score Widget */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <Card className="p-5 bg-gradient-to-br from-indigo-900/50 to-slate-900 border-indigo-500/20 text-white flex flex-col justify-between min-h-[160px] lg:col-span-1">
+          <div>
+            <div className="flex justify-between items-center text-xs text-indigo-300 font-semibold tracking-wider uppercase">
+              <span>Constituency Health</span>
+              <Activity className="h-4 w-4 text-indigo-400" />
+            </div>
+            <div className="flex items-baseline gap-2 mt-4">
+              <span className="text-4xl font-extrabold">78</span>
+              <span className="text-slate-400 text-sm">/ 100</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-emerald-400 text-xs mt-4">
+            <TrendingUp className="h-3.5 w-3.5" />
+            <span>+2.4% positive resolution index</span>
+          </div>
+        </Card>
+
+        {/* Category Health Scores */}
+        <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <Card className="p-4 bg-card text-card-foreground flex flex-col justify-between">
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase">Roads</span>
+            <div className="text-2xl font-bold mt-2">82</div>
+            <span className="text-[9px] text-emerald-500 font-medium flex items-center gap-0.5 mt-2">
+              <TrendingUp className="h-3 w-3" /> +1.2%
+            </span>
+          </Card>
+          <Card className="p-4 bg-card border-red-500/20 text-card-foreground flex flex-col justify-between">
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase">Water/Sanit</span>
+            <div className="text-2xl font-bold text-red-500 mt-2">61</div>
+            <span className="text-[9px] text-red-500 font-medium flex items-center gap-0.5 mt-2">
+              <TrendingDown className="h-3 w-3 animate-bounce" /> -3.5%
+            </span>
+          </Card>
+          <Card className="p-4 bg-card text-card-foreground flex flex-col justify-between">
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase">Electricity</span>
+            <div className="text-2xl font-bold mt-2">90</div>
+            <span className="text-[9px] text-slate-400 font-medium mt-2">Stable</span>
+          </Card>
+          <Card className="p-4 bg-card text-card-foreground flex flex-col justify-between">
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase">Healthcare</span>
+            <div className="text-2xl font-bold mt-2">74</div>
+            <span className="text-[9px] text-emerald-500 font-medium flex items-center gap-0.5 mt-2">
+              <TrendingUp className="h-3 w-3" /> +0.5%
+            </span>
+          </Card>
+          <Card className="p-4 bg-card text-card-foreground flex flex-col justify-between">
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase">Education</span>
+            <div className="text-2xl font-bold mt-2">69</div>
+            <span className="text-[9px] text-slate-400 font-medium mt-2">Stable</span>
+          </Card>
         </div>
       </div>
 
       {/* Operational Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4 flex items-center space-x-3">
+        <Card className="p-4 flex items-center space-x-3 bg-card">
           <div className="p-2 bg-red-500/10 text-red-500 rounded-lg">
             <AlertTriangle className="h-5 w-5" />
           </div>
           <div>
             <div className="text-[10px] text-muted-foreground font-semibold uppercase">Pending Triage</div>
-            <div className="text-xl font-bold">{issues.filter(i => i.status === "Submitted" || i.status === "Validated").length}</div>
+            <div className="text-xl font-bold">
+              {issues.filter((i) => i.status === "Submitted" || i.status === "Validated").length}
+            </div>
           </div>
         </Card>
-        <Card className="p-4 flex items-center space-x-3">
+        <Card className="p-4 flex items-center space-x-3 bg-card">
           <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
             <Clock className="h-5 w-5 animate-pulse" />
           </div>
           <div>
-            <div className="text-[10px] text-muted-foreground font-semibold uppercase">Active In-Progress</div>
-            <div className="text-xl font-bold">{issues.filter(i => i.status === "Assigned" || i.status === "In_Progress").length}</div>
+            <div className="text-[10px] text-muted-foreground font-semibold uppercase">Active Field Tasks</div>
+            <div className="text-xl font-bold">
+              {issues.filter((i) => i.status === "Assigned" || i.status === "In_Progress").length}
+            </div>
           </div>
         </Card>
-        <Card className="p-4 flex items-center space-x-3">
+        <Card className="p-4 flex items-center space-x-3 bg-card">
           <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg">
             <CheckCircle2 className="h-5 w-5" />
           </div>
           <div>
             <div className="text-[10px] text-muted-foreground font-semibold uppercase">Resolved Today</div>
-            <div className="text-xl font-bold">{issues.filter(i => i.status === "Completed").length}</div>
+            <div className="text-xl font-bold">{issues.filter((i) => i.status === "Completed").length}</div>
           </div>
         </Card>
       </div>
@@ -157,7 +230,9 @@ export default function OfficerDashboard() {
           <button
             onClick={() => setActiveTab("all")}
             className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-semibold transition ${
-              activeTab === "all" ? "bg-white dark:bg-slate-900 shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              activeTab === "all"
+                ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             All Work Items
@@ -165,7 +240,9 @@ export default function OfficerDashboard() {
           <button
             onClick={() => setActiveTab("pending_ai")}
             className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-semibold transition ${
-              activeTab === "pending_ai" ? "bg-white dark:bg-slate-900 shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              activeTab === "pending_ai"
+                ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Requires Triage
@@ -173,7 +250,9 @@ export default function OfficerDashboard() {
           <button
             onClick={() => setActiveTab("in_progress")}
             className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-semibold transition ${
-              activeTab === "in_progress" ? "bg-white dark:bg-slate-900 shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              activeTab === "in_progress"
+                ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Active Field Tasks
@@ -209,110 +288,119 @@ export default function OfficerDashboard() {
 
       {/* Issues Queue Table Layout */}
       <div className="overflow-x-auto rounded-xl border bg-card">
-        <table className="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr className="border-b bg-slate-50 dark:bg-slate-900/50 text-slate-500 font-semibold">
-              <th className="p-4">Issue ID</th>
-              <th className="p-4">Title / Category</th>
-              <th className="p-4">Constituency</th>
-              <th className="p-4">Priority</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Last Updated</th>
-              <th className="p-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {filteredIssues.length > 0 ? (
-              filteredIssues.map((issue) => (
-                <tr key={issue.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition">
-                  <td className="p-4 font-mono font-bold text-slate-400">{issue.id}</td>
-                  <td className="p-4 max-w-[280px]">
-                    <div className="font-semibold text-sm line-clamp-1">{issue.title}</div>
-                    <div className="text-slate-400 mt-0.5">{issue.category}</div>
-                  </td>
-                  <td className="p-4 font-medium">{issue.constituency}</td>
-                  <td className="p-4">
-                    <Badge
-                      variant={
-                        issue.priority === "Critical"
-                          ? "destructive"
-                          : issue.priority === "High"
-                          ? "warning"
-                          : "default"
-                      }
-                    >
-                      {issue.priority}
-                    </Badge>
-                  </td>
-                  <td className="p-4">
-                    <Badge variant={issue.status === "Completed" ? "success" : "info"}>
-                      {issue.status.replace("_", " ")}
-                    </Badge>
-                  </td>
-                  <td className="p-4 text-muted-foreground">
-                    {new Date(issue.updatedAt).toLocaleString("en-IN", {
-                      dateStyle: "short",
-                      timeStyle: "short"
-                    })}
-                  </td>
-                  <td className="p-4 text-right space-x-2 whitespace-nowrap">
-                    {issue.status === "Submitted" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 text-[11px]"
-                        onClick={() => handleUpdateStatus(issue.id, "Validated")}
+        {loading ? (
+          <div className="p-8 text-center text-xs text-muted-foreground animate-pulse">
+            Loading constituency records...
+          </div>
+        ) : (
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b bg-slate-50 dark:bg-slate-900/50 text-slate-500 font-semibold">
+                <th className="p-4">Issue ID</th>
+                <th className="p-4">Title / Category</th>
+                <th className="p-4">Constituency</th>
+                <th className="p-4">Priority</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Last Updated</th>
+                <th className="p-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {filteredIssues.length > 0 ? (
+                filteredIssues.map((issue) => (
+                  <tr
+                    key={issue.id}
+                    className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition"
+                  >
+                    <td className="p-4 font-mono font-bold text-slate-400">{issue.id}</td>
+                    <td className="p-4 max-w-[280px]">
+                      <div className="font-semibold text-sm line-clamp-1">{issue.title}</div>
+                      <div className="text-slate-400 mt-0.5">{issue.category}</div>
+                    </td>
+                    <td className="p-4 font-medium">{issue.constituency}</td>
+                    <td className="p-4">
+                      <Badge
+                        variant={
+                          issue.priority === "Critical"
+                            ? "destructive"
+                            : issue.priority === "High"
+                            ? "warning"
+                            : "default"
+                        }
                       >
-                        Validate AI
-                      </Button>
-                    )}
-                    {issue.status === "Validated" && (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="h-8 text-[11px]"
-                        onClick={() => handleUpdateStatus(issue.id, "Assigned")}
-                      >
-                        Dispatch Crew
-                      </Button>
-                    )}
-                    {issue.status === "Assigned" && (
-                      <Button
-                        size="sm"
-                        variant="default"
-                        className="h-8 text-[11px] bg-indigo-600 hover:bg-indigo-700"
-                        onClick={() => handleUpdateStatus(issue.id, "In_Progress")}
-                      >
-                        Start Work
-                      </Button>
-                    )}
-                    {issue.status === "In_Progress" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 text-[11px] border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
-                        onClick={() => handleUpdateStatus(issue.id, "Completed")}
-                      >
-                        Resolve SLA
-                      </Button>
-                    )}
-                    <Link href={`/issues/${issue.id}`}>
-                      <Button size="sm" variant="ghost" className="h-8 text-[11px]">
-                        Review
-                      </Button>
-                    </Link>
+                        {issue.priority}
+                      </Badge>
+                    </td>
+                    <td className="p-4">
+                      <Badge variant={issue.status === "Completed" ? "success" : "info"}>
+                        {issue.status.replace("_", " ")}
+                      </Badge>
+                    </td>
+                    <td className="p-4 text-muted-foreground">
+                      {new Date(issue.updatedAt).toLocaleString("en-IN", {
+                        dateStyle: "short",
+                        timeStyle: "short",
+                      })}
+                    </td>
+                    <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                      {issue.status === "Submitted" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-[11px]"
+                          onClick={() => handleUpdateStatus(issue.id, "Validated")}
+                        >
+                          Validate AI
+                        </Button>
+                      )}
+                      {issue.status === "Validated" && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="h-8 text-[11px]"
+                          onClick={() => handleUpdateStatus(issue.id, "Assigned")}
+                        >
+                          Dispatch Crew
+                        </Button>
+                      )}
+                      {issue.status === "Assigned" && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="h-8 text-[11px] bg-indigo-600 hover:bg-indigo-700"
+                          onClick={() => handleUpdateStatus(issue.id, "In_Progress")}
+                        >
+                          Start Work
+                        </Button>
+                      )}
+                      {issue.status === "In_Progress" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-[11px] border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+                          onClick={() => handleUpdateStatus(issue.id, "Completed")}
+                        >
+                          Resolve SLA
+                        </Button>
+                      )}
+                      <Link href={`/issues/${issue.id}`}>
+                        <Button size="sm" variant="ghost" className="h-8 text-[11px]">
+                          Open Brief <ArrowRight className="h-3 w-3 ml-0.5" />
+                        </Button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-muted-foreground border-dashed">
+                    No municipal issues matched your search parameters.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={7} className="p-8 text-center text-muted-foreground border-dashed">
-                  No municipal issues matched your search parameters.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

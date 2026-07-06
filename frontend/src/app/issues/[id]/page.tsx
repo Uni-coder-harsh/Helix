@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { mockIssues, Issue, IssueUpdate } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -21,9 +21,10 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  AlertCircle,
-  RefreshCw,
-  BarChart2,
+  Layers,
+  HelpCircle,
+  DollarSign,
+  TrendingUp,
 } from "lucide-react";
 
 export default function IssueDetailsPage({ params }: { params: { id: string } }) {
@@ -33,7 +34,7 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
   const [isSuccessMsg, setIsSuccessMsg] = useState(false);
   const [recommendationId, setRecommendationId] = useState<string | null>(null);
 
-  // Decision Intelligence Context State
+  // Decision Context States
   const [context, setContext] = useState<any>(null);
   const [loadingContext, setLoadingContext] = useState(true);
   const [selectedAlternative, setSelectedAlternative] = useState<number>(0);
@@ -132,7 +133,7 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
       issueData.category.toLowerCase().includes("water");
     setContext({
       priority: isSanitation ? "HIGH" : "MEDIUM",
-      affected_population: isSanitation ? 1200 : 150,
+      affected_population: isSanitation ? 4320 : 350,
       estimated_impact: isSanitation ? "HIGH" : "MEDIUM",
       supporting_evidence: isSanitation
         ? [
@@ -141,32 +142,38 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
             "Enforced Regulation: Sanitation Waste Management Regulation 2024",
           ]
         : [
-            "Municipal Asset Proximity: Main Arterial Road Sector 4",
-            "Linked Municipal Scheme: Arterial Road Rehabilitation Program",
+            "Municipal Asset Proximity: Main School Zone Arterial Road Sector 4",
+            "Linked Municipal Scheme: PMGSY Road Infrastructure Upgrade Program",
             "Enforced Regulation: Municipal Road Maintenance Policy 2023",
           ],
-      confidence: 0.95,
+      confidence: 0.96,
       reasoning_chain: isSanitation
         ? "1. Intake categorized issue as 'sanitation'.\n2. Evaluated geo-spatial proximity; matched 3 evidence points.\n3. Determined urgency score: 0.90 and impact scale: HIGH.\n4. Policy Evaluation: Aligned with 'Sanitation Waste Management Regulation 2024'.\n5. Recommended dispatch to Municipal Sanitation Department with SLA of 24 hours."
-        : "1. Intake categorized issue as 'roads'.\n2. Evaluated geo-spatial proximity; matched 3 evidence points.\n3. Determined urgency score: 0.60 and impact scale: MEDIUM.\n4. Policy Evaluation: Aligned with 'Municipal Road Maintenance Policy 2023'.\n5. Recommended dispatch to Public Works Department with SLA of 48 hours.",
+        : "1. Intake categorized issue as 'roads'.\n2. Evaluated geo-spatial proximity; matched 3 evidence points.\n3. Determined urgency score: 0.70 and impact scale: HIGH.\n4. Policy Evaluation: Aligned with 'Municipal Road Maintenance Policy 2023'.\n5. Recommended dispatch to Public Works Department with SLA of 48 hours.",
       alternative_actions: [
         {
           title: "Accelerated Dispatch (Recommended)",
-          cost: "Medium",
+          cost: "₹2.5 Lakhs",
           sla: isSanitation ? "24 Hours" : "48 Hours",
-          desc: "Allocate internal ward maintenance crew.",
+          impact: "SLA Compliant",
+          risk: "Low Risk",
+          desc: "Allocate internal ward maintenance crew under active constituency budget.",
         },
         {
           title: "Private Vendor Contractor Outsource",
-          cost: "High",
+          cost: "₹8.0 Lakhs",
           sla: isSanitation ? "12 Hours" : "24 Hours",
-          desc: "Hire local contractor. Immediate response, higher budget cost.",
+          impact: "Immediate Triage",
+          risk: "Medium Budget Overrun",
+          desc: "Hire third-party contractor. Accelerated timeline at premium cost.",
         },
         {
-          title: "Defer to Standard Cycle",
-          cost: "Low",
-          sla: "10 Days",
-          desc: "Add ticket to general monthly road infrastructure sweep.",
+          title: "Defer to Routine Cycle",
+          cost: "₹0 (Scheduled)",
+          sla: "15 Days",
+          impact: "SLA Breach",
+          risk: "High Public Complaint Risk",
+          desc: "Schedule with monthly sweeping tasks. Breaches local priority SLA.",
         },
       ],
       suggested_department: isSanitation
@@ -175,6 +182,7 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
       expected_outcome: isSanitation
         ? "Restores sanitary conditions, prevents public health hazards, and maintains cleanliness in ward public play areas."
         : "Improves vehicle traffic throughput and eliminates pedestrian safety hazards.",
+      budget_scheme: isSanitation ? "Swachh Bharat Abhiyan Subsidy" : "PMGSY Roads Fund",
     });
     setLoadingContext(false);
   };
@@ -269,242 +277,319 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
 
   return (
     <div className="space-y-6">
-      {/* Top navigation */}
-      <div className="flex items-center space-x-2">
-        <Link href="/officer">
-          <Button variant="ghost" size="sm" className="h-8 text-xs gap-1">
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
-          </Button>
-        </Link>
-        <span className="text-muted-foreground text-xs">/</span>
-        <span className="text-xs font-mono font-semibold text-muted-foreground truncate max-w-[200px]">
-          {issue.id}
-        </span>
+      {/* Top Breadcrumb */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Link href="/officer">
+            <Button variant="ghost" size="sm" className="h-8 text-xs gap-1">
+              <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
+            </Button>
+          </Link>
+          <span className="text-muted-foreground text-xs">/</span>
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            Decision Brief Engine
+          </span>
+        </div>
+        <div className="text-xs text-muted-foreground font-semibold">
+          Status: <Badge variant="outline" className="ml-1 font-mono text-[10px]">{issue.status}</Badge>
+        </div>
       </div>
 
-      {/* Main Grid */}
+      {/* Signature Title Block */}
+      <div className="border-b pb-4">
+        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+          Decision Brief: {issue.title}
+        </h1>
+        <p className="text-xs text-muted-foreground mt-1">
+          Grounded explainable recommendation document compiled on {new Date(issue.createdAt).toLocaleDateString("en-IN", { dateStyle: "long" })}.
+        </p>
+      </div>
+
+      {/* Main Split Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Side: Decision Workspace Details */}
+        {/* Left Columns (2/3 width) */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <Badge variant="outline" className="text-[10px] font-mono">
-                {issue.id}
-              </Badge>
-              <Badge
-                variant={
-                  issue.status === "Completed"
-                    ? "success"
-                    : issue.status === "Assigned" || issue.status === "In_Progress"
-                    ? "info"
-                    : "default"
-                }
-              >
-                {issue.status.replace("_", " ")}
-              </Badge>
+
+          {/* SECTION 1: Problem Definition */}
+          <Card className="p-5 space-y-4">
+            <div className="border-l-4 border-indigo-500 pl-3">
+              <h3 className="font-bold text-sm uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <FileText className="h-4.5 w-4.5 text-indigo-500" /> 1. Problem Definition
+              </h3>
             </div>
+            <div className="space-y-2 text-xs leading-relaxed">
+              <p className="font-semibold text-slate-800 dark:text-slate-200">Incident Details:</p>
+              <p className="text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/30 p-3.5 rounded-lg border">
+                {issue.description}
+              </p>
+            </div>
+          </Card>
 
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h1 className="text-2xl font-bold tracking-tight">{issue.title}</h1>
-                <p className="text-xs text-slate-400 font-semibold">
-                  {issue.category} &bull; {issue.constituency}
-                </p>
+          {/* SECTION 2: Evidence Panel Card Grid */}
+          <Card className="p-5 space-y-4">
+            <div className="border-l-4 border-indigo-500 pl-3">
+              <h3 className="font-bold text-sm uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <Eye className="h-4.5 w-4.5 text-indigo-500" /> 2. Grounded Evidence Grid
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Card 1: Citizen Photo Placeholder */}
+              <div className="border p-3.5 rounded-xl bg-card flex flex-col justify-between min-h-[110px]">
+                <span className="text-[10px] text-muted-foreground font-semibold uppercase">Incident Photo</span>
+                <div className="h-12 bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center justify-center border border-dashed text-slate-400 text-[10px]">
+                  <span>[ Evidence Attachment ]</span>
+                </div>
               </div>
-
-              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg text-xs leading-relaxed text-slate-700 dark:text-slate-300">
-                <p className="font-medium text-slate-900 dark:text-slate-100 mb-1">Issue Description:</p>
-                <p>{issue.description}</p>
+              {/* Card 2: Duplicate Issues Count */}
+              <div className="border p-3.5 rounded-xl bg-card flex flex-col justify-between min-h-[110px]">
+                <span className="text-[10px] text-muted-foreground font-semibold uppercase">Duplicate Cluster</span>
+                <div className="flex items-baseline gap-1 mt-2">
+                  <span className="text-3xl font-extrabold text-indigo-500">18</span>
+                  <span className="text-[10px] text-slate-400 font-medium">complaints in ward</span>
+                </div>
+                <span className="text-[9px] text-emerald-500 font-semibold flex items-center gap-0.5">
+                  <TrendingUp className="h-3 w-3" /> Area Hotspot Detected
+                </span>
               </div>
-
-              {/* Anonymized Citizen Summary */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 text-xs">
-                <div className="border p-3 rounded-lg bg-card">
-                  <div className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
-                    <User className="h-3.5 w-3.5" /> Constituent
-                  </div>
-                  <div className="font-bold mt-1 truncate">Voter #1049 (Anonymized)</div>
+              {/* Card 3: GIS Coordinates */}
+              <div className="border p-3.5 rounded-xl bg-card flex flex-col justify-between min-h-[110px]">
+                <span className="text-[10px] text-muted-foreground font-semibold uppercase">GIS Mapping</span>
+                <div className="font-mono text-[10px] mt-1 space-y-1">
+                  <div>LAT: {issue.location.lat.toFixed(4)}</div>
+                  <div>LNG: {issue.location.lng.toFixed(4)}</div>
                 </div>
-                <div className="border p-3 rounded-lg bg-card">
-                  <div className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5" /> Date Logged
-                  </div>
-                  <div className="font-bold mt-1 truncate">
-                    {new Date(issue.createdAt).toLocaleDateString("en-IN", { dateStyle: "medium" })}
-                  </div>
-                </div>
-                <div className="border p-3 rounded-lg bg-card">
-                  <div className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
-                    <Award className="h-3.5 w-3.5" /> Upvotes
-                  </div>
-                  <div className="font-bold mt-1">{issue.upvotes} Upvotes</div>
-                </div>
-                <div className="border p-3 rounded-lg bg-card">
-                  <div className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" /> Region
-                  </div>
-                  <div className="font-bold mt-1">Shivaji Nagar W12</div>
-                </div>
+                <Badge variant="outline" className="text-[8px] justify-center mt-2 font-mono"> Shivaji Nagar W12</Badge>
               </div>
             </div>
           </Card>
 
-          {/* GIS Radar & Nearby Assets */}
-          <Card className="p-6">
-            <h3 className="font-bold text-sm mb-4 tracking-tight flex items-center gap-2">
-              <Navigation className="h-4 w-4 text-primary" /> GIS Proximity Radar & Nearby Assets
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-              {/* Concentric GIS Radar Mock */}
-              <div className="flex justify-center bg-slate-950 p-4 rounded-xl relative overflow-hidden h-[240px]">
-                <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-[0.04]">
-                  {Array.from({ length: 36 }).map((_, i) => (
-                    <div key={i} className="border border-white" />
-                  ))}
-                </div>
-                <svg className="w-full h-full max-w-[200px]" viewBox="0 0 200 200">
-                  {/* Concentric Circles */}
-                  <circle cx="100" cy="100" r="80" stroke="rgba(99, 102, 241, 0.15)" strokeWidth="1" fill="none" />
-                  <circle cx="100" cy="100" r="55" stroke="rgba(99, 102, 241, 0.25)" strokeWidth="1" fill="none" />
-                  <circle cx="100" cy="100" r="30" stroke="rgba(99, 102, 241, 0.35)" strokeWidth="1" fill="none" />
-                  <line x1="100" y1="20" x2="100" y2="180" stroke="rgba(99, 102, 241, 0.15)" strokeWidth="1" />
-                  <line x1="20" y1="100" x2="180" y2="100" stroke="rgba(99, 102, 241, 0.15)" strokeWidth="1" />
-
-                  {/* Sweep line */}
-                  <line x1="100" y1="100" x2="160" y2="40" stroke="#6366f1" strokeWidth="1.5" className="origin-center animate-[spin_6s_linear_infinite]" />
-
-                  {/* Complaint Center Node */}
-                  <circle cx="100" cy="100" r="6" fill="#ef4444" className="animate-ping" />
-                  <circle cx="100" cy="100" r="4" fill="#ef4444" />
-
-                  {/* Nearby Assets Nodes */}
-                  <g className="cursor-pointer group">
-                    <circle cx="130" cy="75" r="5" fill="#f59e0b" />
-                    <text x="138" y="78" fill="#f59e0b" fontSize="8" className="font-sans font-semibold">Playground</text>
-                  </g>
-                  <g className="cursor-pointer">
-                    <circle cx="70" cy="120" r="5" fill="#10b981" />
-                    <text x="35" y="123" fill="#10b981" fontSize="8" className="font-sans font-semibold">Govt School</text>
-                  </g>
-                  <g className="cursor-pointer">
-                    <circle cx="110" cy="150" r="5" fill="#3b82f6" />
-                    <text x="118" y="153" fill="#3b82f6" fontSize="8" className="font-sans font-semibold">Clinic</text>
-                  </g>
-                </svg>
-                <div className="absolute top-2 left-2 text-[9px] font-mono text-slate-400">RADAR SWEEP: 2.0 km Range</div>
-              </div>
-
-              {/* Assets list */}
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase">Proximity Detections</p>
-                <div className="space-y-2">
-                  {loadingContext ? (
-                    <div className="text-xs text-muted-foreground animate-pulse">Calculating spatial buffers...</div>
-                  ) : (
-                    context.supporting_evidence.map((ev: string, idx: number) => (
-                      <div key={idx} className="border p-2.5 rounded-lg bg-card text-xs flex items-start gap-2">
-                        <AlertCircle className="h-4 w-4 text-indigo-500 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="font-bold text-slate-800 dark:text-slate-200">
-                            {ev.split(":")[0]}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {ev.split(":")[1]}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
+          {/* SECTION 3: Explainability Tree */}
+          <Card className="p-5 space-y-4">
+            <div className="border-l-4 border-indigo-500 pl-3">
+              <h3 className="font-bold text-sm uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <ShieldAlert className="h-4.5 w-4.5 text-indigo-500" /> 3. Explainability Tree
+              </h3>
             </div>
-          </Card>
 
-          {/* AI Reasoning & Policy Explainer */}
-          <Card className="p-6">
-            <h3 className="font-bold text-sm mb-4 tracking-tight flex items-center gap-2">
-              <ShieldAlert className="h-4.5 w-4.5 text-primary" /> Explainable AI Decision Engine
-            </h3>
             {loadingContext ? (
-              <div className="text-xs text-muted-foreground animate-pulse">Running reasoning engines...</div>
+              <div className="text-xs text-muted-foreground animate-pulse">Running reasoning diagnostics...</div>
             ) : (
               <div className="space-y-4">
-                {/* Confidence circular bar */}
-                <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl">
-                  <div className="relative h-14 w-14 flex items-center justify-center bg-indigo-500/10 text-indigo-500 rounded-full flex-shrink-0">
-                    <RefreshCw className="h-6 w-6 animate-[spin_8s_linear_infinite]" />
-                    <span className="absolute text-xs font-bold font-mono">95%</span>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-xs font-bold">Policy Matching Confidence</div>
-                    <div className="text-[11px] text-muted-foreground leading-normal">
-                      The triage engine determined priority using 3 regulatory constraints and 2 local ward asset matches. SLA set to 24h.
+                {/* Visual Flow diagram representation */}
+                <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900/50 flex flex-col space-y-3 relative overflow-hidden">
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+                    <div className="border p-2.5 rounded-lg bg-card w-full md:w-auto text-center font-bold text-indigo-500 border-indigo-500/20">
+                      Category: {issue.category}
+                    </div>
+                    <div className="text-slate-400 font-bold hidden md:block">→</div>
+                    <div className="border p-2.5 rounded-lg bg-card w-full md:w-auto text-center font-bold text-amber-500 border-amber-500/20">
+                      Nearby School/Depot (Evidence Match)
+                    </div>
+                    <div className="text-slate-400 font-bold hidden md:block">→</div>
+                    <div className="border p-2.5 rounded-lg bg-card w-full md:w-auto text-center font-bold text-red-500 border-red-500/20">
+                      Priority Level: {context.priority}
                     </div>
                   </div>
-                </div>
 
-                {/* Reasoning flow diagram */}
-                <div className="border rounded-xl p-4 space-y-3 bg-card">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Decision Reasoning Chain</span>
-                  <div className="font-mono text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-slate-900/30 p-3 rounded-lg border-l-2 border-indigo-500">
+                  <div className="border-t pt-3 font-mono text-[11px] text-slate-500 leading-relaxed whitespace-pre-line bg-card p-3 rounded-lg border">
                     {context.reasoning_chain}
                   </div>
                 </div>
+              </div>
+            )}
+          </Card>
 
-                {/* Expected Outcome */}
-                <div className="border p-3 rounded-lg bg-card text-xs">
-                  <span className="font-bold text-indigo-500 block mb-1">Expected Outcome:</span>
-                  <p className="text-muted-foreground">{context.expected_outcome}</p>
+          {/* SECTION 4: Recommendation & Alternatives Comparison */}
+          <Card className="p-5 space-y-4">
+            <div className="border-l-4 border-indigo-500 pl-3">
+              <h3 className="font-bold text-sm uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <Layers className="h-4.5 w-4.5 text-indigo-500" /> 4. Recommendation Comparison Matrix
+              </h3>
+            </div>
+            {loadingContext ? (
+              <div className="text-xs text-muted-foreground animate-pulse">Loading alternative action models...</div>
+            ) : (
+              <div className="space-y-4">
+                <div className="overflow-x-auto rounded-xl border bg-card text-xs">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b bg-slate-50 dark:bg-slate-900/50 font-semibold text-slate-500">
+                        <th className="p-3">Option</th>
+                        <th className="p-3">Estimated Cost</th>
+                        <th className="p-3">Timeline (SLA)</th>
+                        <th className="p-3">Impact</th>
+                        <th className="p-3">Risk Assessment</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y font-medium">
+                      {context.alternative_actions.map((alt: any, idx: number) => (
+                        <tr
+                          key={idx}
+                          onClick={() => setSelectedAlternative(idx)}
+                          className={`cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition ${
+                            selectedAlternative === idx ? "bg-indigo-500/5 text-indigo-600 font-bold" : ""
+                          }`}
+                        >
+                          <td className="p-3">{alt.title}</td>
+                          <td className="p-3">{alt.cost}</td>
+                          <td className="p-3">{alt.sla}</td>
+                          <td className="p-3">{alt.impact}</td>
+                          <td className="p-3 text-slate-400">{alt.risk}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Details on selected alternative */}
+                <div className="border p-3.5 rounded-lg bg-indigo-500/[0.02] border-indigo-500/20 text-xs">
+                  <span className="font-bold text-indigo-600 block mb-1">
+                    Selected Path: {context.alternative_actions[selectedAlternative].title}
+                  </span>
+                  <p className="text-muted-foreground leading-normal">
+                    {context.alternative_actions[selectedAlternative].desc}
+                  </p>
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Right Column (1/3 width): Impact, Decisions & Ledger Timeline */}
+        <div className="space-y-6">
+
+          {/* SECTION 5: Impact Summary Card */}
+          <Card className="p-5 space-y-4 border-2 border-indigo-500/20 bg-indigo-500/[0.01]">
+            <div className="flex items-center gap-1.5 border-b pb-2">
+              <TrendingUp className="h-4.5 w-4.5 text-indigo-500" />
+              <h3 className="font-bold text-sm tracking-tight text-slate-800 dark:text-slate-200">
+                5. Constituency Impact Summary
+              </h3>
+            </div>
+
+            {loadingContext ? (
+              <div className="text-xs text-muted-foreground animate-pulse">Running impact simulations...</div>
+            ) : (
+              <div className="space-y-3 text-xs">
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-slate-500">Affected Population:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                    {context.affected_population.toLocaleString("en-IN")} Citizens
+                  </span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-slate-500">Nearby Civic Assets:</span>
+                  <span className="font-bold text-indigo-500">Playground & School Zone</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-slate-500">Budget Scheme:</span>
+                  <span className="font-bold text-emerald-500">{context.budget_scheme}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-slate-500">Expected SLA:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                    {context.alternative_actions[selectedAlternative].sla}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Resolution Department:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{context.suggested_department}</span>
                 </div>
               </div>
             )}
           </Card>
 
-          {/* Alternative Actions Grid */}
-          <Card className="p-6">
-            <h3 className="font-bold text-sm mb-4 tracking-tight flex items-center gap-2">
-              <BarChart2 className="h-4.5 w-4.5 text-primary" /> Alternative Actions & Budget Trade-offs
+          {/* SECTION 6: Triage Control Deck / Officer Decisions */}
+          <Card className="p-4 bg-slate-900 border-slate-800 text-white space-y-4 shadow-xl">
+            <h3 className="font-bold text-sm tracking-tight flex items-center gap-1.5 border-b border-slate-800 pb-2 text-indigo-300">
+              <ShieldAlert className="h-4.5 w-4.5 text-indigo-300" /> 6. Triage Control Deck
             </h3>
-            {loadingContext ? (
-              <div className="text-xs text-muted-foreground animate-pulse">Assembling alternatives...</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {context.alternative_actions.map((alt: any, idx: number) => (
-                  <div
-                    key={idx}
-                    onClick={() => setSelectedAlternative(idx)}
-                    className={`border p-3.5 rounded-xl cursor-pointer transition flex flex-col justify-between h-[120px] ${
-                      selectedAlternative === idx
-                        ? "border-primary bg-primary/[0.03] ring-1 ring-primary"
-                        : "bg-card hover:bg-slate-50/50 dark:hover:bg-slate-900/30"
-                    }`}
-                  >
-                    <div>
-                      <div className="font-bold text-xs line-clamp-1">{alt.title}</div>
-                      <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{alt.desc}</p>
-                    </div>
-                    <div className="flex justify-between items-center text-[10px] font-semibold mt-2 border-t pt-2">
-                      <span className="text-slate-400">SLA: {alt.sla}</span>
-                      <span
-                        className={
-                          alt.cost === "High"
-                            ? "text-red-500"
-                            : alt.cost === "Medium"
-                            ? "text-amber-500"
-                            : "text-emerald-500"
-                        }
-                      >
-                        Cost: {alt.cost}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+
+            <div className="space-y-3 text-xs">
+              <span className="font-semibold text-slate-400 block">Transition Request State</span>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  variant={issue.status === "Validated" ? "default" : "outline"}
+                  className="h-8 text-[11px] border-slate-700 text-slate-200 hover:bg-slate-800"
+                  onClick={() =>
+                    handleStatusChange(
+                      "Validated",
+                      "Validated against regional utility infrastructure mapping."
+                    )
+                  }
+                >
+                  Validate AI
+                </Button>
+                <Button
+                  size="sm"
+                  variant={issue.status === "Assigned" ? "default" : "outline"}
+                  className="h-8 text-[11px] border-slate-700 text-slate-200 hover:bg-slate-800"
+                  onClick={() =>
+                    handleStatusChange(
+                      "Assigned",
+                      "Assigned dispatch order to Sector Maintenance Unit B."
+                    )
+                  }
+                >
+                  Assign Crew
+                </Button>
+                <Button
+                  size="sm"
+                  variant={issue.status === "In_Progress" ? "default" : "outline"}
+                  className="h-8 text-[11px] border-slate-700 text-slate-200 hover:bg-slate-800"
+                  onClick={() =>
+                    handleStatusChange(
+                      "In_Progress",
+                      "Field work started. Excavators and technicians on-site."
+                    )
+                  }
+                >
+                  Start Work
+                </Button>
+                <Button
+                  size="sm"
+                  variant={issue.status === "Completed" ? "default" : "outline"}
+                  className="h-8 text-[11px] border-emerald-500/30 text-emerald-400 hover:bg-slate-800"
+                  onClick={() =>
+                    handleStatusChange(
+                      "Completed",
+                      "Service request resolved. Infrastructure checked and restored."
+                    )
+                  }
+                >
+                  Complete SLA
+                </Button>
               </div>
-            )}
+
+              {/* Approve recommendation draft */}
+              <div className="border-t border-slate-800 pt-4 space-y-2">
+                <span className="font-semibold text-slate-400 flex items-center gap-1">
+                  <FileText className="h-3.5 w-3.5" /> Dispatch SMS update response
+                </span>
+                <textarea
+                  className="w-full rounded-md border border-slate-800 bg-slate-950 p-2.5 text-[11px] text-slate-200 focus-visible:outline-none font-mono leading-normal"
+                  rows={4}
+                  value={draftResponse}
+                  onChange={(e) => setDraftResponse(e.target.value)}
+                />
+                <Button
+                  onClick={handleApproveDraft}
+                  className="w-full text-xs h-9 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center justify-center gap-1.5 border-none"
+                >
+                  <Send className="h-3.5 w-3.5" /> Approve & Dispatch Response
+                </Button>
+                {isSuccessMsg && (
+                  <div className="text-[10px] text-emerald-400 font-bold text-center animate-fade-in pt-1">
+                    ✓ Notification dispatched to citizen interface.
+                  </div>
+                )}
+              </div>
+            </div>
           </Card>
 
-          {/* Audit Timeline */}
-          <Card className="p-6">
+          {/* SECTION 7: Timeline ledger */}
+          <Card className="p-5">
             <h3 className="font-bold text-sm mb-4 tracking-tight flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" /> Lifecycle Audit Ledger
             </h3>
@@ -541,139 +626,6 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
                   </div>
                 </div>
               ))}
-            </div>
-          </Card>
-        </div>
-
-        {/* Right Side: Interactive Dispatcher Controls */}
-        <div className="space-y-6">
-          <Card className="p-4 border-2 border-primary/20 bg-gradient-to-b from-primary/5 to-transparent">
-            <h3 className="font-bold text-sm mb-3 tracking-tight flex items-center gap-1.5">
-              <ShieldAlert className="h-4.5 w-4.5 text-primary" /> Triage Control Deck
-            </h3>
-            <div className="space-y-4 text-xs">
-              <div className="space-y-1.5">
-                <span className="font-semibold text-muted-foreground">Workflow Stage Transition</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    size="sm"
-                    variant={issue.status === "Validated" ? "default" : "outline"}
-                    className="h-8 text-[11px]"
-                    onClick={() =>
-                      handleStatusChange(
-                        "Validated",
-                        "Validated against regional utility infrastructure mapping."
-                      )
-                    }
-                  >
-                    Validate AI
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={issue.status === "Assigned" ? "default" : "outline"}
-                    className="h-8 text-[11px]"
-                    onClick={() =>
-                      handleStatusChange(
-                        "Assigned",
-                        "Assigned dispatch order to Sector Maintenance Unit B."
-                      )
-                    }
-                  >
-                    Assign Crew
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={issue.status === "In_Progress" ? "default" : "outline"}
-                    className="h-8 text-[11px]"
-                    onClick={() =>
-                      handleStatusChange(
-                        "In_Progress",
-                        "Field work started. Excavators and technicians on-site."
-                      )
-                    }
-                  >
-                    Start Work
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={issue.status === "Completed" ? "default" : "outline"}
-                    className="h-8 text-[11px] border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-emerald-600"
-                    onClick={() =>
-                      handleStatusChange(
-                        "Completed",
-                        "Service request resolved. Infrastructure checked and restored."
-                      )
-                    }
-                  >
-                    Complete SLA
-                  </Button>
-                </div>
-              </div>
-
-              {/* AI Dispatch Response */}
-              <div className="border-t pt-4 space-y-2">
-                <span className="font-semibold text-muted-foreground flex items-center gap-1">
-                  <FileText className="h-3.5 w-3.5" /> AI Recommendation Response Draft
-                </span>
-                <textarea
-                  className="w-full rounded-md border bg-background p-2.5 text-[11px] text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring font-mono leading-normal"
-                  rows={6}
-                  value={draftResponse}
-                  onChange={(e) => setDraftResponse(e.target.value)}
-                />
-                <Button
-                  onClick={handleApproveDraft}
-                  className="w-full text-xs h-9 bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-1.5"
-                >
-                  <Send className="h-3.5 w-3.5" /> Approve & Dispatch Response
-                </Button>
-                {isSuccessMsg && (
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold text-center animate-fade-in pt-1">
-                    ✓ Notification dispatched to citizen interface.
-                  </div>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          {/* Crew Allocation card */}
-          <Card className="p-4 space-y-3">
-            <h4 className="font-bold text-xs flex items-center gap-1.5">
-              <User className="h-4 w-4 text-slate-500" /> Operational Crew Assignment
-            </h4>
-            <div className="text-xs space-y-2 border p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-              <div className="flex justify-between font-semibold">
-                <span>Suggested Dept:</span>
-                <span>{loadingContext ? "Loading..." : context.suggested_department}</span>
-              </div>
-              <div className="flex justify-between text-slate-500">
-                <span>Field Crew Contact:</span>
-                <span className="font-mono">CREW-1049</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-semibold text-slate-500 uppercase">Dispatcher Note</label>
-              <Input
-                placeholder="Append notes to dispatch order..."
-                className="text-xs h-8"
-                value={dispatcherNote}
-                onChange={(e) => setDispatcherNote(e.target.value)}
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full text-[11px]"
-                onClick={() => {
-                  if (!dispatcherNote) return;
-                  handleStatusChange(
-                    issue.status,
-                    `Dispatcher Note: "${dispatcherNote}"`
-                  );
-                  setDispatcherNote("");
-                }}
-              >
-                Log Dispatcher Entry
-              </Button>
             </div>
           </Card>
         </div>
