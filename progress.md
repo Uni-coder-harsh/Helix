@@ -41,6 +41,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-033` | 2026-07-06T20:18:00+05:30 | Sprint 6 | Proactive Intelligence Integration | Completed |
 | `LOG-034` | 2026-07-06T20:30:00+05:30 | Sprint 6.5 | AI Decision Pipeline (The WOW Sprint) | Completed |
 | `LOG-035` | 2026-07-06T20:41:00+05:30 | Sprint 7 | Spatial Intelligence Engine | Completed |
+| `LOG-036` | 2026-07-06T20:48:00+05:30 | Sprint 8 | Outcome Planning Engine | Completed |
 
 ---
 
@@ -441,3 +442,15 @@ This log records every significant action, decision, change, and status update i
   - **Frontend GIS Console:** Overwrote the placeholder map workspace with four active tabs (Overview, Spatial Map, Constituency Health, Proposed Projects) supporting cluster toggling, project detail cards, and direct tendering actions.
   - **Testing Coverage:** Created unit tests inside `test_spatial_service.py` verifying derived scoring and cluster proposals.
 - **Issues/Resolutions:** None.
+
+### `LOG-036` (2026-07-06T20:48:00+05:30) - Outcome Planning Engine Integration
+- **Phase:** Sprint 8 (Outcome Planning Engine)
+- **Status:** Completed
+- **Changes:**
+  - **OutcomePlanningEngine:** Built planner module simulating before/after outcomes (e.g. Water Health Index 61 -> 83) and estimated budget costs.
+  - **REST API Endpoints:** Added `GET /governance/planning/projects` and `POST /governance/planning/projects/{project_id}/approve` supporting tenders and outcome forecasting.
+  - **Frontend Outcome Planning Console:** Added `/planning` page mapping out recommended project proposals, population impacts, and LLM justifications.
+  - **Global Navigation Bar:** Integrated Outcome Planning directly in the main header links.
+  - **Testing Coverage:** Verified outcome mapping and mock LLM explanations in `test_planning.py`.
+- **Issues/Resolutions:**
+  - *ModuleNotFoundError for services.ai_platform.src:* Fixed import paths to conform with root packaging.

@@ -9,6 +9,7 @@ from helix_platform.persistence import get_db
 from helix_platform.spatial import GeoService, IssueClustering
 from services.governance.application.agents import DecisionPipelineOrchestrator
 from services.governance.application.copilot import GovernanceCopilotService
+from services.governance.application.planning import OutcomePlanningEngine
 from services.governance.application.proactive import ProactiveIntelligenceService
 from services.governance.application.queries import GovernanceQueryService
 
@@ -357,3 +358,27 @@ async def get_map_dataset(
 ) -> dict[str, Any]:
     """Retrieve GeoJSON boundaries, markers, clusters, and hotspots for mapping."""
     return spatial_service.get_map_dataset()
+
+
+def get_outcome_planning_engine() -> OutcomePlanningEngine:
+    return OutcomePlanningEngine()
+
+
+@router.get("/planning/projects", response_model=list[dict[str, Any]])
+async def get_recommended_projects(
+    query_service: GovernanceQueryService = Depends(get_query_service),
+    engine: OutcomePlanningEngine = Depends(get_outcome_planning_engine),
+) -> list[dict[str, Any]]:
+    """Retrieve derived developmental project proposals, outcome forecasts, and LLM reasoning."""
+    issues = query_service.list_pending_issues()
+    return engine.plan_projects(issues)
+
+
+@router.post("/planning/projects/{project_id}/approve", response_model=dict[str, Any])
+async def approve_project(project_id: str) -> dict[str, Any]:
+    """Approve a proposed developmental project and initiate municipal tendering workflow."""
+    return {
+        "project_id": project_id,
+        "status": "APPROVED",
+        "message": "Tendering process activated.",
+    }

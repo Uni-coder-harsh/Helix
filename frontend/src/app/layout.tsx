@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Link from "next/link";
 import React from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Compass, Users, LayoutDashboard, BarChart3, Settings, Shield } from "lucide-react";
+import { Compass, Users, LayoutDashboard, BarChart3, Settings, Shield, Sparkles } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -45,6 +45,9 @@ export default function RootLayout({
                     </Link>
                     <Link href="/map" className="flex items-center gap-1.5 hover:text-foreground transition">
                       <Compass className="h-4 w-4" /> Map
+                    </Link>
+                    <Link href="/planning" className="flex items-center gap-1.5 hover:text-foreground transition">
+                      <Sparkles className="h-4 w-4 text-indigo-500 animate-pulse" /> Planning
                     </Link>
                     <Link href="/analytics" className="flex items-center gap-1.5 hover:text-foreground transition">
                       <BarChart3 className="h-4 w-4" /> Analytics
