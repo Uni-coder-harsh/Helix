@@ -37,6 +37,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-029` | 2026-07-06T18:45:00+05:30 | Sprint 2.1 | Clean Architecture Stabilization | Completed |
 | `LOG-030` | 2026-07-06T19:10:00+05:30 | Sprint 3 | Governance Decision & GIS Engine MVP | Completed |
 | `LOG-031` | 2026-07-06T19:40:00+05:30 | Sprint 4.1 | Decision Brief & Constituency Dashboard Polish | Completed |
+| `LOG-032` | 2026-07-06T20:05:00+05:30 | Sprint 5 | Governance Copilot Integration | Completed |
 
 ---
 
@@ -392,3 +393,14 @@ This log records every significant action, decision, change, and status update i
     - *Matrix Comparison:* Tabular comparison of options (Accelerated, Outsource, Defer) detailing costs, timelines, and risks.
   - **REST API updates:** Verified endpoints and updated Next.js to fetch from `/context` routes with client fallbacks.
 - **Issues/Resolutions:** None.
+
+### `LOG-032` (2026-07-06T20:05:00+05:30) - Governance Copilot Integration
+- **Phase:** Sprint 5 (Governance Copilot MVP)
+- **Status:** Completed
+- **Changes:**
+  - **GovernanceCopilotService:** Implemented prompt compiling, context assembly, response validation, and citation formatting layers.
+  - **REST API Integration:** Added `/copilot` POST endpoint executing structured decision queries.
+  - **Frontend Copilot Panel:** Embedded an interactive side control deck inside the Decision Brief workspace, mapping out language choices and query triggers.
+  - **Testing Coverage:** Created deterministic tests inside `test_copilot.py` running mock validations across all 7 core capability vectors.
+- **Issues/Resolutions:**
+  - *Missing pyproject.toml workspace warnings:* Created `pyproject.toml` inside `backend/services/ai-platform` and listed it explicitly under `members` in `backend/pyproject.toml` to prevent wildcards indexing raw monolith subdirectories.

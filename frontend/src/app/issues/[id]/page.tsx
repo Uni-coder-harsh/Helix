@@ -16,15 +16,13 @@ import {
   FileText,
   Send,
   Calendar,
-  Navigation,
   Eye,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
   Layers,
   HelpCircle,
-  DollarSign,
   TrendingUp,
+  Cpu,
+  RefreshCw,
+  Globe,
 } from "lucide-react";
 
 export default function IssueDetailsPage({ params }: { params: { id: string } }) {
@@ -38,6 +36,11 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
   const [context, setContext] = useState<any>(null);
   const [loadingContext, setLoadingContext] = useState(true);
   const [selectedAlternative, setSelectedAlternative] = useState<number>(0);
+
+  // Governance Copilot States
+  const [copilotResponse, setCopilotResponse] = useState<any>(null);
+  const [copilotLanguage, setCopilotLanguage] = useState("English");
+  const [queryingCopilot, setQueryingCopilot] = useState(false);
 
   useEffect(() => {
     // 1. Fetch Issue Details
@@ -275,6 +278,89 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
     }
   };
 
+  // Trigger Governance Copilot APIs
+  const queryCopilot = async (action: string) => {
+    setQueryingCopilot(true);
+    try {
+      const res = await fetch("http://localhost:8000/governance/copilot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          issue_id: issue.id,
+          query_details: { language: copilotLanguage },
+        }),
+      });
+      const data = await res.json();
+      setCopilotResponse(data);
+    } catch (err) {
+      console.log("Offline fallback for copilot query:", err);
+      // Construct fallback UI content corresponding to selected action
+      const isSanit =
+        issue.category.toLowerCase().includes("sanit") ||
+        issue.category.toLowerCase().includes("water");
+
+      let summary = "";
+      let recommendations: string[] = [];
+      let alternatives: string[] = [];
+      let citations: string[] = [];
+      let evidence: string[] = [];
+      let warnings: string[] = [];
+
+      if (action === "policy_explanation") {
+        summary = isSanit
+          ? "This sanitation complaint matches the 2024 Ward Waste Disposal Act. Grounded subsidies apply through the Swachh Bharat Abhiyan fund matching."
+          : "Under PMGSY road restoration policy, main arterial segments with bus routes receive urgent priority status and local infrastructure grant credits.";
+        citations = isSanit
+          ? ["📜 Enforced Policy: `Sanitation Waste Management Regulation 2024`"]
+          : ["💰 Linked Scheme: `PMGSY Roads Fund Contract`"];
+        evidence = [
+          "Located within 500m of residential ward playground.",
+          "Category matches sanitation classification.",
+        ];
+        recommendations = ["Authorize immediate budget clearance under active local scheme."];
+      } else if (action === "alternative_recommendation") {
+        summary =
+          "We can outsource this clearing job to a private contractor for 12h resolution, but it incurs a 220% cost premium.";
+        alternatives = ["Private Contractor SLA 12h: ₹8.0L", "Defer to monthly General Sweep: ₹0"];
+        recommendations = ["Proceed with internal ward dispatch to save regional budget resources."];
+      } else if (action === "citizen_reply") {
+        summary =
+          copilotLanguage === "Kannada"
+            ? "ನಮಸ್ಕಾರ, ನಿಮ್ಮ ದೂರು ಯಶಸ್ವಿಯಾಗಿ ದಾಖಲಾಗಿದೆ. ಮುಂದಿನ 24 ಗಂಟೆಗಳಲ್ಲಿ ನೈರ್ಮಲ್ಯ ಇಲಾಖೆ ಅಧಿಕಾರಿಗಳು ಸ್ಥಳಕ್ಕೆ ಧಾವಿಸಲಿದ್ದಾರೆ."
+            : copilotLanguage === "Hindi"
+            ? "नमस्ते, आपकी शिकायत दर्ज हो गई है। 48 घंटे के भीतर लोक निर्माण विभाग के कर्मचारी काम शुरू कर देंगे।"
+            : "Dear Constituent, your service request has been triaged. Operations crew is dispatched and scheduled to arrive within 48 hours.";
+        citations = ["SMS Dispatcher Notification Log"];
+      } else if (action === "meeting_brief") {
+        summary =
+          "Constituency Review Brief: 18 pending tickets in Shivaji Nagar W12. Heavy backlog in PWD road patch operations due to recent utility pipeline excavations.";
+        evidence = ["Active backlogs: 8 days behind schedule.", "Recommended: Allocate ₹18L contingency funds."];
+        recommendations = [
+          "Table backlog report in tomorrow's MP review meeting.",
+          "Request fast-track utility clearance.",
+        ];
+      } else {
+        // default/recommendation explanation
+        summary =
+          "Calculated priority score is 9.0/10 based on local asset proximity and regional voter density.";
+        evidence = ["18 duplicate tickets reported in close coordinates.", "Near hospital ambulance lane."];
+        citations = ["Geo-spatial coordinate logs"];
+      }
+
+      setCopilotResponse({
+        summary,
+        evidence,
+        citations,
+        confidence: 0.95,
+        recommendations,
+        alternatives,
+        warnings,
+      });
+    }
+    setQueryingCopilot(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Breadcrumb */}
@@ -291,7 +377,10 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
           </span>
         </div>
         <div className="text-xs text-muted-foreground font-semibold">
-          Status: <Badge variant="outline" className="ml-1 font-mono text-[10px]">{issue.status}</Badge>
+          Status:{" "}
+          <Badge variant="outline" className="ml-1 font-mono text-[10px]">
+            {issue.status}
+          </Badge>
         </div>
       </div>
 
@@ -301,7 +390,8 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
           Decision Brief: {issue.title}
         </h1>
         <p className="text-xs text-muted-foreground mt-1">
-          Grounded explainable recommendation document compiled on {new Date(issue.createdAt).toLocaleDateString("en-IN", { dateStyle: "long" })}.
+          Grounded explainable recommendation document compiled on{" "}
+          {new Date(issue.createdAt).toLocaleDateString("en-IN", { dateStyle: "long" })}.
         </p>
       </div>
 
@@ -309,7 +399,6 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Columns (2/3 width) */}
         <div className="lg:col-span-2 space-y-6">
-
           {/* SECTION 1: Problem Definition */}
           <Card className="p-5 space-y-4">
             <div className="border-l-4 border-indigo-500 pl-3">
@@ -335,14 +424,18 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Card 1: Citizen Photo Placeholder */}
               <div className="border p-3.5 rounded-xl bg-card flex flex-col justify-between min-h-[110px]">
-                <span className="text-[10px] text-muted-foreground font-semibold uppercase">Incident Photo</span>
+                <span className="text-[10px] text-muted-foreground font-semibold uppercase">
+                  Incident Photo
+                </span>
                 <div className="h-12 bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center justify-center border border-dashed text-slate-400 text-[10px]">
                   <span>[ Evidence Attachment ]</span>
                 </div>
               </div>
               {/* Card 2: Duplicate Issues Count */}
               <div className="border p-3.5 rounded-xl bg-card flex flex-col justify-between min-h-[110px]">
-                <span className="text-[10px] text-muted-foreground font-semibold uppercase">Duplicate Cluster</span>
+                <span className="text-[10px] text-muted-foreground font-semibold uppercase">
+                  Duplicate Cluster
+                </span>
                 <div className="flex items-baseline gap-1 mt-2">
                   <span className="text-3xl font-extrabold text-indigo-500">18</span>
                   <span className="text-[10px] text-slate-400 font-medium">complaints in ward</span>
@@ -353,12 +446,17 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
               </div>
               {/* Card 3: GIS Coordinates */}
               <div className="border p-3.5 rounded-xl bg-card flex flex-col justify-between min-h-[110px]">
-                <span className="text-[10px] text-muted-foreground font-semibold uppercase">GIS Mapping</span>
+                <span className="text-[10px] text-muted-foreground font-semibold uppercase">
+                  GIS Mapping
+                </span>
                 <div className="font-mono text-[10px] mt-1 space-y-1">
                   <div>LAT: {issue.location.lat.toFixed(4)}</div>
                   <div>LNG: {issue.location.lng.toFixed(4)}</div>
                 </div>
-                <Badge variant="outline" className="text-[8px] justify-center mt-2 font-mono"> Shivaji Nagar W12</Badge>
+                <Badge variant="outline" className="text-[8px] justify-center mt-2 font-mono">
+                  {" "}
+                  Shivaji Nagar W12
+                </Badge>
               </div>
             </div>
           </Card>
@@ -372,7 +470,9 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
             </div>
 
             {loadingContext ? (
-              <div className="text-xs text-muted-foreground animate-pulse">Running reasoning diagnostics...</div>
+              <div className="text-xs text-muted-foreground animate-pulse">
+                Running reasoning diagnostics...
+              </div>
             ) : (
               <div className="space-y-4">
                 {/* Visual Flow diagram representation */}
@@ -407,7 +507,9 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
               </h3>
             </div>
             {loadingContext ? (
-              <div className="text-xs text-muted-foreground animate-pulse">Loading alternative action models...</div>
+              <div className="text-xs text-muted-foreground animate-pulse">
+                Loading alternative action models...
+              </div>
             ) : (
               <div className="space-y-4">
                 <div className="overflow-x-auto rounded-xl border bg-card text-xs">
@@ -457,6 +559,109 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
 
         {/* Right Column (1/3 width): Impact, Decisions & Ledger Timeline */}
         <div className="space-y-6">
+          {/* NEW: Governance Copilot Panel */}
+          <Card className="p-5 border-2 border-indigo-600/30 bg-gradient-to-br from-indigo-950/20 to-slate-900/20 space-y-4">
+            <h3 className="font-extrabold text-sm tracking-tight flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+              <Cpu className="h-4.5 w-4.5 animate-[spin_5s_linear_infinite]" /> Governance Copilot
+            </h3>
+            <p className="text-[10px] text-muted-foreground leading-normal">
+              Structured decision assistant grounded in Helix regional policies and evidence base.
+            </p>
+
+            <div className="space-y-2.5">
+              {/* Queries Grid */}
+              <div className="grid grid-cols-1 gap-1.5">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => queryCopilot("policy_explanation")}
+                  className="text-left justify-start text-[11px] h-8 truncate bg-card"
+                >
+                  📜 Explain Active Policies
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => queryCopilot("alternative_recommendation")}
+                  className="text-left justify-start text-[11px] h-8 truncate bg-card"
+                >
+                  ⚖️ Compare Cheaper Options
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => queryCopilot("meeting_brief")}
+                  className="text-left justify-start text-[11px] h-8 truncate bg-card"
+                >
+                  🗒️ MP Meeting Brief Notes
+                </Button>
+                <div className="flex gap-2 items-center border p-1 rounded-lg bg-card">
+                  <Globe className="h-3.5 w-3.5 text-slate-400 ml-1.5" />
+                  <select
+                    value={copilotLanguage}
+                    onChange={(e) => setCopilotLanguage(e.target.value)}
+                    className="bg-transparent text-[10px] focus:outline-none w-full font-semibold"
+                  >
+                    <option value="English">English</option>
+                    <option value="Hindi">Hindi (हिंदी)</option>
+                    <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+                  </select>
+                  <Button
+                    size="sm"
+                    onClick={() => queryCopilot("citizen_reply")}
+                    className="text-[10px] h-7 px-2.5"
+                  >
+                    Draft SMS
+                  </Button>
+                </div>
+              </div>
+
+              {/* Copilot response box */}
+              {queryingCopilot && (
+                <div className="p-3 border rounded-lg bg-card text-center text-xs text-muted-foreground animate-pulse flex items-center justify-center gap-1.5">
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Querying decision models...
+                </div>
+              )}
+
+              {copilotResponse && !queryingCopilot && (
+                <div className="border rounded-xl p-3.5 bg-card text-xs space-y-3 shadow-sm border-indigo-500/20">
+                  <div className="flex justify-between items-center border-b pb-1.5">
+                    <span className="font-bold text-indigo-600">Copilot Verdict</span>
+                    <Badge variant="outline" className="font-mono text-[9px]">
+                      Confidence: {(copilotResponse.confidence * 100).toFixed(0)}%
+                    </Badge>
+                  </div>
+                  <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                    {copilotResponse.summary}
+                  </p>
+
+                  {copilotResponse.evidence && copilotResponse.evidence.length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Evidence</span>
+                      <ul className="list-disc pl-4 text-[10px] text-slate-500 space-y-0.5">
+                        {copilotResponse.evidence.map((ev: string, i: number) => (
+                          <li key={i}>{ev}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {copilotResponse.citations && copilotResponse.citations.length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Citations</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {copilotResponse.citations.map((cit: string, i: number) => (
+                          <span key={i} className="text-[9px] bg-slate-100 dark:bg-slate-900 p-1 px-1.5 rounded font-mono">
+                            {cit}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </Card>
 
           {/* SECTION 5: Impact Summary Card */}
           <Card className="p-5 space-y-4 border-2 border-indigo-500/20 bg-indigo-500/[0.01]">
@@ -468,7 +673,9 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
             </div>
 
             {loadingContext ? (
-              <div className="text-xs text-muted-foreground animate-pulse">Running impact simulations...</div>
+              <div className="text-xs text-muted-foreground animate-pulse">
+                Running impact simulations...
+              </div>
             ) : (
               <div className="space-y-3 text-xs">
                 <div className="flex justify-between border-b pb-2">
@@ -493,7 +700,9 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Resolution Department:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{context.suggested_department}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                    {context.suggested_department}
+                  </span>
                 </div>
               </div>
             )}

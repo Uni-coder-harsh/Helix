@@ -1,0 +1,9 @@
+[project]
+name = "ai-platform"
+version = "0.1.0"
+description = "Helix AI Platform Foundation Service"
+requires-python = ">=3.13"
+dependencies = []
+
+[tool.uv]
+managed = true

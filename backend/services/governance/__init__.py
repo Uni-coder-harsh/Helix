@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from helix_platform.persistence import get_db
 from helix_platform.spatial import GeoService, IssueClustering
+from services.governance.application.copilot import GovernanceCopilotService
 from services.governance.application.queries import GovernanceQueryService
 
 # Application & Domain Layers
@@ -23,6 +24,7 @@ from services.governance.infrastructure.repositories import (
     SQLAlchemyIssueRepository,
     SQLAlchemyRecommendationRepository,
 )
+from services.governance.workflows import knowledge_service
 
 router = APIRouter(prefix="/governance", tags=["Governance"])
 
@@ -241,3 +243,39 @@ async def get_spatial_clusters(
     """Retrieve clustered issue markers for map visualization."""
     issues = query_service.list_pending_issues()
     return IssueClustering.cluster_issues(issues, radius_km=0.5)
+
+
+# Governance Copilot API Endpoints
+
+
+class CopilotRequestSchema(BaseModel):
+    action: str = Field(description="Action name (e.g. decision_summary)")
+    issue_id: str | None = Field(default=None, description="Target issue context")
+    query_details: dict[str, Any] = Field(
+        default_factory=dict, description="Query context"
+    )
+
+
+def get_copilot_service(
+    query_service: GovernanceQueryService = Depends(get_query_service),
+) -> GovernanceCopilotService:
+    return GovernanceCopilotService(
+        knowledge_service=knowledge_service,
+        query_service=query_service,
+    )
+
+
+@router.post("/copilot", response_model=dict[str, Any])
+async def execute_copilot_query(
+    payload: CopilotRequestSchema,
+    copilot_service: GovernanceCopilotService = Depends(get_copilot_service),
+) -> dict[str, Any]:
+    """Execute a structured decision query against the Governance Copilot."""
+    try:
+        return await copilot_service.execute_query(
+            action=payload.action,
+            issue_id=payload.issue_id,
+            query_details=payload.query_details,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
