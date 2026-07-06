@@ -18,6 +18,7 @@ from services.governance.application.services import (
     OfficerApplicationService,
     RecommendationApplicationService,
 )
+from services.governance.application.spatial import SpatialIntelligenceService
 from services.governance.infrastructure.queries import SQLAlchemyGovernanceQueryService
 
 # Infrastructure Layer
@@ -330,3 +331,29 @@ async def get_issue_decision_pipeline(
             raise HTTPException(status_code=404, detail="Issue record not found.")
 
     return orchestrator.run_pipeline(issue)
+
+
+def get_spatial_intelligence_service(
+    query_service: GovernanceQueryService = Depends(get_query_service),
+) -> SpatialIntelligenceService:
+    return SpatialIntelligenceService(query_service=query_service)
+
+
+@router.get("/constituency/overview", response_model=dict[str, Any])
+async def get_constituency_overview(
+    spatial_service: SpatialIntelligenceService = Depends(
+        get_spatial_intelligence_service
+    ),
+) -> dict[str, Any]:
+    """Retrieve derived constituency health scores, hotspot projects, and active priorities."""
+    return spatial_service.get_constituency_overview()
+
+
+@router.get("/map", response_model=dict[str, Any])
+async def get_map_dataset(
+    spatial_service: SpatialIntelligenceService = Depends(
+        get_spatial_intelligence_service
+    ),
+) -> dict[str, Any]:
+    """Retrieve GeoJSON boundaries, markers, clusters, and hotspots for mapping."""
+    return spatial_service.get_map_dataset()

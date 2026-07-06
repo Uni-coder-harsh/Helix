@@ -40,6 +40,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-032` | 2026-07-06T20:05:00+05:30 | Sprint 5 | Governance Copilot Integration | Completed |
 | `LOG-033` | 2026-07-06T20:18:00+05:30 | Sprint 6 | Proactive Intelligence Integration | Completed |
 | `LOG-034` | 2026-07-06T20:30:00+05:30 | Sprint 6.5 | AI Decision Pipeline (The WOW Sprint) | Completed |
+| `LOG-035` | 2026-07-06T20:41:00+05:30 | Sprint 7 | Spatial Intelligence Engine | Completed |
 
 ---
 
@@ -429,3 +430,14 @@ This log records every significant action, decision, change, and status update i
   - **Unit Testing:** Verified all agents and orchestrations inside `test_pipeline.py`.
 - **Issues/Resolutions:**
   - *Workspace CI compilation errors (untracked members):* Removed `"shared"` and `"helix_platform"` directories from the workspace `members` list in `backend/pyproject.toml` since they do not have standalone package manifests.
+
+### `LOG-035` (2026-07-06T20:41:00+05:30) - Spatial Intelligence Engine Integration
+- **Phase:** Sprint 7 (Spatial Intelligence Engine)
+- **Status:** Completed
+- **Changes:**
+  - **HotspotEngine:** Created algorithm grouping nearby citizen issues within 350m and proposing unified developmental projects (e.g., Reconstruct Main Water Pipe Trunk) to solve them collectively.
+  - **ConstituencyHealthEngine:** Derived active category health scores dynamically (Roads, Water, Electricity, Healthcare, Education) based on pending issue densities and priority weightings.
+  - **REST API Endpoints:** Added `GET /governance/constituency/overview` and `GET /governance/map` serving geospatial indexes, heatmaps, and hotspot project proposals.
+  - **Frontend GIS Console:** Overwrote the placeholder map workspace with four active tabs (Overview, Spatial Map, Constituency Health, Proposed Projects) supporting cluster toggling, project detail cards, and direct tendering actions.
+  - **Testing Coverage:** Created unit tests inside `test_spatial_service.py` verifying derived scoring and cluster proposals.
+- **Issues/Resolutions:** None.
