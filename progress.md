@@ -22,6 +22,10 @@ This log records every significant action, decision, change, and status update i
 | `LOG-014` | 2026-07-05T19:30:00+05:30 | Phase 2 | Frozen C4 Level 1 Context Diagram (HELIX-ARCH-002) | Completed |
 | `LOG-015` | 2026-07-05T19:45:00+05:30 | Phase 2 | Drafted C4 Level 2 Container Diagram (HELIX-ARCH-003) | Completed |
 | `LOG-016` | 2026-07-05T19:55:00+05:30 | Phase 2 | Refined C4 Level 2 Container Diagram (HELIX-ARCH-003) | Completed |
+| `LOG-017` | 2026-07-06T13:25:00+05:30 | Phase 2 | Frozen C4 Level 2 Container Diagram (HELIX-ARCH-003) | Completed |
+| `LOG-018` | 2026-07-06T13:30:00+05:30 | Phase 2 | Re-ordered Architectural Roadmap & Updated Navigation | Completed |
+| `LOG-019` | 2026-07-06T13:35:00+05:30 | Phase 2 | Drafted Event-Driven Architecture Spec & Initialized ADR Stream | Completed |
+| `LOG-020` | 2026-07-06T13:40:00+05:30 | Phase 2 | Frozen Event-Driven Architecture (HELIX-ARCH-004) & Event Catalog (HELIX-ARCH-005) | Completed |
 
 ---
 
@@ -180,4 +184,42 @@ This log records every significant action, decision, change, and status update i
 - **Status:** Completed
 - **Changes:**
   - Refined `docs/02-architecture/03-c4-container.md` (HELIX-ARCH-003) to fix Mermaid syntax, remove Platform-level logging/monitoring services, extract Analytics into a dedicated processing container section, and annotate Knowledge Graph index separation rules.
+- **Issues/Resolutions:** None.
+
+### `LOG-017` (2026-07-06T13:25:00+05:30) - Frozen C4 Level 2 Container Diagram (HELIX-ARCH-003)
+- **Phase:** Phase 2 (Architecture)
+- **Status:** Completed
+- **Changes:**
+  - Frozen `docs/02-architecture/03-c4-container.md` (HELIX-ARCH-003) as v1.0.0 based on review approval.
+- **Issues/Resolutions:** None.
+
+### `LOG-018` (2026-07-06T13:30:00+05:30) - Re-ordered Architectural Roadmap & Updated Navigation
+- **Phase:** Phase 2 (Architecture)
+- **Status:** Completed
+- **Changes:**
+  - Re-ordered the downstream architecture pipeline: prioritized Event-Driven Architecture (`ARCH-004`) and Event Catalog (`ARCH-005`) before Component Architecture (`ARCH-006`).
+  - Renamed placeholders to match new roadmap file numbering: `04-component-architecture.md` to `06-component-architecture.md`, `06-microservice-boundaries.md` to `07-microservice-boundaries.md`, `07-plugin-architecture.md` to `08-plugin-architecture.md`, and `08-deployment-architecture.md` to `09-deployment-architecture.md`.
+  - Created a new placeholder for `05-event-catalog.md`.
+  - Updated `mkdocs.yml` navigation structure to match the new files.
+- **Issues/Resolutions:** None.
+
+### `LOG-019` (2026-07-06T13:35:00+05:30) - Drafted Event-Driven Architecture Spec & Initialized ADR Stream
+- **Phase:** Phase 2 (Architecture)
+- **Status:** Completed
+- **Changes:**
+  - Drafted the primary `docs/02-architecture/04-event-driven-architecture.md` (HELIX-ARCH-004) covering EDA motivation, event design principles, lifecycle, producers, consumers, categories, versioning, ordering, idempotency, retries, DLQ, replay, Sagas, security, and governance.
+  - Initialized a parallel Architecture Decision Record (ADR) stream in the root-level `adr/` directory.
+  - Created `adr/ADR-0001-why-event-driven-architecture.md` (why event-driven architecture).
+  - Created `adr/ADR-0002-why-plugin-architecture.md` (why plugin architecture).
+  - Created `adr/ADR-0003-why-human-in-the-loop-ai.md` (why human-in-the-loop AI).
+  - Created `adr/ADR-0004-why-knowledge-graph.md` (why knowledge graph).
+- **Issues/Resolutions:** None.
+
+### `LOG-020` (2026-07-06T13:40:00+05:30) - Frozen Event-Driven Architecture (HELIX-ARCH-004) & Event Catalog (HELIX-ARCH-005)
+- **Phase:** Phase 2 (Architecture)
+- **Status:** Completed
+- **Changes:**
+  - Frozen `docs/02-architecture/04-event-driven-architecture.md` (HELIX-ARCH-004) as v1.0.0, including requested updates clarifying the Outbox Pattern implementation nature and legal data retention overlaps on citizen data shredding.
+  - Frozen the canonical registry `docs/02-architecture/05-event-catalog.md` (HELIX-ARCH-005) as v1.0.0 based on review approval, detailing 21 standard platform events grouped across 7 functional categories (Citizen, Workflow, AI, Notification, Admin, Audit, Plugin) with exact Event ID, Trigger, Ordering Key, PII classification, and Payload summary mappings. Also refined the IssueValidated event to assign Workflow Engine as the sole producing authority context.
+  - Formulated event metadata envelope structures, schema version compatibility rules, and deprecation policies in the catalog.
 - **Issues/Resolutions:** None.

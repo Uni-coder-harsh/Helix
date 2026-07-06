@@ -1,17 +1,17 @@
 ---
 spec_id: "HELIX-ARCH-003"
-status: "Draft"
-version: "0.2.0"
+status: "Frozen"
+version: "1.0.0"
 owner: "@harsh"
 reviewers: "Architecture Review Board"
-last_updated: "2026-07-05"
+last_updated: "2026-07-06"
 dependencies: ["HELIX-ARCH-002"]
-related_adr: []
+related_adr: ["ADR-0001"]
 related_rfc: []
 related_requirements: []
 doc_type: "Explanation"
 diataxis_category: "Explanation"
-lifecycle: "Draft"
+lifecycle: "Frozen"
 ---
 
 # HELIX-ARCH-003: C4 Level 2 Container Diagram
