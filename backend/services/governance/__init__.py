@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from helix_platform.persistence import get_db
+from helix_platform.security import CurrentUser, Permissions, require_permission
 from helix_platform.spatial import GeoService, IssueClustering
 from services.governance.application.agents import DecisionPipelineOrchestrator
 from services.governance.application.copilot import GovernanceCopilotService
@@ -60,6 +61,14 @@ class RecommendationVerdictSchema(BaseModel):
     )
 
 
+class CopilotRequestSchema(BaseModel):
+    action: str = Field(description="Action name (e.g. decision_summary)")
+    issue_id: str | None = Field(default=None, description="Target issue context")
+    query_details: dict[str, Any] = Field(
+        default_factory=dict, description="Query context"
+    )
+
+
 # Dependency Injection Helpers
 def get_issue_repo(db: Session = Depends(get_db)) -> SQLAlchemyIssueRepository:
     return SQLAlchemyIssueRepository(db)
@@ -107,6 +116,45 @@ def get_evidence_service() -> Any:
     return EvidenceIntelligenceService()
 
 
+def get_geo_service() -> GeoService:
+    return GeoService()
+
+
+def get_copilot_service(
+    query_service: GovernanceQueryService = Depends(get_query_service),
+) -> GovernanceCopilotService:
+    return GovernanceCopilotService(
+        knowledge_service=knowledge_service,
+        query_service=query_service,
+    )
+
+
+def get_proactive_service(
+    query_service: GovernanceQueryService = Depends(get_query_service),
+) -> ProactiveIntelligenceService:
+    return ProactiveIntelligenceService(query_service=query_service)
+
+
+def get_pipeline_orchestrator() -> DecisionPipelineOrchestrator:
+    return DecisionPipelineOrchestrator()
+
+
+def get_brief_engine() -> Any:
+    from services.governance.application.decision_brief import DecisionBriefEngine
+
+    return DecisionBriefEngine()
+
+
+def get_spatial_intelligence_service(
+    query_service: GovernanceQueryService = Depends(get_query_service),
+) -> SpatialIntelligenceService:
+    return SpatialIntelligenceService(query_service=query_service)
+
+
+def get_outcome_planning_engine() -> OutcomePlanningEngine:
+    return OutcomePlanningEngine()
+
+
 @router.get("")
 @router.get("/")
 async def get_root() -> dict[str, str]:
@@ -119,6 +167,7 @@ async def submit_issue(
     payload: IssueCreateSchema,
     issue_service: IssueApplicationService = Depends(get_issue_service),
     db: Session = Depends(get_db),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.ISSUES_CREATE)),
 ) -> dict[str, Any]:
     """1. Citizen submits an issue, triggering the ingestion pipeline."""
     issue_id = await issue_service.ingest_issue(
@@ -152,6 +201,9 @@ async def submit_issue(
 @router.get("/issues/pending", response_model=list[dict[str, Any]])
 async def list_pending_issues(
     query_service: GovernanceQueryService = Depends(get_query_service),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.ISSUES_LIST_PENDING)
+    ),
 ) -> list[dict[str, Any]]:
     """List pending issues waiting for triage or AI recommendation review."""
     return query_service.list_pending_issues()
@@ -161,6 +213,9 @@ async def list_pending_issues(
 async def get_recommendation(
     issue_id: str,
     query_service: GovernanceQueryService = Depends(get_query_service),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.RECOMMENDATIONS_READ)
+    ),
 ) -> dict[str, Any]:
     """Retrieve the AI recommendation for a specific issue."""
     try:
@@ -175,6 +230,9 @@ async def get_recommendation(
 async def accept_recommendation(
     recommendation_id: str,
     officer_service: OfficerApplicationService = Depends(get_officer_service),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.RECOMMENDATIONS_WRITE)
+    ),
 ) -> dict[str, Any]:
     """Approve the AI recommendation, assigning the task and transitioning state."""
     try:
@@ -197,6 +255,9 @@ async def reject_recommendation(
     recommendation_id: str,
     payload: RecommendationVerdictSchema,
     officer_service: OfficerApplicationService = Depends(get_officer_service),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.RECOMMENDATIONS_WRITE)
+    ),
 ) -> dict[str, Any]:
     """Reject the AI recommendation."""
     try:
@@ -211,6 +272,9 @@ async def reject_recommendation(
 @router.get("/dashboard/stats", response_model=dict[str, int])
 async def get_dashboard_stats(
     query_service: GovernanceQueryService = Depends(get_query_service),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.ISSUES_LIST_PENDING)
+    ),
 ) -> dict[str, int]:
     """Compute summary statistics for issues grouped by status mapping."""
     return query_service.get_dashboard_stats()
@@ -220,6 +284,7 @@ async def get_dashboard_stats(
 async def get_issue_context(
     issue_id: str,
     query_service: GovernanceQueryService = Depends(get_query_service),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.ISSUES_READ)),
 ) -> dict[str, Any]:
     """Retrieve the full decision context (policies, schemes, assets, impact, alternatives) for an issue."""
     issues = query_service.list_pending_issues()
@@ -239,16 +304,10 @@ async def get_issue_context(
     return rec_details
 
 
-# Spatial Engine Integration Endpoints
-
-
-def get_geo_service() -> GeoService:
-    return GeoService()
-
-
 @router.get("/spatial/boundaries", response_model=dict[str, Any])
 async def get_spatial_boundaries(
     geo_service: GeoService = Depends(get_geo_service),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.SPATIAL_READ)),
 ) -> dict[str, Any]:
     """Retrieve GeoJSON features representing constituency and ward boundaries."""
     return geo_service.get_boundaries_as_geojson()
@@ -258,6 +317,7 @@ async def get_spatial_boundaries(
 async def get_spatial_heatmap(
     query_service: GovernanceQueryService = Depends(get_query_service),
     geo_service: GeoService = Depends(get_geo_service),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.SPATIAL_READ)),
 ) -> list[dict[str, Any]]:
     """Retrieve weighted heatmap coordinates of all lodged complaints."""
     issues = query_service.list_pending_issues()
@@ -267,6 +327,7 @@ async def get_spatial_heatmap(
 @router.get("/spatial/clusters", response_model=list[dict[str, Any]])
 async def get_spatial_clusters(
     query_service: GovernanceQueryService = Depends(get_query_service),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.SPATIAL_READ)),
 ) -> list[dict[str, Any]]:
     """Retrieve clustered issue markers for map visualization."""
     issues = query_service.list_pending_issues()
@@ -280,6 +341,7 @@ async def get_nearby_places(
     radius: int = 1500,
     type: str = "school",
     geo_service: GeoService = Depends(get_geo_service),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.SPATIAL_READ)),
 ) -> list[dict[str, Any]]:
     """Search nearby public places (schools, hospitals, parks) using Google Places proxy."""
     return geo_service.search_nearby_places(latitude, longitude, radius, type)
@@ -289,6 +351,7 @@ async def get_nearby_places(
 async def geocode_address(
     address: str,
     geo_service: GeoService = Depends(get_geo_service),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.SPATIAL_READ)),
 ) -> dict[str, Any]:
     """Convert a textual address into GPS coordinates using Google Geocoding API."""
     res = geo_service.geocode_address(address)
@@ -302,6 +365,7 @@ async def reverse_geocode_coords(
     latitude: float,
     longitude: float,
     geo_service: GeoService = Depends(get_geo_service),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.SPATIAL_READ)),
 ) -> dict[str, Any]:
     """Convert GPS coordinates to a formatted address using Google Geocoding API."""
     address = geo_service.reverse_geocode(latitude, longitude)
@@ -324,6 +388,7 @@ async def query_spatial_issues(
     category: str | None = None,
     status: str | None = None,
     query_service: GovernanceQueryService = Depends(get_query_service),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.SPATIAL_READ)),
 ) -> list[dict[str, Any]]:
     """Query and filter issues geographically (via radius or bounding box) and logically."""
     issues = query_service.list_pending_issues()
@@ -361,30 +426,11 @@ async def query_spatial_issues(
     return filtered
 
 
-# Governance Copilot API Endpoints
-
-
-class CopilotRequestSchema(BaseModel):
-    action: str = Field(description="Action name (e.g. decision_summary)")
-    issue_id: str | None = Field(default=None, description="Target issue context")
-    query_details: dict[str, Any] = Field(
-        default_factory=dict, description="Query context"
-    )
-
-
-def get_copilot_service(
-    query_service: GovernanceQueryService = Depends(get_query_service),
-) -> GovernanceCopilotService:
-    return GovernanceCopilotService(
-        knowledge_service=knowledge_service,
-        query_service=query_service,
-    )
-
-
 @router.post("/copilot", response_model=dict[str, Any])
 async def execute_copilot_query(
     payload: CopilotRequestSchema,
     copilot_service: GovernanceCopilotService = Depends(get_copilot_service),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.COPILOT_QUERY)),
 ) -> dict[str, Any]:
     """Execute a structured decision query against the Governance Copilot."""
     try:
@@ -397,22 +443,15 @@ async def execute_copilot_query(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
-def get_proactive_service(
-    query_service: GovernanceQueryService = Depends(get_query_service),
-) -> ProactiveIntelligenceService:
-    return ProactiveIntelligenceService(query_service=query_service)
-
-
 @router.get("/proactive/morning-brief", response_model=dict[str, Any])
 async def get_morning_briefing(
     proactive_service: ProactiveIntelligenceService = Depends(get_proactive_service),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.PROACTIVE_READ)
+    ),
 ) -> dict[str, Any]:
     """Retrieve proactive MLA morning briefings, risk alerts, and forecast trends."""
     return await proactive_service.get_morning_briefing()
-
-
-def get_pipeline_orchestrator() -> DecisionPipelineOrchestrator:
-    return DecisionPipelineOrchestrator()
 
 
 @router.get("/issues/{issue_id}/decision-pipeline", response_model=dict[str, Any])
@@ -420,6 +459,7 @@ async def get_issue_decision_pipeline(
     issue_id: str,
     query_service: GovernanceQueryService = Depends(get_query_service),
     orchestrator: DecisionPipelineOrchestrator = Depends(get_pipeline_orchestrator),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.PIPELINE_READ)),
 ) -> dict[str, Any]:
     """Execute the multi-agent decision pipeline for a target issue and retrieve execution telemetry."""
     issues = query_service.list_pending_issues()
@@ -446,17 +486,12 @@ async def get_issue_decision_pipeline(
     return await orchestrator.run_pipeline(issue)
 
 
-def get_brief_engine() -> Any:
-    from services.governance.application.decision_brief import DecisionBriefEngine
-
-    return DecisionBriefEngine()
-
-
 @router.get("/issues/{issue_id}/decision-brief", response_model=dict[str, Any])
 async def get_issue_decision_brief(
     issue_id: str,
     query_service: GovernanceQueryService = Depends(get_query_service),
     engine: Any = Depends(get_brief_engine),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.BRIEF_READ)),
 ) -> dict[str, Any]:
     """Compile and return an explainable, structured Decision Brief for a target issue."""
     issues = query_service.list_pending_issues()
@@ -488,6 +523,7 @@ async def download_issue_decision_brief(
     issue_id: str,
     query_service: GovernanceQueryService = Depends(get_query_service),
     engine: Any = Depends(get_brief_engine),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.BRIEF_READ)),
 ) -> HTMLResponse:
     """Generate and return a print-ready HTML decision brief document."""
     issues = query_service.list_pending_issues()
@@ -714,6 +750,7 @@ async def get_issue_timeline(
     issue_id: str,
     role: str = "citizen",
     query_service: GovernanceQueryService = Depends(get_query_service),
+    current_user: CurrentUser = Depends(require_permission(Permissions.TIMELINE_READ)),
 ) -> dict[str, Any]:
     """Retrieve canonical, role-based timeline entries representing the entire issue lifecycle."""
     from services.governance.application.timeline import TimelineEngine
@@ -738,19 +775,28 @@ async def get_issue_timeline(
         else:
             raise HTTPException(status_code=404, detail="Issue record not found.")
 
-    return TimelineEngine.generate_timeline(issue, role)
+    # Determine standard timeline view role based on user permissions
+    role_to_use = role
+    if current_user:
+        if current_user.role in ("System Administrator", "Platform Administrator"):
+            role_to_use = "administrator"
+        elif current_user.role == "Officer" or current_user.role in (
+            "MLA",
+            "MP",
+            "Auditor",
+        ):
+            role_to_use = "officer"
 
-
-def get_spatial_intelligence_service(
-    query_service: GovernanceQueryService = Depends(get_query_service),
-) -> SpatialIntelligenceService:
-    return SpatialIntelligenceService(query_service=query_service)
+    return TimelineEngine.generate_timeline(issue, role_to_use)
 
 
 @router.get("/constituency/overview", response_model=dict[str, Any])
 async def get_constituency_overview(
     spatial_service: SpatialIntelligenceService = Depends(
         get_spatial_intelligence_service
+    ),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.CONSTITUENCY_READ)
     ),
 ) -> dict[str, Any]:
     """Retrieve derived constituency health scores, hotspot projects, and active priorities."""
@@ -762,13 +808,10 @@ async def get_map_dataset(
     spatial_service: SpatialIntelligenceService = Depends(
         get_spatial_intelligence_service
     ),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.SPATIAL_READ)),
 ) -> dict[str, Any]:
     """Retrieve GeoJSON boundaries, markers, clusters, and hotspots for mapping."""
     return spatial_service.get_map_dataset()
-
-
-def get_outcome_planning_engine() -> OutcomePlanningEngine:
-    return OutcomePlanningEngine()
 
 
 @router.get("/planning/projects", response_model=list[dict[str, Any]])
@@ -776,6 +819,7 @@ async def get_recommended_projects(
     engine: OutcomePlanningEngine = Depends(get_outcome_planning_engine),
     evidence_service: Any = Depends(get_evidence_service),
     db: Session = Depends(get_db),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.PLANNING_READ)),
 ) -> list[dict[str, Any]]:
     """Retrieve derived developmental project proposals, outcome forecasts, and LLM reasoning."""
     incidents = evidence_service.get_all_incidents(db)
@@ -783,7 +827,12 @@ async def get_recommended_projects(
 
 
 @router.post("/planning/projects/{project_id}/approve", response_model=dict[str, Any])
-async def approve_project(project_id: str) -> dict[str, Any]:
+async def approve_project(
+    project_id: str,
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.PLANNING_WRITE)
+    ),
+) -> dict[str, Any]:
     """Approve a proposed developmental project and initiate municipal tendering workflow."""
     return {
         "project_id": project_id,
@@ -797,6 +846,7 @@ async def get_issue_duplicates(
     issue_id: str,
     evidence_service: Any = Depends(get_evidence_service),
     db: Session = Depends(get_db),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.ISSUES_READ)),
 ) -> list[dict[str, Any]]:
     """Retrieve potential duplicate citizen reports matching this issue's signature."""
     return cast(
@@ -808,6 +858,9 @@ async def get_issue_duplicates(
 async def get_incidents(
     evidence_service: Any = Depends(get_evidence_service),
     db: Session = Depends(get_db),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.INCIDENTS_READ)
+    ),
 ) -> list[dict[str, Any]]:
     """Retrieve all grouped incident clusters."""
     return cast(list[dict[str, Any]], evidence_service.get_all_incidents(db))
@@ -817,6 +870,9 @@ async def get_incidents(
 async def get_incidents_graph(
     evidence_service: Any = Depends(get_evidence_service),
     db: Session = Depends(get_db),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.INCIDENTS_READ)
+    ),
 ) -> dict[str, Any]:
     """Retrieve incident Belongs_to relationship graph of issues."""
     return cast(dict[str, Any], evidence_service.get_relationship_graph(db))
@@ -827,6 +883,9 @@ async def get_incident_details(
     incident_id: str,
     evidence_service: Any = Depends(get_evidence_service),
     db: Session = Depends(get_db),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.INCIDENTS_READ)
+    ),
 ) -> dict[str, Any]:
     """Retrieve specific incident details with child reports."""
     details = evidence_service.get_incident_details(incident_id, db)
@@ -847,6 +906,9 @@ async def merge_issue_into_incident(
     payload: MergeIssueSchema,
     evidence_service: Any = Depends(get_evidence_service),
     db: Session = Depends(get_db),
+    _current_user: CurrentUser = Depends(
+        require_permission(Permissions.INCIDENTS_WRITE)
+    ),
 ) -> dict[str, Any]:
     """Merge a citizen issue report into an incident cluster."""
     try:
