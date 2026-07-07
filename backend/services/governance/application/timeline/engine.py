@@ -345,7 +345,9 @@ class TimelineEngine:
                 "status": (
                     "COMPLETED"
                     if is_assigned
-                    else "IN_PROGRESS" if status == "TRIAGED" else "PENDING"
+                    else "IN_PROGRESS"
+                    if status == "TRIAGED"
+                    else "PENDING"
                 ),
                 "visibility": off_meta["visibility"],
                 "metadata": {
@@ -454,7 +456,9 @@ class TimelineEngine:
                 "status": (
                     "COMPLETED"
                     if is_resolved
-                    else "IN_PROGRESS" if status == "IN_PROGRESS" else "PENDING"
+                    else "IN_PROGRESS"
+                    if status == "IN_PROGRESS"
+                    else "PENDING"
                 ),
                 "visibility": wip_meta["visibility"],
                 "metadata": {
@@ -512,7 +516,9 @@ class TimelineEngine:
                 "status": (
                     "COMPLETED"
                     if is_closed
-                    else "IN_PROGRESS" if status == "RESOLVED" else "PENDING"
+                    else "IN_PROGRESS"
+                    if status == "RESOLVED"
+                    else "PENDING"
                 ),
                 "visibility": ver_meta["visibility"],
                 "metadata": {

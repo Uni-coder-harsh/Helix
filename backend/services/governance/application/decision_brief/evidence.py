@@ -90,7 +90,9 @@ class EvidenceExtractor:
             asset_type = (
                 "school"
                 if "school" in asset.lower()
-                else "park" if "play" in asset.lower() else "hub"
+                else "park"
+                if "play" in asset.lower()
+                else "hub"
             )
             formatted_assets.append(
                 {

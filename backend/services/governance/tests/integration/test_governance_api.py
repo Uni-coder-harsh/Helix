@@ -103,7 +103,6 @@ async def test_spatial_endpoints() -> None:
             "helix_platform.spatial.providers.OverpassPlacesProvider.search_places"
         ) as mock_places,
     ):
-
         mock_geocode.return_value = {
             "latitude": 12.9810,
             "longitude": 77.5910,
