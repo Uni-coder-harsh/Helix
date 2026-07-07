@@ -1,11 +1,17 @@
 import datetime
-import hashlib
-import os
+import functools
+import inspect
+from collections.abc import Callable
 from typing import Any
 
+import bcrypt
 import jwt
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from helix_platform.config import get_settings
+
+security_scheme = HTTPBearer(auto_error=False)
 
 
 def create_access_token(
@@ -37,20 +43,320 @@ def decode_access_token(token: str) -> dict[str, Any]:
 
 
 def hash_password(password: str) -> str:
-    """Hashes a password using PBKDF2 HMAC SHA-256 (built-in secure hashing)."""
-    salt = os.urandom(16)
-    key = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100000)
-    # Return formatted salt + hash in hex
-    return f"{salt.hex()}:{key.hex()}"
+    """Hashes a plaintext password using bcrypt."""
+    pwd_bytes = password.encode("utf-8")
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
-    """Verifies a password against its PBKDF2 hash."""
+    """Verifies a plaintext password against a hashed bcrypt password."""
     try:
-        salt_hex, key_hex = hashed_password.split(":")
-        salt = bytes.fromhex(salt_hex)
-        expected_key = bytes.fromhex(key_hex)
-        key = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100000)
-        return key == expected_key
-    except ValueError:
+        return bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8"))
+    except Exception:
         return False
+
+
+class Permissions:
+    ISSUES_CREATE = "issues:create"
+    ISSUES_READ = "issues:read"
+    ISSUES_LIST_PENDING = "issues:list_pending"
+    RECOMMENDATIONS_READ = "recommendations:read"
+    RECOMMENDATIONS_WRITE = "recommendations:write"
+    PLANNING_READ = "planning:read"
+    PLANNING_WRITE = "planning:write"
+    SPATIAL_READ = "spatial:read"
+    COPILOT_QUERY = "copilot:query"
+    PROACTIVE_READ = "proactive:read"
+    PIPELINE_READ = "pipeline:read"
+    BRIEF_READ = "brief:read"
+    TIMELINE_READ = "timeline:read"
+    CONSTITUENCY_READ = "constituency:read"
+    INCIDENTS_READ = "incidents:read"
+    INCIDENTS_WRITE = "incidents:write"
+    AUDIT_READ = "audit:read"
+    AUDIT_WRITE = "audit:write"
+    SYSTEM_ADMIN = "system:admin"
+
+
+ROLE_PERMISSIONS: dict[str, set[str]] = {
+    "System Administrator": {
+        Permissions.ISSUES_CREATE,
+        Permissions.ISSUES_READ,
+        Permissions.ISSUES_LIST_PENDING,
+        Permissions.RECOMMENDATIONS_READ,
+        Permissions.RECOMMENDATIONS_WRITE,
+        Permissions.PLANNING_READ,
+        Permissions.PLANNING_WRITE,
+        Permissions.SPATIAL_READ,
+        Permissions.COPILOT_QUERY,
+        Permissions.PROACTIVE_READ,
+        Permissions.PIPELINE_READ,
+        Permissions.BRIEF_READ,
+        Permissions.TIMELINE_READ,
+        Permissions.CONSTITUENCY_READ,
+        Permissions.INCIDENTS_READ,
+        Permissions.INCIDENTS_WRITE,
+        Permissions.AUDIT_READ,
+        Permissions.AUDIT_WRITE,
+        Permissions.SYSTEM_ADMIN,
+    },
+    "Platform Administrator": {
+        Permissions.ISSUES_CREATE,
+        Permissions.ISSUES_READ,
+        Permissions.ISSUES_LIST_PENDING,
+        Permissions.RECOMMENDATIONS_READ,
+        Permissions.RECOMMENDATIONS_WRITE,
+        Permissions.PLANNING_READ,
+        Permissions.PLANNING_WRITE,
+        Permissions.SPATIAL_READ,
+        Permissions.COPILOT_QUERY,
+        Permissions.PROACTIVE_READ,
+        Permissions.PIPELINE_READ,
+        Permissions.BRIEF_READ,
+        Permissions.TIMELINE_READ,
+        Permissions.CONSTITUENCY_READ,
+        Permissions.INCIDENTS_READ,
+        Permissions.INCIDENTS_WRITE,
+        Permissions.AUDIT_READ,
+        Permissions.SYSTEM_ADMIN,
+    },
+    "MLA": {
+        Permissions.ISSUES_READ,
+        Permissions.ISSUES_LIST_PENDING,
+        Permissions.RECOMMENDATIONS_READ,
+        Permissions.PLANNING_READ,
+        Permissions.PLANNING_WRITE,
+        Permissions.SPATIAL_READ,
+        Permissions.COPILOT_QUERY,
+        Permissions.PROACTIVE_READ,
+        Permissions.PIPELINE_READ,
+        Permissions.BRIEF_READ,
+        Permissions.TIMELINE_READ,
+        Permissions.CONSTITUENCY_READ,
+    },
+    "MP": {
+        Permissions.ISSUES_READ,
+        Permissions.ISSUES_LIST_PENDING,
+        Permissions.RECOMMENDATIONS_READ,
+        Permissions.PLANNING_READ,
+        Permissions.SPATIAL_READ,
+        Permissions.COPILOT_QUERY,
+        Permissions.PROACTIVE_READ,
+        Permissions.PIPELINE_READ,
+        Permissions.BRIEF_READ,
+        Permissions.TIMELINE_READ,
+        Permissions.CONSTITUENCY_READ,
+    },
+    "Officer": {
+        Permissions.ISSUES_CREATE,
+        Permissions.ISSUES_READ,
+        Permissions.ISSUES_LIST_PENDING,
+        Permissions.RECOMMENDATIONS_READ,
+        Permissions.RECOMMENDATIONS_WRITE,
+        Permissions.PLANNING_READ,
+        Permissions.PLANNING_WRITE,
+        Permissions.SPATIAL_READ,
+        Permissions.COPILOT_QUERY,
+        Permissions.PROACTIVE_READ,
+        Permissions.PIPELINE_READ,
+        Permissions.BRIEF_READ,
+        Permissions.TIMELINE_READ,
+        Permissions.CONSTITUENCY_READ,
+        Permissions.INCIDENTS_READ,
+        Permissions.INCIDENTS_WRITE,
+    },
+    "Field Engineer": {
+        Permissions.ISSUES_READ,
+        Permissions.SPATIAL_READ,
+        Permissions.TIMELINE_READ,
+    },
+    "Citizen": {
+        Permissions.ISSUES_CREATE,
+        Permissions.ISSUES_READ,
+        Permissions.SPATIAL_READ,
+        Permissions.TIMELINE_READ,
+    },
+    "Auditor": {
+        Permissions.ISSUES_READ,
+        Permissions.ISSUES_LIST_PENDING,
+        Permissions.RECOMMENDATIONS_READ,
+        Permissions.PLANNING_READ,
+        Permissions.SPATIAL_READ,
+        Permissions.TIMELINE_READ,
+        Permissions.CONSTITUENCY_READ,
+        Permissions.AUDIT_READ,
+        Permissions.INCIDENTS_READ,
+    },
+}
+
+
+class CurrentUser:
+    def __init__(self, user_id: str | None, role: str, permissions: set[str]):
+        self.user_id = user_id
+        self.role = role
+        self.permissions = permissions
+
+
+def normalize_role(role_str: str | None) -> str | None:
+    if not role_str:
+        return None
+    r = role_str.strip().lower().replace("_", " ")
+    if r in ("system administrator", "administrator", "admin"):
+        return "System Administrator"
+    if r in ("platform administrator", "platform admin"):
+        return "Platform Administrator"
+    if r == "mla":
+        return "MLA"
+    if r == "mp":
+        return "MP"
+    if r == "officer":
+        return "Officer"
+    if r in ("field engineer", "field crew", "engineer"):
+        return "Field Engineer"
+    if r == "citizen":
+        return "Citizen"
+    if r == "auditor":
+        return "Auditor"
+    return None
+
+
+def get_current_user_from_request(request: Request) -> CurrentUser:
+    role_str = None
+    user_id = None
+
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        try:
+            payload = decode_access_token(token)
+            role_str = payload.get("role")
+            user_id = payload.get("sub") or payload.get("user_id")
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired authentication token",
+            ) from e
+
+    if not role_str:
+        role_str = request.headers.get("X-User-Role")
+
+    if not role_str:
+        role_str = request.query_params.get("role")
+
+    if not role_str:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication credentials missing or invalid",
+        )
+
+    normalized_role = normalize_role(role_str)
+    if not normalized_role:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Invalid role: {role_str}",
+        )
+
+    permissions = ROLE_PERMISSIONS.get(normalized_role, set())
+    return CurrentUser(user_id=user_id, role=normalized_role, permissions=permissions)
+
+
+def get_current_user(
+    request: Request,
+    token: HTTPAuthorizationCredentials | None = Depends(security_scheme),
+) -> CurrentUser:
+    if token:
+        try:
+            payload = decode_access_token(token.credentials)
+            role_str = payload.get("role")
+            user_id = payload.get("sub") or payload.get("user_id")
+            normalized_role = normalize_role(role_str)
+            if not normalized_role:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Invalid role: {role_str}",
+                )
+            permissions = ROLE_PERMISSIONS.get(normalized_role, set())
+            return CurrentUser(
+                user_id=user_id, role=normalized_role, permissions=permissions
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired authentication token",
+            ) from e
+
+    return get_current_user_from_request(request)
+
+
+def require_permission(permission: str) -> Callable[[CurrentUser], CurrentUser]:
+    def check_perm(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+        if permission not in user.permissions:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Permission denied: required permission '{permission}' not found for role '{user.role}'",  # noqa: E501
+            )
+        return user
+
+    return check_perm
+
+
+def has_permission(
+    permission: str,
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        if inspect.iscoroutinefunction(func):
+
+            @functools.wraps(func)
+            async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+                request = kwargs.get("request")
+                if not request:
+                    for arg in args:
+                        if isinstance(arg, Request):
+                            request = arg
+                            break
+                if not request:
+                    raise RuntimeError(
+                        "Request object must be in route signature to use @has_permission decorator"  # noqa: E501
+                    )
+
+                user = get_current_user_from_request(request)
+                if permission not in user.permissions:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail=f"Permission denied: required permission '{permission}' not found for role '{user.role}'",  # noqa: E501
+                    )
+                if "current_user" in kwargs:
+                    kwargs["current_user"] = user
+                return await func(*args, **kwargs)
+
+            return async_wrapper
+
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            request = kwargs.get("request")
+            if not request:
+                for arg in args:
+                    if isinstance(arg, Request):
+                        request = arg
+                        break
+            if not request:
+                raise RuntimeError(
+                    "Request object must be in route signature to use @has_permission decorator"  # noqa: E501
+                )
+
+            user = get_current_user_from_request(request)
+            if permission not in user.permissions:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Permission denied: required permission '{permission}' not found for role '{user.role}'",  # noqa: E501
+                )
+            if "current_user" in kwargs:
+                kwargs["current_user"] = user
+            return func(*args, **kwargs)
+
+        return sync_wrapper
+
+    return decorator

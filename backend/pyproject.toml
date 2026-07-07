@@ -16,6 +16,8 @@ dependencies = [
     "cryptography>=42.0.8",
     "sqlalchemy>=2.0.31",
     "psycopg2-binary>=2.9.9",
+    "bcrypt>=4.0.0",
+    "email-validator>=2.0.0",
 ]
 
 [dependency-groups]
@@ -125,4 +127,8 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = "services.governance.application.evidence.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "services.identity.*"
 ignore_errors = true

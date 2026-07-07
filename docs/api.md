@@ -333,3 +333,221 @@ The Governance service exposes evidence clustering and duplicate report mapping 
     "reports_count": 3
   }
   ```
+
+
+## User Profile & Management (Identity) API Endpoints
+
+The Identity service handles user profile retrieval, self-registration, user CRUD operations, invitations, and administrative approval flows.
+
+### 1. Citizen Self-Registration
+* **Endpoint:** `POST /identity/register`
+* **Description:** Register a new Citizen user. Self-registered Citizens are automatically `ACTIVE`.
+* **Request Body:**
+  ```json
+  {
+    "email": "citizen@example.com",
+    "name": "Citizen John",
+    "password": "securepassword123",
+    "phone": "+123456789",
+    "bio": "A proud citizen."
+  }
+  ```
+* **Response Sample:**
+  ```json
+  {
+    "id": "user-uuid-1",
+    "email": "citizen@example.com",
+    "name": "Citizen John",
+    "role": "CITIZEN",
+    "status": "ACTIVE",
+    "department_id": null,
+    "phone": "+123456789",
+    "bio": "A proud citizen.",
+    "created_at": "2026-07-08T00:00:00Z",
+    "updated_at": "2026-07-08T00:00:00Z"
+  }
+  ```
+
+### 2. User Login
+* **Endpoint:** `POST /identity/login`
+* **Description:** Authenticate user and return a JWT access token.
+* **Request Body:**
+  ```json
+  {
+    "email": "citizen@example.com",
+    "password": "securepassword123"
+  }
+  ```
+* **Response Sample:**
+  ```json
+  {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "bearer",
+    "user": {
+      "id": "user-uuid-1",
+      "email": "citizen@example.com",
+      "name": "Citizen John",
+      "role": "CITIZEN",
+      "status": "ACTIVE",
+      "department_id": null,
+      "phone": "+123456789",
+      "bio": "A proud citizen.",
+      "created_at": "2026-07-08T00:00:00Z",
+      "updated_at": "2026-07-08T00:00:00Z"
+    }
+  }
+  ```
+
+### 3. Get Current User Profile
+* **Endpoint:** `GET /identity/profile`
+* **Description:** Retrieve current authenticated user's profile.
+* **Headers:**
+  - `Authorization: Bearer <token>`
+* **Response Sample:**
+  ```json
+  {
+    "id": "user-uuid-1",
+    "email": "citizen@example.com",
+    "name": "Citizen John",
+    "role": "CITIZEN",
+    "status": "ACTIVE",
+    "department_id": null,
+    "phone": "+123456789",
+    "bio": "A proud citizen.",
+    "created_at": "2026-07-08T00:00:00Z",
+    "updated_at": "2026-07-08T00:00:00Z"
+  }
+  ```
+
+### 4. Update Current User Profile
+* **Endpoint:** `PUT /identity/profile`
+* **Description:** Update current authenticated user's profile information.
+* **Headers:**
+  - `Authorization: Bearer <token>`
+* **Request Body:**
+  ```json
+  {
+    "name": "John Updated",
+    "phone": "+987654321",
+    "bio": "Updated biography."
+  }
+  ```
+* **Response Sample:**
+  ```json
+  {
+    "id": "user-uuid-1",
+    "email": "citizen@example.com",
+    "name": "John Updated",
+    "role": "CITIZEN",
+    "status": "ACTIVE",
+    "department_id": null,
+    "phone": "+987654321",
+    "bio": "Updated biography.",
+    "created_at": "2026-07-08T00:00:00Z",
+    "updated_at": "2026-07-08T00:00:00Z"
+  }
+  ```
+
+### 5. Create Invitation
+* **Endpoint:** `POST /identity/invitations`
+* **Description:** Invite an MLA or Officer. Administrators can invite MLAs or Officers. MLAs can only invite Officers.
+* **Headers:**
+  - `Authorization: Bearer <token>`
+* **Request Body:**
+  ```json
+  {
+    "email": "candidate@helix.gov",
+    "role": "MLA",
+    "department_id": null
+  }
+  ```
+* **Response Sample:**
+  ```json
+  {
+    "id": "invitation-uuid-1",
+    "email": "candidate@helix.gov",
+    "role": "MLA",
+    "department_id": null,
+    "token": "invitation-token-xyz",
+    "status": "PENDING",
+    "invited_by": "admin-uuid-1",
+    "created_at": "2026-07-08T00:00:00Z",
+    "expires_at": "2026-07-15T00:00:00Z"
+  }
+  ```
+
+### 6. Accept Invitation
+* **Endpoint:** `POST /identity/invitations/accept`
+* **Description:** Complete registration of an invited user. Upon acceptance, the user's status is set to `PENDING_APPROVAL`.
+* **Request Body:**
+  ```json
+  {
+    "token": "invitation-token-xyz",
+    "password": "securepassword456",
+    "name": "Representative Jane",
+    "phone": "+111222333",
+    "bio": "MLA Representative"
+  }
+  ```
+* **Response Sample:**
+  ```json
+  {
+    "id": "user-uuid-2",
+    "email": "candidate@helix.gov",
+    "name": "Representative Jane",
+    "role": "MLA",
+    "status": "PENDING_APPROVAL",
+    "department_id": null,
+    "phone": "+111222333",
+    "bio": "MLA Representative",
+    "created_at": "2026-07-08T00:00:00Z",
+    "updated_at": "2026-07-08T00:00:00Z"
+  }
+  ```
+
+### 7. Approve User Registration
+* **Endpoint:** `POST /identity/users/{user_id}/approve`
+* **Description:** Approve a user with `PENDING_APPROVAL` status. Administrators can approve anyone. MLAs can only approve Officers.
+* **Headers:**
+  - `Authorization: Bearer <token>`
+* **Response Sample:**
+  ```json
+  {
+    "id": "user-uuid-2",
+    "email": "candidate@helix.gov",
+    "name": "Representative Jane",
+    "role": "MLA",
+    "status": "ACTIVE",
+    "department_id": null,
+    "phone": "+111222333",
+    "bio": "MLA Representative",
+    "created_at": "2026-07-08T00:00:00Z",
+    "updated_at": "2026-07-08T00:00:00Z"
+  }
+  ```
+
+### 8. List Users
+* **Endpoint:** `GET /identity/users`
+* **Description:** Retrieve a filtered list of users. Accessible to Administrators, MLAs, and Officers.
+* **Headers:**
+  - `Authorization: Bearer <token>`
+* **Parameters:**
+  - `role` (str, optional): Filter by user role.
+  - `status` (str, optional): Filter by user status.
+* **Response Sample:**
+  ```json
+  [
+    {
+      "id": "user-uuid-2",
+      "email": "candidate@helix.gov",
+      "name": "Representative Jane",
+      "role": "MLA",
+      "status": "ACTIVE",
+      "department_id": null,
+      "phone": "+111222333",
+      "bio": "MLA Representative",
+      "created_at": "2026-07-08T00:00:00Z",
+      "updated_at": "2026-07-08T00:00:00Z"
+    }
+  ]
+  ```

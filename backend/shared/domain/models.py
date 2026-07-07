@@ -30,6 +30,7 @@ class UserRole(StrEnum):
     CITIZEN = "CITIZEN"
     OFFICER = "OFFICER"
     ADMINISTRATOR = "ADMINISTRATOR"
+    MLA = "MLA"
 
 
 class DomainModel(BaseModel):
