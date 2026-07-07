@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -165,7 +167,7 @@ def test_email_verification_skeleton(client: TestClient) -> None:
     # Fetch user to get verification token from DB (since register response doesn't expose token)
     db: Session = SessionLocal()
     try:
-        user = db.query(UserDB).filter(UserDB.id == user_id).first()
+        user: Any = db.query(UserDB).filter(UserDB.id == user_id).first()
         assert user is not None
         token = user.verification_token
         assert token is not None
@@ -181,7 +183,8 @@ def test_email_verification_skeleton(client: TestClient) -> None:
     db = SessionLocal()
     try:
         user = db.query(UserDB).filter(UserDB.id == user_id).first()
-        assert user.is_verified is True
+        assert user is not None
+        assert user.is_verified
         assert user.verification_token is None
     finally:
         db.close()
