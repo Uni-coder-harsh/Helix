@@ -41,7 +41,7 @@ site/
 # Local configuration
 .env
 .envrc
-
+.env.production
 # Node / Next.js
 node_modules/
 .next/
