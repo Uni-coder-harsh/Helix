@@ -90,6 +90,10 @@ testpaths = [
     "tests",
 ]
 asyncio_mode = "auto"
+pythonpath = [
+    ".",
+    "services/ai-platform/src",
+]
 
 [[tool.mypy.overrides]]
 module = "services.governance.infrastructure.*"
