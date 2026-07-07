@@ -38,7 +38,9 @@ def test_services_routers_registered(client: TestClient) -> None:
     ]
 
     for service in services:
-        response = client.get(f"/{service}")
+        response = client.get(
+            f"/{service}", headers={"X-User-Role": "System Administrator"}
+        )
         assert response.status_code == 200
         assert "service" in response.json()
 
