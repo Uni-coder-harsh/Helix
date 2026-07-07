@@ -1,4 +1,4 @@
-# ruff: noqa: E501, N816
+# ruff: noqa: N816
 class MockLocation:
     def __init__(self, lat: float, lng: float):
         self.lat = lat
