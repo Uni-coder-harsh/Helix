@@ -51,7 +51,7 @@ jobs:
     - name: Run Mypy Typecheck
       run: |
         cd backend
-        uv run mypy .
+        uv run mypy . --explicit-package-bases
 
     - name: Run Pytest
       run: |
