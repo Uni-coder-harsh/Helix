@@ -8,10 +8,10 @@ from services.governance.application.agents.orchestration import (
 )
 
 
-def test_individual_agents() -> None:
+async def test_individual_agents() -> None:
     # 1. Intake Agent success
     intake = IntakeAgent()
-    res = intake.run(
+    res = await intake.run(
         {
             "issue": {
                 "description": "Broken main water pipe leak.",
@@ -30,13 +30,15 @@ def test_individual_agents() -> None:
 
     # 2. Classification Agent water heuristic
     clf = ClassificationAgent()
-    res = clf.run({"issue": {"description": "Water pipeline burst Shivaji Nagar W12"}})
+    res = await clf.run(
+        {"issue": {"description": "Water pipeline burst Shivaji Nagar W12"}}
+    )
     assert res.outputs["category"] == "Water Supply & Sanitation"
     assert res.confidence == pytest.approx(0.97)
 
     # 3. Duplicate Agent
     dup = DuplicateAgent()
-    res = dup.run(
+    res = await dup.run(
         {
             "issue": {
                 "description": "leak water",
@@ -49,7 +51,7 @@ def test_individual_agents() -> None:
     assert len(res.warnings) > 0  # Active hotspot warning triggered
 
 
-def test_orchestrated_pipeline_execution() -> None:
+async def test_orchestrated_pipeline_execution() -> None:
     orchestrator = DecisionPipelineOrchestrator()
     mock_issue = {
         "id": "mock-uuid-1049",
@@ -59,7 +61,7 @@ def test_orchestrated_pipeline_execution() -> None:
         "longitude": 77.58,
     }
 
-    result = orchestrator.run_pipeline(mock_issue)
+    result = await orchestrator.run_pipeline(mock_issue)
 
     assert result["overall_status"] == "SUCCESS"
     assert result["average_confidence"] > 0.90

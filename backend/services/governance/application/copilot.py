@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Any
+from typing import Any, cast
 
 from ai_platform.core.llm import GeminiAdapter, LLMMessage, LLMProvider
 
@@ -110,6 +110,14 @@ class PromptBuilder:
                 f"- Schemes: {json.dumps(context.get('schemes', []))}\n"
                 f"TASK: Explain why the recommended budget scheme and resolution SLA apply to this issue based on municipal guidelines."
             )
+        elif action == "duplicate_explanation":
+            user_prompt += (
+                f"CONTEXT:\n"
+                f"- Issue: {json.dumps(context.get('issue', {}))}\n"
+                f"- Duplicate Cluster Info: {json.dumps(query_details.get('cluster_info', {}))}\n"
+                f"- Similar Reports: {json.dumps(query_details.get('duplicates', []))}\n"
+                f"TASK: Explain: Why were these reports merged (or why weren't they merged if confidence is low)? What spatial, category, or temporal evidence supports the duplicate link? Explain the match confidence score."
+            )
         else:
             # recommendation_explanation / alternative_recommendation
             user_prompt += (
@@ -152,7 +160,7 @@ class ResponseValidator:
                         if key != "summary" and key != "confidence"
                         else ("Context evaluated." if key == "summary" else 0.85)
                     )
-            return parsed
+            return cast(dict[str, Any], parsed)
         except json.JSONDecodeError:
             # Return robust fallback JSON
             return {
@@ -203,7 +211,13 @@ class GovernanceCopilotService:
         llm_provider: LLMProvider | None = None,
     ) -> None:
         self.assembler = ContextAssembler(knowledge_service, query_service)
-        self.llm_provider = llm_provider or GeminiAdapter()
+        if llm_provider:
+            self.llm_provider = llm_provider
+        else:
+            try:
+                self.llm_provider = LLMProvider.get_provider()
+            except Exception:
+                self.llm_provider = GeminiAdapter()
 
     async def execute_query(
         self,

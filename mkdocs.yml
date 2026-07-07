@@ -91,6 +91,11 @@ nav:
       - Plugin Architecture: 02-architecture/08-plugin-architecture.md
       - Deployment Architecture: 02-architecture/09-deployment-architecture.md
   - AI: ai.md
+  - Integrations:
+      - AI Platform: integrations/ai.md
+      - GIS & Maps: integrations/maps.md
+      - Notifications: integrations/notifications.md
+      - Object Storage: integrations/storage.md
   - Infrastructure: infrastructure.md
   - API: api.md
   - Plugins: plugins.md

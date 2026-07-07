@@ -7,6 +7,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+class ConfigurationError(ValueError):
+    """Exception raised when there is a configuration error with LLM providers."""
+
+    pass
+
+
 @dataclass
 class LLMMessage:
     role: str
@@ -32,10 +38,14 @@ class LLMProvider(ABC):
 
     @staticmethod
     def get_provider() -> "LLMProvider":
-        provider_type = os.environ.get("LLM_PROVIDER", "gemini").lower()
+        provider_type = os.environ.get("LLM_PROVIDER", "").lower()
+        if provider_type == "gemini":
+            return GeminiAdapter()
         if provider_type == "mock":
             return MockProvider()
-        return GeminiAdapter()
+        raise ConfigurationError(
+            f"Unsupported or missing LLM_PROVIDER: '{provider_type}'. Must be 'gemini' or 'mock'."
+        )
 
 
 class GeminiAdapter(LLMProvider):
@@ -46,9 +56,9 @@ class GeminiAdapter(LLMProvider):
     """
 
     def __init__(
-        self, model_name: str = "gemini-1.5-flash", api_key: str | None = None
+        self, model_name: str | None = None, api_key: str | None = None
     ) -> None:
-        self.model_name = model_name
+        self.model_name = model_name or os.environ.get("LLM_MODEL", "gemini-1.5-flash")
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY", "")
 
     async def generate(
@@ -69,16 +79,23 @@ class GeminiAdapter(LLMProvider):
         # Format payload
         contents_payload = []
         for msg in messages:
-            # Gemini roles: "user" or "model"
             role = "user" if msg.role in ["user", "system"] else "model"
             contents_payload.append({"role": role, "parts": [{"text": msg.content}]})
 
         generation_config = config or {}
+        temp = generation_config.get(
+            "temperature", float(os.environ.get("LLM_TEMPERATURE", "0.2"))
+        )
+        max_t = generation_config.get(
+            "max_tokens", int(os.environ.get("LLM_MAX_TOKENS", "1024"))
+        )
+        timeout = float(os.environ.get("LLM_TIMEOUT", "30"))
+
         payload = {
             "contents": contents_payload,
             "generationConfig": {
-                "temperature": generation_config.get("temperature", 0.2),
-                "maxOutputTokens": generation_config.get("max_tokens", 1024),
+                "temperature": temp,
+                "maxOutputTokens": max_t,
                 "topP": generation_config.get("top_p", 0.95),
             },
         }
@@ -96,7 +113,7 @@ class GeminiAdapter(LLMProvider):
         req = urllib.request.Request(url, data=data, headers=headers, method="POST")
 
         try:
-            with urllib.request.urlopen(req, timeout=30) as response:
+            with urllib.request.urlopen(req, timeout=timeout) as response:
                 resp_data = json.loads(response.read().decode("utf-8"))
 
             candidates = resp_data.get("candidates", [])

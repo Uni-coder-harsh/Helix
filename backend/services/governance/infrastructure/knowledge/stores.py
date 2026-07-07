@@ -44,7 +44,7 @@ class InMemoryPolicyStore(PolicyStore):
         return [
             p
             for p in self._policies.values()
-            if p["category"].lower() == category.lower()
+            if str(p["category"]).lower() == category.lower()
         ]
 
 

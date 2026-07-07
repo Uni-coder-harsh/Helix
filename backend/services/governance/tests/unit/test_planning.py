@@ -3,7 +3,7 @@ from services.governance.application.planning.outcome_engine import (
 )
 
 
-def test_outcome_planning_generation() -> None:
+async def test_outcome_planning_generation() -> None:
     engine = OutcomePlanningEngine()
 
     mock_issues = [
@@ -15,7 +15,7 @@ def test_outcome_planning_generation() -> None:
         {"category": "Roads & Sidewalks", "latitude": 12.96, "longitude": 77.61},
     ]
 
-    projects = engine.plan_projects(mock_issues)
+    projects = await engine.plan_projects(mock_issues)
 
     assert len(projects) == 2
     assert "Drainage & Water Pipe" in projects[0]["title"]

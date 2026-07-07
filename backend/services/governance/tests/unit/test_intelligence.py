@@ -71,12 +71,12 @@ def test_evidence_aggregation(test_knowledge_service: KnowledgeService) -> None:
     assert any("Asset Proximity" in ev for ev in evidence)
 
 
-def test_recommendation_builder_generation(
+async def test_recommendation_builder_generation(
     test_knowledge_service: KnowledgeService,
 ) -> None:
     builder = RecommendationBuilder(test_knowledge_service)
     issue_id = uuid.uuid4()
-    recommendation = builder.build_recommendation(
+    recommendation = await builder.build_recommendation(
         issue_id=issue_id,
         category="sanitation",
         latitude=12.9716,

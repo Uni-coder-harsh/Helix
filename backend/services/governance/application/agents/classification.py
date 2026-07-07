@@ -1,22 +1,31 @@
 import time
 from typing import Any
 
+from ai_platform.core.llm import LLMMessage, LLMProvider
+
 from services.governance.application.agents.contracts import AgentResult, BaseAgent
 
 
 class ClassificationAgent(BaseAgent):
     """Categorizes issues based on token checking heuristics and reports categorization confidence."""
 
+    def __init__(self) -> None:
+        self.llm: LLMProvider | None = None
+        try:
+            self.llm = LLMProvider.get_provider()
+        except Exception:
+            self.llm = None
+
     @property
     def name(self) -> str:
         return "Classification Agent"
 
-    def run(self, context: dict[str, Any]) -> AgentResult:
+    async def run(self, context: dict[str, Any]) -> AgentResult:
         start_time = time.perf_counter()
         issue = context.get("issue", {})
         desc = issue.get("description", "").lower()
 
-        # Simple classification heuristics
+        # Simple classification heuristics (Fallback)
         if (
             "water" in desc
             or "leak" in desc
@@ -44,6 +53,31 @@ class ClassificationAgent(BaseAgent):
             category = "General Civil Maintenance"
             confidence = 0.85
             evidence = ["No matched keyword subclass; classified under General Civil."]
+
+        if self.llm:
+            try:
+                prompt = (
+                    "Classify this civic issue description into exactly one of three categories: "
+                    "'Water Supply & Sanitation', 'Roads & Sidewalks', or 'General Civil Maintenance'.\n"
+                    f"Description: {desc}\n"
+                    "Respond ONLY with the category name, nothing else."
+                )
+                messages = [LLMMessage(role="user", content=prompt)]
+                res = await self.llm.generate(messages)
+                if res and res.content:
+                    ans = res.content.strip().replace('"', "").replace("'", "")
+                    if ans in [
+                        "Water Supply & Sanitation",
+                        "Roads & Sidewalks",
+                        "General Civil Maintenance",
+                    ]:
+                        category = ans
+                        confidence = 0.98
+                        evidence = [
+                            f"Classified using LLM provider into category: {category}"
+                        ]
+            except Exception:
+                pass
 
         duration_ms = (time.perf_counter() - start_time) * 1000.0
         return AgentResult(

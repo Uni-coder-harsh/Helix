@@ -139,6 +139,12 @@ def liveness_check() -> dict[str, str]:
     return {"status": "alive"}
 
 
+@app.get("/live", tags=["Health"])
+def live_check() -> dict[str, str]:
+    """Alias for liveness check."""
+    return liveness_check()
+
+
 @app.get("/health/readiness", tags=["Health"])
 def readiness_check() -> dict[str, Any]:
     """Readiness probe to check backend service and database health."""
@@ -158,6 +164,12 @@ def readiness_check() -> dict[str, Any]:
             "database": db_status,
         },
     }
+
+
+@app.get("/ready", tags=["Health"])
+def ready_check() -> dict[str, Any]:
+    """Alias for readiness check."""
+    return readiness_check()
 
 
 @app.get("/version", tags=["Health"])

@@ -32,6 +32,13 @@ class BaseConfig(BaseSettings):
     OTEL_SERVICE_NAME: str = "helix-backend"
     OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4317"
 
+    # Spatial Geo-Intelligence Platform Config
+    MAP_PROVIDER: str = "osm"
+    GEOCODER_PROVIDER: str = "nominatim"
+    GEOCODER_BASE_URL: str = "https://nominatim.openstreetmap.org"
+    PLACES_PROVIDER: str = "overpass"
+    PLACES_BASE_URL: str = "https://overpass-api.de/api/interpreter"
+
     # Pydantic Configuration
     model_config = SettingsConfigDict(
         env_file=".env",

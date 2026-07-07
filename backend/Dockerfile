@@ -13,7 +13,7 @@ ENV UV_COMPILE_BYTECODE=1
 COPY pyproject.toml ./
 
 # Install project dependencies
-RUN uv sync --frozen --no-install-project --no-dev
+RUN uv sync --no-install-project --no-dev
 
 # Stage 2: Runtime image
 FROM python:3.13-slim AS runner

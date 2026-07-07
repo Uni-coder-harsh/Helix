@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { API_BASE_URL } from "@/config";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,49 @@ import {
   TrendingDown,
   Hammer,
   CheckCircle,
+  Search,
+  School,
+  Building,
+  TreePine,
+  ShieldCheck,
+  Navigation,
 } from "lucide-react";
+
+// MapLibre script and style loader helper
+const loadMapLibreScript = (callback: () => void, onError: () => void) => {
+  if (typeof window === "undefined") return;
+  if ((window as any).maplibregl) {
+    callback();
+    return;
+  }
+  const existingScript = document.getElementById("maplibre-script");
+  if (existingScript) {
+    existingScript.addEventListener("load", callback);
+    existingScript.addEventListener("error", onError);
+    return;
+  }
+
+  // Load CSS
+  const link = document.createElement("link");
+  link.id = "maplibre-css";
+  link.href = "https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css";
+  link.rel = "stylesheet";
+  document.head.appendChild(link);
+
+  // Load JS
+  const script = document.createElement("script");
+  script.id = "maplibre-script";
+  script.src = "https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js";
+  script.async = true;
+  script.defer = true;
+  script.onload = () => {
+    callback();
+  };
+  script.onerror = () => {
+    onError();
+  };
+  document.head.appendChild(script);
+};
 
 export default function SpatialMapPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "map" | "health" | "projects">("overview");
@@ -34,22 +77,51 @@ export default function SpatialMapPage() {
   const [showIssuesLayer, setShowIssuesLayer] = useState(true);
   const [showHeatmapLayer, setShowHeatmapLayer] = useState(true);
   const [showHotspotsLayer, setShowHotspotsLayer] = useState(true);
+  const [showBoundariesLayer, setShowBoundariesLayer] = useState(true);
 
   // Selected Hotspot details
   const [selectedHotspot, setSelectedHotspot] = useState<any>(null);
   const [tenderingStates, setTenderingStates] = useState<Record<string, boolean>>({});
 
+  // Dynamic nearby places assets
+  const [nearbySchools, setNearbySchools] = useState<any[]>([]);
+  const [nearbyHospitals, setNearbyHospitals] = useState<any[]>([]);
+  const [nearbyParks, setNearbyParks] = useState<any[]>([]);
+  const [loadingAssets, setLoadingAssets] = useState(false);
+
+  // Search/Geocode states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+
+  // Map container references
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const [useMockMap, setUseMockMap] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Fetch basic overview and coordinate clusters
   useEffect(() => {
     Promise.all([
-      fetch("http://localhost:8000/governance/constituency/overview").then((r) => r.json()),
-      fetch("http://localhost:8000/governance/map").then((r) => r.json()),
+      fetch(`${API_BASE_URL}/governance/constituency/overview`).then((r) => r.json()),
+      fetch(`${API_BASE_URL}/governance/map`).then((r) => r.json()),
     ])
       .then(([over, mData]) => {
         setOverview(over);
         setMapData(mData);
+
         if (over.hotspots && over.hotspots.length > 0) {
           setSelectedHotspot(over.hotspots[0]);
         }
+
+        loadMapLibreScript(
+          () => {
+            setMapLoaded(true);
+          },
+          () => {
+            setUseMockMap(true);
+          }
+        );
         setLoading(false);
       })
       .catch((err) => {
@@ -122,9 +194,274 @@ export default function SpatialMapPage() {
           ],
           hotspots: mockOverview.hotspots,
         });
+        setUseMockMap(true);
         setLoading(false);
       });
   }, []);
+
+  // Fetch dynamic nearby assets on selected hotspot change
+  useEffect(() => {
+    if (selectedHotspot) {
+      setLoadingAssets(true);
+      const { latitude, longitude } = selectedHotspot;
+      Promise.all([
+        fetch(`${API_BASE_URL}/governance/spatial/places?latitude=${latitude}&longitude=${longitude}&type=school&radius=2000`).then((r) => r.json()),
+        fetch(`${API_BASE_URL}/governance/spatial/places?latitude=${latitude}&longitude=${longitude}&type=hospital&radius=2000`).then((r) => r.json()),
+        fetch(`${API_BASE_URL}/governance/spatial/places?latitude=${latitude}&longitude=${longitude}&type=park&radius=2000`).then((r) => r.json()),
+      ])
+        .then(([schools, hospitals, parks]) => {
+          setNearbySchools(schools);
+          setNearbyHospitals(hospitals);
+          setNearbyParks(parks);
+          setLoadingAssets(false);
+        })
+        .catch((err) => {
+          console.error("Error fetching nearby assets:", err);
+          // offline mock fallbacks
+          setNearbySchools([
+            { name: "Shivaji Nagar Government Primary School", address: "Shivaji Nagar Main Road, Bengaluru", rating: 4.2 },
+            { name: "Sector 4 High School Block A", address: "Sector 4 Main Road, Bengaluru", rating: 4.5 }
+          ]);
+          setNearbyHospitals([
+            { name: "Shivaji Nagar General Hospital", address: "Shivaji Nagar Main Road, Bengaluru", rating: 4.1 }
+          ]);
+          setNearbyParks([
+            { name: "Shivaji Nagar Ward 12 Playground", address: "Shivaji Nagar Playground St, Bengaluru", rating: 4.4 }
+          ]);
+          setLoadingAssets(false);
+        });
+    }
+  }, [selectedHotspot]);
+
+  // MapLibre Maps Instance Hook
+  useEffect(() => {
+    if (mapLoaded && mapRef.current && mapData && activeTab === "map") {
+      const center = [77.5955, 12.9755]; // [lng, lat]
+      const map = new (window as any).maplibregl.Map({
+        container: mapRef.current,
+        style: {
+          version: 8,
+          sources: {
+            "osm-tiles": {
+              type: "raster",
+              tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+              tileSize: 256,
+              attribution: "© OpenStreetMap contributors",
+            },
+          },
+          layers: [
+            {
+              id: "osm-layer",
+              type: "raster",
+              source: "osm-tiles",
+              minzoom: 0,
+              maxzoom: 19,
+            },
+          ],
+        },
+        center: center,
+        zoom: 13.5,
+      });
+      mapInstanceRef.current = map;
+
+      // Add navigation controls
+      map.addControl(new (window as any).maplibregl.NavigationControl(), "top-right");
+
+      map.on("load", () => {
+        // Draw boundaries
+        if (showBoundariesLayer && mapData.boundaries && mapData.boundaries.features) {
+          map.addSource("boundaries-source", {
+            type: "geojson",
+            data: mapData.boundaries,
+          });
+
+          map.addLayer({
+            id: "boundaries-layer",
+            type: "fill",
+            source: "boundaries-source",
+            paint: {
+              "fill-color": [
+                "match",
+                ["get", "level"],
+                "ward", "#6366f1",
+                "constituency", "#3b82f6",
+                "#6366f1"
+              ],
+              "fill-opacity": 0.12,
+            },
+          });
+
+          map.addLayer({
+            id: "boundaries-outline",
+            type: "line",
+            source: "boundaries-source",
+            paint: {
+              "line-color": [
+                "match",
+                ["get", "level"],
+                "ward", "#6366f1",
+                "constituency", "#3b82f6",
+                "#6366f1"
+              ],
+              "line-width": 2,
+            },
+          });
+        }
+
+        // Draw Heatmap
+        if (showHeatmapLayer && mapData.heatmap) {
+          const heatmapPoints = {
+            type: "FeatureCollection",
+            features: mapData.heatmap.map((pt: any) => ({
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [pt.lng, pt.lat] },
+              properties: { weight: pt.weight || 1.0 },
+            })),
+          };
+
+          map.addSource("heatmap-source", {
+            type: "geojson",
+            data: heatmapPoints,
+          });
+
+          map.addLayer({
+            id: "heatmap-layer",
+            type: "heatmap",
+            source: "heatmap-source",
+            paint: {
+              "heatmap-intensity": 1,
+              "heatmap-color": [
+                "interpolate",
+                ["linear"],
+                ["heatmap-density"],
+                0, "rgba(99, 102, 241, 0)",
+                0.2, "rgba(99, 102, 241, 0.2)",
+                0.4, "rgba(34, 197, 94, 0.4)",
+                0.6, "rgba(234, 179, 8, 0.6)",
+                0.8, "rgba(239, 68, 68, 0.8)",
+                1, "rgba(239, 68, 68, 1)"
+              ],
+              "heatmap-radius": 30,
+              "heatmap-opacity": 0.7,
+            },
+          });
+        }
+
+        // Draw clustered markers
+        if (showIssuesLayer && mapData.clusters) {
+          mapData.clusters.forEach((node: any) => {
+            const isCluster = node.type === "cluster";
+            const el = document.createElement("div");
+            el.className = "flex items-center justify-center cursor-pointer transition-all hover:scale-110";
+
+            el.style.width = isCluster ? "26px" : "16px";
+            el.style.height = isCluster ? "26px" : "16px";
+            el.style.borderRadius = "50%";
+            el.style.backgroundColor = isCluster ? "#ef4444" : "#f59e0b";
+            el.style.border = "2px solid #ffffff";
+            el.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
+            el.style.color = "#ffffff";
+            el.style.fontSize = "10px";
+            el.style.fontWeight = "bold";
+            el.style.display = "flex";
+            el.style.alignItems = "center";
+            el.style.justifyContent = "center";
+
+            if (isCluster) {
+              el.innerText = String(node.count);
+            }
+
+            const popupContent = `
+              <div style="color: #0f172a; font-family: system-ui, sans-serif; padding: 6px; width: 180px;">
+                <h4 style="font-weight: 800; font-size: 13px; margin: 0 0 3px 0; color: #1e293b;">
+                  ${isCluster ? `Cluster: ${node.count} Issues` : node.title}
+                </h4>
+                <p style="font-size: 10px; margin: 0 0 6px 0; color: #64748b;">
+                  ${isCluster ? "Overlapping density zone" : node.category}
+                </p>
+                ${
+                  isCluster
+                    ? `<span style="font-size: 9px; font-weight: bold; color: #ef4444; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">Active Hotspot</span>`
+                    : `<a href="/issues/${node.id}" style="font-size: 11px; font-weight: 700; color: #6366f1; text-decoration: none; display: inline-block;">Open Decision Brief →</a>`
+                }
+              </div>
+            `;
+
+            const popup = new (window as any).maplibregl.Popup({ offset: 15 }).setHTML(popupContent);
+
+            new (window as any).maplibregl.Marker(el)
+              .setLngLat([node.longitude, node.latitude])
+              .setPopup(popup)
+              .addTo(map);
+
+            el.addEventListener("click", () => {
+              if (isCluster && node.ids && node.ids.length > 0) {
+                const matched = overview?.hotspots?.find((h: any) => h.linked_complaint_ids.includes(node.ids[0]));
+                if (matched) setSelectedHotspot(matched);
+              } else if (node.id) {
+                const matched = overview?.hotspots?.find((h: any) => h.linked_complaint_ids.includes(node.id));
+                if (matched) setSelectedHotspot(matched);
+              }
+            });
+          });
+        }
+      });
+
+      return () => {
+        map.remove();
+      };
+    }
+  }, [mapLoaded, mapData, showIssuesLayer, showHeatmapLayer, showBoundariesLayer, activeTab]);
+
+  // Geocode address search
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery) return;
+    setSearching(true);
+    setSearchError("");
+
+    fetch(`${API_BASE_URL}/governance/spatial/geocode?address=${encodeURIComponent(searchQuery)}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("Location not found");
+        return r.json();
+      })
+      .then((coords) => {
+        setSearching(false);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setCenter([coords.longitude, coords.latitude]);
+          mapInstanceRef.current.setZoom(15);
+        }
+
+        // Locate or build a hotspot descriptor
+        const matched = overview?.hotspots?.find(
+          (h: any) =>
+            Math.abs(h.latitude - coords.latitude) < 0.005 && Math.abs(h.longitude - coords.longitude) < 0.005
+        );
+        if (matched) {
+          setSelectedHotspot(matched);
+        } else {
+          setSelectedHotspot({
+            id: `searched-hs-${Date.now()}`,
+            category: "Roads & Sidewalks",
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            complaints_count: 3,
+            affected_population: 850,
+            linked_complaint_ids: [],
+            proposed_project: {
+              title: `Locality Rehabilitation: ${searchQuery}`,
+              estimated_cost: "₹14 Lakhs",
+              estimated_duration: "30 Days",
+              impact: "Resolves geocoded transit blockages and community access safety.",
+            },
+          });
+        }
+      })
+      .catch((err) => {
+        setSearching(false);
+        setSearchError("Location search failed. Try 'Shivaji Nagar' or 'Sector 4'.");
+      });
+  };
 
   const handleStartTender = (hotspotId: string) => {
     setTenderingStates((prev) => ({ ...prev, [hotspotId]: true }));
@@ -135,9 +472,9 @@ export default function SpatialMapPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Spatial Intelligence Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Geo-Intelligence Platform</h1>
           <p className="text-xs text-muted-foreground">
-            Aggregate coordinate intelligence, derived constituency health indexes, and unified developmental project tenders.
+            Dynamic MapLibre GL OpenStreetMap integration displaying ward boundary polygons, complaint hotspots, heatmap density layers, and surrounding civic assets.
           </p>
         </div>
       </div>
@@ -162,7 +499,7 @@ export default function SpatialMapPage() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          Spatial Map
+          Live Spatial Map
         </button>
         <button
           onClick={() => setActiveTab("health")}
@@ -262,8 +599,8 @@ export default function SpatialMapPage() {
                         </div>
                         <div className="text-right flex-shrink-0 space-y-2">
                           <p className="text-xs font-bold text-emerald-500">{hs.proposed_project.estimated_cost}</p>
-                          <Button size="sm" onClick={() => setActiveTab("projects")} className="h-7 text-[10px] gap-1">
-                            View Tender <ArrowRight className="h-3 w-3" />
+                          <Button size="sm" onClick={() => { setSelectedHotspot(hs); setActiveTab("map"); }} className="h-7 text-[10px] gap-1">
+                            View on Map <ArrowRight className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
@@ -304,7 +641,28 @@ export default function SpatialMapPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Map grid representation */}
               <div className="lg:col-span-2 space-y-4">
-                <Card className="p-4 bg-slate-50 dark:bg-slate-900/30 border border-dashed rounded-xl relative min-h-[460px] flex flex-col justify-between">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {/* Locality Search bar */}
+                  <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Search address or locality (e.g. Sector 4, Shivaji Nagar)..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg pl-9 pr-4 py-2 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <Button type="submit" disabled={searching} className="text-xs h-9 py-0">
+                      {searching ? "Searching..." : "Search"}
+                    </Button>
+                  </form>
+                </div>
+
+                {searchError && <p className="text-[11px] text-red-500 font-bold">{searchError}</p>}
+
+                <Card className="p-4 bg-slate-50 dark:bg-slate-950/30 border rounded-xl relative min-h-[480px] flex flex-col justify-between overflow-hidden">
                   {/* Top Layer indicators */}
                   <div className="flex flex-wrap gap-2 z-10">
                     <Button
@@ -329,115 +687,221 @@ export default function SpatialMapPage() {
                       onClick={() => setShowHotspotsLayer(!showHotspotsLayer)}
                       className="h-7 text-[10px] rounded-full"
                     >
-                      Projects Layer
+                      Proposed Projects
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={showBoundariesLayer ? "default" : "outline"}
+                      onClick={() => setShowBoundariesLayer(!showBoundariesLayer)}
+                      className="h-7 text-[10px] rounded-full"
+                    >
+                      Ward Boundaries
                     </Button>
                   </div>
 
-                  {/* Mock Visual Map Coordinate Grid */}
-                  <div className="my-8 flex-1 border rounded-xl bg-card border-dashed p-6 flex flex-col justify-center items-center text-center relative overflow-hidden">
-                    <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-[0.03] dark:opacity-[0.07] pointer-events-none">
-                      {Array.from({ length: 36 }).map((_, i) => (
-                        <div key={i} className="border border-slate-700" />
-                      ))}
-                    </div>
+                  {/* MAP CANVAS */}
+                  {useMockMap ? (
+                    /* Elegant fallback mock coordinate grid map */
+                    <div className="my-6 flex-1 border rounded-xl bg-card border-dashed p-6 flex flex-col justify-center items-center text-center relative overflow-hidden min-h-[350px]">
+                      <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-[0.03] dark:opacity-[0.08] pointer-events-none">
+                        {Array.from({ length: 36 }).map((_, i) => (
+                          <div key={i} className="border border-slate-700" />
+                        ))}
+                      </div>
 
-                    <Compass className="h-10 w-10 text-slate-300 dark:text-slate-800 animate-spin-slow mb-3" />
-                    <span className="font-bold text-xs uppercase tracking-wider text-slate-400">
-                      Central Bangalore GIS Boundary Grid
-                    </span>
-                    <span className="text-[10px] text-muted-foreground max-w-sm mt-1 leading-normal">
-                      Rendering Shivaji Nagar W12 Ward boundaries. Geotags are mapped in real-time.
-                    </span>
+                      <Compass className="h-10 w-10 text-indigo-500/80 animate-spin-slow mb-3" />
+                      <span className="font-bold text-xs uppercase tracking-wider text-slate-400">
+                        Shivaji Nagar W12 Ward GIS Boundaries
+                      </span>
+                      <span className="text-[10px] text-muted-foreground max-w-sm mt-1 leading-normal">
+                        Using offline developer georeference visualization. Both mock clusters and polygons are fully functional.
+                      </span>
 
-                    {/* Styled Mock Clusters on Map */}
-                    <div className="absolute top-[35%] left-[25%] cursor-pointer animate-pulse z-10" onClick={() => setSelectedHotspot(overview.hotspots[0])}>
-                      <Badge className="bg-red-500 text-white font-bold p-1 px-2.5 rounded-full flex items-center gap-1 shadow-lg text-[10px] hover:scale-105 transition">
-                        <MapPin className="h-3 w-3" /> W12: 18 Water Leak complaints
-                      </Badge>
-                    </div>
+                      {/* Mock boundary polygon outline visually */}
+                      <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <polygon points="25,25 75,25 75,75 25,75" fill="none" stroke="#6366f1" strokeWidth="1" />
+                      </svg>
 
-                    <div className="absolute bottom-[30%] right-[30%] cursor-pointer animate-pulse z-10" onClick={() => setSelectedHotspot(overview.hotspots[1])}>
-                      <Badge className="bg-amber-500 text-white font-bold p-1 px-2.5 rounded-full flex items-center gap-1 shadow-lg text-[10px] hover:scale-105 transition">
-                        <MapPin className="h-3 w-3" /> Sector-4: 6 Sidewalk complaints
-                      </Badge>
+                      {/* Render Hotspots as interactive items */}
+                      {showHotspotsLayer && mapData.hotspots.map((hs: any, idx: number) => {
+                        const styleClass = hs.id === selectedHotspot?.id ? "scale-110 ring-4 ring-indigo-500/50" : "";
+                        return (
+                          <div
+                            key={idx}
+                            style={{
+                              position: "absolute",
+                              top: `${idx === 0 ? 40 : 65}%`,
+                              left: `${idx === 0 ? 30 : 60}%`,
+                            }}
+                            className={`cursor-pointer transition-all duration-200 ${styleClass}`}
+                            onClick={() => setSelectedHotspot(hs)}
+                          >
+                            <Badge className="bg-red-500 hover:bg-red-600 text-white font-bold p-1 px-2.5 rounded-full flex items-center gap-1 shadow-lg text-[9px]">
+                              <MapPin className="h-3 w-3" /> {hs.complaints_count} complaints
+                            </Badge>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
+                  ) : (
+                    /* Actual Google Map div */
+                    <div ref={mapRef} className="my-6 flex-1 rounded-xl min-h-[350px] border border-slate-200 dark:border-slate-800" />
+                  )}
 
                   {/* Legend */}
-                  <div className="flex gap-4 text-[9px] font-semibold text-muted-foreground border-t pt-2 border-slate-200/50 dark:border-slate-800">
+                  <div className="flex flex-wrap gap-4 text-[9px] font-semibold text-muted-foreground border-t pt-2 border-slate-200/50 dark:border-slate-850">
                     <div className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-red-500" /> Water Hotspot
+                      <span className="h-2 w-2 rounded-full bg-red-500" /> Active Hotspot
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-amber-500" /> Road Hotspot
+                      <span className="h-2 w-2 rounded-full bg-amber-500" /> Single Complaint
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-slate-300" /> Ward Bound Ring
+                      <span className="h-2 w-2 rounded-full bg-indigo-500/60" /> Ward Boundary
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" /> Government Infrastructure
                     </div>
                   </div>
                 </Card>
               </div>
 
-              {/* Right column: selected hotspot diagnostic */}
+              {/* Right column: Selected Hotspot & dynamic nearby places */}
               <div className="space-y-4">
                 {selectedHotspot ? (
-                  <Card className="p-5 border-2 border-indigo-500/20 bg-indigo-500/[0.01] space-y-4">
-                    <span className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider block">Selected Project Hotspot</span>
-                    <h3 className="font-extrabold text-md text-slate-800 dark:text-slate-200 border-b pb-2">
-                      {selectedHotspot.proposed_project.title}
-                    </h3>
+                  <div className="space-y-4">
+                    {/* Hotspot details */}
+                    <Card className="p-5 border-2 border-indigo-500/20 bg-indigo-500/[0.01] space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider block">Selected Project Hotspot</span>
+                        <Badge variant="outline" className="font-mono text-[9px]">{selectedHotspot.category}</Badge>
+                      </div>
+                      <h3 className="font-extrabold text-md text-slate-800 dark:text-slate-200 border-b pb-2">
+                        {selectedHotspot.proposed_project.title}
+                      </h3>
 
-                    <div className="space-y-3 text-xs">
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-slate-500">Merged Complaints:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">
-                          {selectedHotspot.complaints_count} active tickets
-                        </span>
-                      </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-slate-500">Affected Population:</span>
-                        <span className="font-bold text-indigo-600">
-                          {selectedHotspot.affected_population.toLocaleString("en-IN")} citizens
-                        </span>
-                      </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-slate-500">Estimated Cost:</span>
-                        <span className="font-bold text-emerald-500">
-                          {selectedHotspot.proposed_project.estimated_cost}
-                        </span>
-                      </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="text-slate-500">Estimated Duration:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">
-                          {selectedHotspot.proposed_project.estimated_duration}
-                        </span>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-slate-500 block">Developmental Impact:</span>
-                        <p className="text-[11px] text-muted-foreground leading-normal bg-card p-2 rounded border font-sans">
-                          {selectedHotspot.proposed_project.impact}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-2">
-                      {tenderingStates[selectedHotspot.id] ? (
-                        <div className="p-2 border rounded-lg bg-emerald-500/10 text-emerald-600 text-xs font-bold text-center flex items-center justify-center gap-1.5 animate-fade-in border-emerald-500/20">
-                          <CheckCircle className="h-4 w-4" /> Project Tendering Flow Initiated
+                      <div className="space-y-3 text-xs">
+                        <div className="flex justify-between border-b pb-1.5">
+                          <span className="text-slate-500">Merged Complaints:</span>
+                          <span className="font-bold text-slate-800 dark:text-slate-200">
+                            {selectedHotspot.complaints_count} active tickets
+                          </span>
                         </div>
+                        <div className="flex justify-between border-b pb-1.5">
+                          <span className="text-slate-500">Affected Footprint:</span>
+                          <span className="font-bold text-indigo-600">
+                            {selectedHotspot.affected_population.toLocaleString("en-IN")} citizens
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-b pb-1.5">
+                          <span className="text-slate-500">Estimated Cost:</span>
+                          <span className="font-bold text-emerald-500">
+                            {selectedHotspot.proposed_project.estimated_cost}
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-b pb-1.5">
+                          <span className="text-slate-500">Estimated Duration:</span>
+                          <span className="font-bold text-slate-850 dark:text-slate-200">
+                            {selectedHotspot.proposed_project.estimated_duration}
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-slate-500 block">AI Resolution Rationale:</span>
+                          <p className="text-[11px] text-muted-foreground leading-normal bg-card p-2.5 rounded border border-slate-100 dark:border-slate-800 font-sans">
+                            {selectedHotspot.proposed_project.impact}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-2">
+                        {tenderingStates[selectedHotspot.id] ? (
+                          <div className="p-2.5 border rounded-lg bg-emerald-500/10 text-emerald-600 text-xs font-bold text-center flex items-center justify-center gap-1.5 border-emerald-500/20">
+                            <CheckCircle className="h-4 w-4" /> Project Tendering Flow Initiated
+                          </div>
+                        ) : (
+                          <Button
+                            onClick={() => handleStartTender(selectedHotspot.id)}
+                            className="w-full text-xs h-9 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center justify-center gap-1 border-none"
+                          >
+                            <Hammer className="h-3.5 w-3.5" /> Initiate Project Tendering
+                          </Button>
+                        )}
+                      </div>
+                    </Card>
+
+                    {/* Dynamic Nearby places (Spatial Context Panel) */}
+                    <Card className="p-5 space-y-4">
+                      <div className="border-l-4 border-indigo-500 pl-3 flex justify-between items-center">
+                        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                          Civic Assets in Impact Radius
+                        </h4>
+                        <Badge variant="outline" className="text-[8px]">Spatial Context</Badge>
+                      </div>
+
+                      {loadingAssets ? (
+                        <p className="text-[10px] text-muted-foreground animate-pulse">Scanning nearby infrastructure indices...</p>
                       ) : (
-                        <Button
-                          onClick={() => handleStartTender(selectedHotspot.id)}
-                          className="w-full text-xs h-9 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center justify-center gap-1"
-                        >
-                          <Hammer className="h-3.5 w-3.5" /> Initiate Project Tendering
-                        </Button>
+                        <div className="space-y-3.5">
+                          {/* Schools list */}
+                          <div className="space-y-2">
+                            <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
+                              <School className="h-3 w-3 text-indigo-400" /> Schools / Education ({nearbySchools.length})
+                            </span>
+                            <div className="space-y-1.5">
+                              {nearbySchools.map((item, idx) => (
+                                <div key={idx} className="bg-slate-50 dark:bg-slate-900 p-2 rounded-lg border text-[11px] leading-tight">
+                                  <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                                    <span>{item.name}</span>
+                                    <span className="text-[9px] text-indigo-500">★ {item.rating}</span>
+                                  </div>
+                                  <p className="text-[9px] text-muted-foreground mt-0.5">{item.address}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Hospitals list */}
+                          <div className="space-y-2">
+                            <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
+                              <Building className="h-3 w-3 text-red-400" /> Hospitals / Clinics ({nearbyHospitals.length})
+                            </span>
+                            <div className="space-y-1.5">
+                              {nearbyHospitals.map((item, idx) => (
+                                <div key={idx} className="bg-slate-50 dark:bg-slate-900 p-2 rounded-lg border text-[11px] leading-tight">
+                                  <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                                    <span>{item.name}</span>
+                                    <span className="text-[9px] text-red-500">★ {item.rating}</span>
+                                  </div>
+                                  <p className="text-[9px] text-muted-foreground mt-0.5">{item.address}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Parks list */}
+                          <div className="space-y-2">
+                            <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
+                              <TreePine className="h-3 w-3 text-emerald-400" /> Open Parks / Playgrounds ({nearbyParks.length})
+                            </span>
+                            <div className="space-y-1.5">
+                              {nearbyParks.map((item, idx) => (
+                                <div key={idx} className="bg-slate-50 dark:bg-slate-900 p-2 rounded-lg border text-[11px] leading-tight">
+                                  <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                                    <span>{item.name}</span>
+                                    <span className="text-[9px] text-emerald-500">★ {item.rating}</span>
+                                  </div>
+                                  <p className="text-[9px] text-muted-foreground mt-0.5">{item.address}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       )}
-                    </div>
-                  </Card>
+                    </Card>
+                  </div>
                 ) : (
                   <Card className="p-8 text-center text-xs text-muted-foreground border-dashed">
-                    Select a hotspot pin on the map to evaluate developmental options.
+                    Select a hotspot pin on the map to evaluate developmental options and nearby assets.
                   </Card>
                 )}
               </div>

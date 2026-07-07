@@ -25,7 +25,7 @@ def setup_telemetry(app_name: str) -> None:
 
     # Try importing OTLP exporter, fallback to console exporter if not installed
     try:
-        from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+        from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (  # type: ignore[import-not-found]
             OTLPSpanExporter,
         )
 
@@ -38,7 +38,7 @@ def setup_telemetry(app_name: str) -> None:
 
     # 2. Metrics Setup
     try:
-        from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (
+        from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (  # type: ignore[import-not-found]
             OTLPMetricExporter,
         )
 

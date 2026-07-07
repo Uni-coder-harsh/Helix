@@ -34,6 +34,7 @@ class SQLAlchemyGovernanceQueryService(GovernanceQueryService):
                     "location_address": issue.location_address,
                     "latitude": issue.latitude,
                     "longitude": issue.longitude,
+                    "incident_id": issue.incident_id,
                     "created_at": (
                         issue.created_at.isoformat() if issue.created_at else None
                     ),

@@ -1,5 +1,7 @@
 from typing import Any
 
+from ai_platform.core.llm import LLMMessage, LLMProvider
+
 from services.governance.application.queries import GovernanceQueryService
 
 
@@ -8,8 +10,13 @@ class ProactiveIntelligenceService:
 
     def __init__(self, query_service: GovernanceQueryService) -> None:
         self.query_service = query_service
+        self.llm: LLMProvider | None = None
+        try:
+            self.llm = LLMProvider.get_provider()
+        except Exception:
+            self.llm = None
 
-    def get_morning_briefing(self) -> dict[str, Any]:
+    async def get_morning_briefing(self) -> dict[str, Any]:
         """Generates structured proactive insights and forecasted category ratings."""
         issues = self.query_service.list_pending_issues()
 
@@ -47,6 +54,20 @@ class ProactiveIntelligenceService:
             "• PMGSY road upgrade project in Ward 8 is running stable.\n"
             "• Urgent dispatch warning: Hospital route utility block is approaching SLA breach."
         )
+
+        if self.llm:
+            try:
+                prompt = (
+                    "Generate a daily constituency morning brief for an MLA. "
+                    "The brief must start with 'Good Morning MLA. This week:' and summarize critical "
+                    "alerts (water, sanitation, road upgrades). Keep it under 100 words in bullet points."
+                )
+                messages = [LLMMessage(role="user", content=prompt)]
+                res = await self.llm.generate(messages)
+                if res and res.content and len(res.content.strip()) > 30:
+                    brief_summary = res.content.strip()
+            except Exception:
+                pass
 
         return {
             "constituency": "Central Bengaluru Constituency",

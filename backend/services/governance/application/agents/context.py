@@ -11,7 +11,7 @@ class ContextAgent(BaseAgent):
     def name(self) -> str:
         return "Context Agent"
 
-    def run(self, context: dict[str, Any]) -> AgentResult:
+    async def run(self, context: dict[str, Any]) -> AgentResult:
         start_time = time.perf_counter()
         issue = context.get("issue", {})
         desc = issue.get("description", "").lower()

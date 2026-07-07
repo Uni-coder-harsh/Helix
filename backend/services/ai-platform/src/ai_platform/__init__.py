@@ -2,6 +2,7 @@
 # Phase 1: Modular Monolith Framework
 
 from ai_platform.core import (
+    ConfigurationError,
     Document,
     EmbeddingProvider,
     EmbeddingResponse,
@@ -56,6 +57,7 @@ __version__ = "1.0.0"
 
 __all__ = [
     "ConfidenceScorer",
+    "ConfigurationError",
     "Document",
     "EmbeddingProvider",
     "EmbeddingResponse",

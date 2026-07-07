@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/config";
 import { mockIssues, Issue, IssueUpdate } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -35,7 +36,7 @@ export default function OfficerDashboard() {
 
   useEffect(() => {
     // 1. Fetch Proactive Morning Briefing
-    fetch("http://localhost:8000/governance/proactive/morning-brief")
+    fetch(`${API_BASE_URL}/governance/proactive/morning-brief`)
       .then((res) => res.json())
       .then((data) => {
         setBriefing(data);
@@ -92,7 +93,7 @@ export default function OfficerDashboard() {
       });
 
     // 2. Fetch pending issues
-    fetch("http://localhost:8000/governance/issues/pending")
+    fetch(`${API_BASE_URL}/governance/issues/pending`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {

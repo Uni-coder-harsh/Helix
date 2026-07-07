@@ -41,6 +41,6 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def run(self, context: dict[str, Any]) -> AgentResult:
+    async def run(self, context: dict[str, Any]) -> AgentResult:
         """Executes the agent business logic over the provided context payload."""
         pass

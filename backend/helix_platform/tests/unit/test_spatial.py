@@ -68,3 +68,57 @@ def test_issue_marker_clustering() -> None:
     assert cluster["count"] == 2
     assert "1" in cluster["ids"]
     assert "2" in cluster["ids"]
+
+
+from unittest.mock import patch
+
+
+def test_search_nearby_places() -> None:
+    service = GeoService()
+    with patch.object(
+        service.places_provider,
+        "search_places",
+        return_value=[
+            {
+                "name": "Shivaji Nagar School",
+                "latitude": 12.978,
+                "longitude": 77.594,
+                "place_id": "1",
+                "address": "Road",
+                "rating": 4.5,
+            }
+        ],
+    ):
+        places = service.search_nearby_places(12.9755, 77.5955, 1000, "school")
+        assert len(places) > 0
+        assert "name" in places[0]
+        assert "latitude" in places[0]
+        assert "longitude" in places[0]
+
+
+def test_geocode_address() -> None:
+    service = GeoService()
+    with patch.object(
+        service.geocoder,
+        "geocode",
+        return_value={
+            "latitude": 12.9810,
+            "longitude": 77.5910,
+            "formatted_address": "Sector 4, Shivaji Nagar, Bengaluru",
+        },
+    ):
+        coords = service.geocode_address("Sector 4, Shivaji Nagar")
+        assert coords is not None
+        assert coords["latitude"] == 12.9810
+        assert coords["longitude"] == 77.5910
+
+
+def test_reverse_geocode() -> None:
+    service = GeoService()
+    with patch.object(
+        service.geocoder,
+        "reverse_geocode",
+        return_value="Sector 4, Shivaji Nagar",
+    ):
+        address = service.reverse_geocode(12.9810, 77.5910)
+        assert "Sector 4" in address

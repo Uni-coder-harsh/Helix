@@ -22,6 +22,23 @@ class IssueDB(Base):
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     department_id = Column(String(36), nullable=True)
+    incident_id = Column(String(36), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
+
+
+class IncidentDB(Base):
+    """SQLAlchemy model representing persistent Incident state (clustered duplicates)."""
+
+    __tablename__ = "incidents"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String(255), nullable=False)
+    description = Column(String(2048), nullable=False)
+    category = Column(String(50), nullable=False)
+    status = Column(String(50), nullable=False, default="TRIAGED")
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    location_address = Column(String(505), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 
 

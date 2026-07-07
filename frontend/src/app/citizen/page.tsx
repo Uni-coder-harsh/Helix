@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { API_BASE_URL } from "@/config";
 import { mockIssues, Issue } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -24,7 +25,7 @@ export default function CitizenDashboard() {
   const [newConstituency, setNewConstituency] = useState("Central Bengaluru");
 
   React.useEffect(() => {
-    fetch("http://localhost:8000/governance/issues/pending")
+    fetch(`${API_BASE_URL}/governance/issues/pending`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -101,7 +102,7 @@ export default function CitizenDashboard() {
       formatted_address: newConstituency,
     };
 
-    fetch("http://localhost:8000/governance/issues", {
+    fetch(`${API_BASE_URL}/governance/issues`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

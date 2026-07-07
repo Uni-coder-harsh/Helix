@@ -92,7 +92,7 @@ async def handle_issue_triaged(event: IssueTriagedEvent) -> None:
             return
 
         # Build explainable recommendation using our new Governance Intelligence Engine
-        rec_details = rec_builder.build_recommendation(
+        rec_details = await rec_builder.build_recommendation(
             issue_id=event.issue_id,
             category=issue.category,
             latitude=issue.location.latitude,

@@ -5,6 +5,7 @@ from ai_platform.core.embedding import (
     MockEmbeddingProvider,
 )
 from ai_platform.core.llm import (
+    ConfigurationError,
     GeminiAdapter,
     LLMMessage,
     LLMProvider,
@@ -25,6 +26,7 @@ from ai_platform.core.rag import (
 )
 
 __all__ = [
+    "ConfigurationError",
     "Document",
     "EmbeddingProvider",
     "EmbeddingResponse",

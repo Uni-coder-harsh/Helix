@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/config";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ export default function OutcomePlanningPage() {
   const [approvedStates, setApprovedStates] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    fetch("http://localhost:8000/governance/planning/projects")
+    fetch(`${API_BASE_URL}/governance/planning/projects`)
       .then((res) => res.json())
       .then((data) => {
         setProjects(data);
@@ -72,7 +73,7 @@ export default function OutcomePlanningPage() {
   }, []);
 
   const handleApproveProject = (projectId: string) => {
-    fetch(`http://localhost:8000/governance/planning/projects/${projectId}/approve`, {
+    fetch(`${API_BASE_URL}/governance/planning/projects/${projectId}/approve`, {
       method: "POST",
     })
       .then((r) => r.json())

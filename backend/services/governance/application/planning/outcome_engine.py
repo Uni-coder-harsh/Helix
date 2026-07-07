@@ -1,7 +1,7 @@
 import uuid
 from typing import Any
 
-from ai_platform.core.llm import LLMProvider
+from ai_platform.core.llm import LLMMessage, LLMProvider
 
 
 class OutcomePlanningEngine:
@@ -9,33 +9,40 @@ class OutcomePlanningEngine:
 
     def __init__(self) -> None:
         # Resolve LLM adapter for explaining project reasoning
+        self.llm: LLMProvider | None = None
         try:
             self.llm = LLMProvider.get_provider()
         except Exception:
             self.llm = None
 
-    def plan_projects(self, issues: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        # Count categories
-        water_issues = [
+    async def plan_projects(
+        self, incidents: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        # Count categories from incidents
+        water_incidents = [
             i
-            for i in issues
+            for i in incidents
             if "sanit" in i["category"].lower() or "water" in i["category"].lower()
         ]
-        road_issues = [
+        road_incidents = [
             i
-            for i in issues
+            for i in incidents
             if "road" in i["category"].lower() or "sidewalk" in i["category"].lower()
         ]
 
         projects = []
 
         # Project 1: Water/Drainage Trunk
-        w_count = len(water_issues) if len(water_issues) > 0 else 41
+        w_count = (
+            sum(i.get("reports_count", 1) for i in water_incidents)
+            if len(water_incidents) > 0
+            else 41
+        )
         prompt_w = (
             f"Explain in one natural paragraph why executing a full 'Water Pipe Trunk Reconstruction' "
             f"in Ward 12 is better than fixing {w_count} individual leakage complaints near the regional hospital."
         )
-        reason_w = self._call_llm_fallback(
+        reason_w = await self._call_llm_fallback(
             prompt_w,
             f"Clustering {w_count} water leak complaints near Shivaji Nagar Hospital indicates severe pipeline decay. "
             f"A complete trunk reconstruction is recommended over patching leaks, ensuring uninterrupted clinic access "
@@ -70,12 +77,16 @@ class OutcomePlanningEngine:
         )
 
         # Project 2: Road/Sidewalk Corridor
-        r_count = len(road_issues) if len(road_issues) > 0 else 18
+        r_count = (
+            sum(i.get("reports_count", 1) for i in road_incidents)
+            if len(road_incidents) > 0
+            else 18
+        )
         prompt_r = (
             f"Explain in one natural paragraph why executing a 'Full Pedestrian Corridor & Road Reconstruction' "
             f"in Sector 4 is better than patching {r_count} individual potholes near the local primary school."
         )
-        reason_r = self._call_llm_fallback(
+        reason_r = await self._call_llm_fallback(
             prompt_r,
             f"Sector 4 features {r_count} transit hazard reports surrounding local primary schools. "
             f"Restructuring the sidewalk corridor and repaving the arterial road solves these reports collectively, "
@@ -111,14 +122,15 @@ class OutcomePlanningEngine:
 
         return projects
 
-    def _call_llm_fallback(self, prompt: str, fallback: str) -> str:
+    async def _call_llm_fallback(self, prompt: str, fallback: str) -> str:
         if not self.llm:
             return fallback
         try:
             # Call adapter API key or mock config
-            res = self.llm.generate(prompt)
-            if res and len(res.strip()) > 30:
-                return res.strip()
+            messages = [LLMMessage(role="user", content=prompt)]
+            res = await self.llm.generate(messages)
+            if res and res.content and len(res.content.strip()) > 30:
+                return res.content.strip()
             return fallback
         except Exception:
             return fallback

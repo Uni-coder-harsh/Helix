@@ -26,7 +26,7 @@ class DecisionPipelineOrchestrator:
             RecommendationAgent(),
         ]
 
-    def run_pipeline(self, issue: dict[str, Any]) -> dict[str, Any]:
+    async def run_pipeline(self, issue: dict[str, Any]) -> dict[str, Any]:
         pipeline_id = uuid.uuid4()
         start_time = time.perf_counter()
 
@@ -36,7 +36,7 @@ class DecisionPipelineOrchestrator:
         # Sequentially execute agents
         for agent in self.agents:
             try:
-                res = agent.run(context)
+                res = await agent.run(context)
                 results.append(res)
                 # Feed outputs of current agent into downstream agent context
                 context.update(res.outputs)
