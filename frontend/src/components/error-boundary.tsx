@@ -1,6 +1,8 @@
 "use client";
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
+import { AlertTriangle, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   children?: ReactNode;
@@ -22,25 +24,31 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
+    console.error("Uncaught widget error:", error, errorInfo);
   }
 
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-red-200 bg-red-50 p-6 text-center dark:border-red-900/30 dark:bg-red-950/20">
-          <h2 className="mb-2 text-xl font-semibold text-red-800 dark:text-red-400">
-            Something went wrong
-          </h2>
-          <p className="mb-4 text-sm text-red-600 dark:text-red-500 max-w-md">
-            {this.state.error?.message || "An unexpected error occurred in this section."}
-          </p>
-          <button
+        <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/[0.02] p-8 text-center max-w-md mx-auto space-y-4 shadow-sm animate-fade-in">
+          <div className="h-11 w-11 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/25">
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-sm font-bold text-slate-800 dark:text-slate-205">
+              Widget Interface Error
+            </h2>
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-normal">
+              {this.state.error?.message || "An unexpected error occurred in this dashboard module."}
+            </p>
+          </div>
+          <Button
+            size="sm"
             onClick={() => this.setState({ hasError: false, error: null })}
-            className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+            className="h-8.5 px-4 bg-red-600 hover:bg-red-750 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm"
           >
-            Try again
-          </button>
+            <RotateCcw className="h-3.5 w-3.5" /> Re-initialize Module
+          </Button>
         </div>
       );
     }

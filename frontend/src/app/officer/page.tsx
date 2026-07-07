@@ -19,7 +19,6 @@ import {
   ArrowRight,
   ShieldAlert,
   Sun,
-  ShieldAlert as AlertOctagon,
   Sparkles,
 } from "lucide-react";
 
@@ -190,70 +189,77 @@ export default function OfficerDashboard() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in py-2">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Constituency Decision Dashboard</h1>
-          <p className="text-xs text-muted-foreground">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-5">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-indigo-500 to-purple-600 bg-clip-text text-transparent">
+            Constituency Decision Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
             Proactive constituency health indexing, morning briefings, and triage logs.
           </p>
         </div>
       </div>
 
       {/* NEW: Proactive Morning Briefing & Alerts Header section */}
-      {!loadingBriefing && briefing && (
+      {loadingBriefing ? (
+        <BriefingSkeleton />
+      ) : briefing ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
           {/* Proactive Greeting Card */}
-          <Card className="lg:col-span-2 p-5 border-2 border-indigo-500/20 bg-indigo-500/[0.01] space-y-4">
-            <div className="flex items-center gap-2 border-b pb-2 border-slate-100 dark:border-slate-800">
+          <Card className="lg:col-span-2 p-6 border border-indigo-500/20 bg-indigo-500/[0.01] dark:bg-indigo-950/[0.02] space-y-4 shadow-sm hover:shadow-md transition relative overflow-hidden">
+            <div className="absolute top-0 right-0 h-24 w-24 bg-indigo-500/5 rounded-full blur-xl" />
+            <div className="flex items-center gap-2 border-b pb-3 border-slate-100 dark:border-slate-800/80">
               <Sun className="h-5 w-5 text-indigo-500" />
-              <h2 className="text-sm font-bold tracking-wider uppercase text-indigo-500 flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4" /> Proactive Morning Briefing
+              <h2 className="text-sm font-bold tracking-wider uppercase text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                <Sparkles className="h-4.5 w-4.5 animate-pulse" /> Proactive Morning Briefing
               </h2>
             </div>
-            <div className="font-sans text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line bg-card p-4 rounded-xl border">
+            <div className="font-sans text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line bg-card p-4 rounded-xl border shadow-inner">
               {briefing.morning_brief}
             </div>
           </Card>
 
           {/* Risk Alerts Panel */}
-          <Card className="p-5 border-red-500/20 bg-red-500/[0.01] space-y-3 flex flex-col justify-between">
-            <div className="flex items-center gap-1.5 border-b pb-2 border-slate-100 dark:border-slate-800">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <h3 className="text-sm font-bold text-red-500 uppercase tracking-wider">Critical SLA Risks</h3>
+          <Card className="p-6 border border-red-500/20 bg-red-500/[0.01] dark:bg-red-950/[0.02] space-y-4 shadow-sm flex flex-col justify-between hover:shadow-md transition relative overflow-hidden">
+            <div className="absolute top-0 right-0 h-24 w-24 bg-red-500/5 rounded-full blur-xl" />
+            <div className="flex items-center gap-2 border-b pb-3 border-slate-100 dark:border-slate-800/80">
+              <ShieldAlert className="h-5 w-5 text-red-500" />
+              <h3 className="text-sm font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Critical SLA Risks</h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {briefing.risk_alerts.map((alert: any, idx: number) => (
-                <div key={idx} className="border p-2.5 rounded-lg bg-card text-xs flex justify-between items-center gap-2 hover:border-red-500/30 transition">
+                <div key={idx} className="border border-red-500/10 p-3 rounded-xl bg-card text-xs flex justify-between items-center gap-3 hover:border-red-500/30 transition shadow-sm">
                   <div className="truncate">
-                    <p className="font-bold truncate text-slate-800 dark:text-slate-200">{alert.title}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{alert.impact_weight} affected</p>
+                    <p className="font-bold truncate text-slate-850 dark:text-slate-200">{alert.title}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1 font-semibold">{alert.impact_weight} affected</p>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <Badge variant="destructive" className="text-[9px] font-mono">{alert.sla_remaining}</Badge>
+                  <div className="flex-shrink-0">
+                    <Badge variant="destructive" className="text-[9px] font-mono font-bold px-2 py-0.5">{alert.sla_remaining}</Badge>
                   </div>
                 </div>
               ))}
             </div>
           </Card>
         </div>
-      )}
+      ) : null}
 
       {/* Constituency Health score Widget */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <Card className="p-5 bg-gradient-to-br from-indigo-900/50 to-slate-900 border-indigo-500/20 text-white flex flex-col justify-between min-h-[160px] lg:col-span-1">
+        <Card className="p-6 bg-gradient-to-br from-indigo-950/80 to-slate-900 border border-indigo-500/20 text-white flex flex-col justify-between min-h-[170px] lg:col-span-1 shadow-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-24 w-24 bg-indigo-500/10 rounded-full blur-xl" />
           <div>
-            <div className="flex justify-between items-center text-xs text-indigo-300 font-semibold tracking-wider uppercase">
+            <div className="flex justify-between items-center text-[10px] text-indigo-300 font-bold tracking-wider uppercase">
               <span>Constituency Health</span>
-              <Activity className="h-4 w-4 text-indigo-400" />
+              <Activity className="h-4.5 w-4.5 text-indigo-400" />
             </div>
-            <div className="flex items-baseline gap-2 mt-4">
-              <span className="text-4xl font-extrabold">78</span>
-              <span className="text-slate-400 text-sm">/ 100</span>
+            <div className="flex items-baseline gap-2 mt-5">
+              <span className="text-5xl font-extrabold tracking-tight">78</span>
+              <span className="text-indigo-300/60 text-sm font-semibold">/ 100</span>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 text-emerald-400 text-xs mt-4">
+          <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold mt-4">
             <TrendingUp className="h-3.5 w-3.5" />
             <span>+2.4% positive resolution index</span>
           </div>
@@ -261,84 +267,84 @@ export default function OfficerDashboard() {
 
         {/* Category Health Scores */}
         <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <Card className="p-4 bg-card text-card-foreground flex flex-col justify-between">
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase">Roads</span>
-            <div className="text-2xl font-bold mt-2">82</div>
-            <span className="text-[9px] text-emerald-500 font-medium flex items-center gap-0.5 mt-2">
+          <Card className="p-4 bg-card text-card-foreground border hover:border-slate-300 dark:hover:border-slate-800 transition flex flex-col justify-between shadow-sm">
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Roads</span>
+            <div className="text-3xl font-extrabold mt-3 tracking-tight">82</div>
+            <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5 mt-2">
               <TrendingUp className="h-3 w-3" /> +1.2%
             </span>
           </Card>
-          <Card className="p-4 bg-card border-red-500/20 text-card-foreground flex flex-col justify-between">
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase">Water/Sanit</span>
-            <div className="text-2xl font-bold text-red-500 mt-2">61</div>
-            <span className="text-[9px] text-red-500 font-medium flex items-center gap-0.5 mt-2">
+          <Card className="p-4 bg-card border-red-500/20 text-card-foreground flex flex-col justify-between shadow-sm">
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Water/Sanit</span>
+            <div className="text-3xl font-extrabold text-red-500 mt-3 tracking-tight">61</div>
+            <span className="text-[10px] text-red-550 dark:text-red-400 font-bold flex items-center gap-0.5 mt-2">
               <TrendingDown className="h-3 w-3 animate-bounce" /> -3.5%
             </span>
           </Card>
-          <Card className="p-4 bg-card text-card-foreground flex flex-col justify-between">
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase">Electricity</span>
-            <div className="text-2xl font-bold mt-2">90</div>
-            <span className="text-[9px] text-slate-400 font-medium mt-2">Stable</span>
+          <Card className="p-4 bg-card text-card-foreground border hover:border-slate-300 dark:hover:border-slate-800 transition flex flex-col justify-between shadow-sm">
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Electricity</span>
+            <div className="text-3xl font-extrabold mt-3 tracking-tight">90</div>
+            <span className="text-[10px] text-slate-400 font-bold mt-2.5">Stable</span>
           </Card>
-          <Card className="p-4 bg-card text-card-foreground flex flex-col justify-between">
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase">Healthcare</span>
-            <div className="text-2xl font-bold mt-2">74</div>
-            <span className="text-[9px] text-emerald-500 font-medium flex items-center gap-0.5 mt-2">
+          <Card className="p-4 bg-card text-card-foreground border hover:border-slate-300 dark:hover:border-slate-800 transition flex flex-col justify-between shadow-sm">
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Healthcare</span>
+            <div className="text-3xl font-extrabold mt-3 tracking-tight">74</div>
+            <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5 mt-2">
               <TrendingUp className="h-3 w-3" /> +0.5%
             </span>
           </Card>
-          <Card className="p-4 bg-card text-card-foreground flex flex-col justify-between">
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase">Education</span>
-            <div className="text-2xl font-bold mt-2">69</div>
-            <span className="text-[9px] text-slate-400 font-medium mt-2">Stable</span>
+          <Card className="p-4 bg-card text-card-foreground border hover:border-slate-300 dark:hover:border-slate-800 transition flex flex-col justify-between shadow-sm">
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Education</span>
+            <div className="text-3xl font-extrabold mt-3 tracking-tight">69</div>
+            <span className="text-[10px] text-slate-400 font-bold mt-2.5">Stable</span>
           </Card>
         </div>
       </div>
 
       {/* Operational Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4 flex items-center space-x-3 bg-card">
-          <div className="p-2 bg-red-500/10 text-red-500 rounded-lg">
-            <AlertOctagon className="h-5 w-5" />
+        <Card className="p-5 flex items-center space-x-4 bg-card border shadow-sm hover:shadow transition">
+          <div className="p-3 bg-red-500/10 text-red-500 rounded-xl border border-red-500/20">
+            <ShieldAlert className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-[10px] text-muted-foreground font-semibold uppercase">Pending Triage</div>
-            <div className="text-xl font-bold">
+            <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Pending Triage</div>
+            <div className="text-2xl font-extrabold mt-0.5 tracking-tight">
               {issues.filter((i) => i.status === "Submitted" || i.status === "Validated").length}
             </div>
           </div>
         </Card>
-        <Card className="p-4 flex items-center space-x-3 bg-card">
-          <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
+        <Card className="p-5 flex items-center space-x-4 bg-card border shadow-sm hover:shadow transition">
+          <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/20">
             <Clock className="h-5 w-5 animate-pulse" />
           </div>
           <div>
-            <div className="text-[10px] text-muted-foreground font-semibold uppercase">Active Field Tasks</div>
-            <div className="text-xl font-bold">
+            <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Active Field Tasks</div>
+            <div className="text-2xl font-extrabold mt-0.5 tracking-tight">
               {issues.filter((i) => i.status === "Assigned" || i.status === "In_Progress").length}
             </div>
           </div>
         </Card>
-        <Card className="p-4 flex items-center space-x-3 bg-card">
-          <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg">
+        <Card className="p-5 flex items-center space-x-4 bg-card border shadow-sm hover:shadow transition">
+          <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl border border-emerald-500/20">
             <CheckCircle2 className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-[10px] text-muted-foreground font-semibold uppercase">Resolved Today</div>
-            <div className="text-xl font-bold">{issues.filter((i) => i.status === "Completed").length}</div>
+            <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Resolved Today</div>
+            <div className="text-2xl font-extrabold mt-0.5 tracking-tight">{issues.filter((i) => i.status === "Completed").length}</div>
           </div>
         </Card>
       </div>
 
       {/* Filters bar */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card border p-4 rounded-xl">
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card border p-4 rounded-xl shadow-sm">
         {/* Navigation Tabs */}
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg w-full md:w-auto">
+        <div className="flex bg-slate-105 dark:bg-slate-800/80 p-1 rounded-xl w-full md:w-auto border">
           <button
             onClick={() => setActiveTab("all")}
-            className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-semibold transition ${
+            className={`flex-1 md:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === "all"
-                ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
+                ? "bg-white dark:bg-slate-900 shadow text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -346,9 +352,9 @@ export default function OfficerDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("pending_ai")}
-            className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-semibold transition ${
+            className={`flex-1 md:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === "pending_ai"
-                ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
+                ? "bg-white dark:bg-slate-900 shadow text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -356,9 +362,9 @@ export default function OfficerDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("in_progress")}
-            className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-semibold transition ${
+            className={`flex-1 md:flex-none px-5 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === "in_progress"
-                ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
+                ? "bg-white dark:bg-slate-900 shadow text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -368,18 +374,18 @@ export default function OfficerDashboard() {
 
         {/* Input filters */}
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-          <div className="relative w-full sm:w-60">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="relative w-full sm:w-60 shadow-sm rounded-lg overflow-hidden border">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <Input
               type="search"
               placeholder="Search issues..."
-              className="pl-8 text-xs h-9 bg-background"
+              className="pl-9 text-xs h-9 bg-background border-none focus-visible:ring-0"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <select
-            className="h-9 rounded-md border border-input bg-background px-3 text-xs focus-visible:outline-none"
+            className="h-9 rounded-lg border border-input bg-background px-3 text-xs font-semibold focus-visible:outline-none shadow-sm"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -394,15 +400,13 @@ export default function OfficerDashboard() {
       </div>
 
       {/* Issues Queue Table Layout */}
-      <div className="overflow-x-auto rounded-xl border bg-card">
+      <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
         {loading ? (
-          <div className="p-8 text-center text-xs text-muted-foreground animate-pulse">
-            Loading constituency records...
-          </div>
+          <QueueSkeleton />
         ) : (
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b bg-slate-50 dark:bg-slate-900/50 text-slate-500 font-semibold">
+              <tr className="border-b bg-slate-50/80 dark:bg-slate-900/40 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                 <th className="p-4">Issue ID</th>
                 <th className="p-4">Title / Category</th>
                 <th className="p-4">Constituency</th>
@@ -417,14 +421,14 @@ export default function OfficerDashboard() {
                 filteredIssues.map((issue) => (
                   <tr
                     key={issue.id}
-                    className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition"
+                    className="hover:bg-slate-55/20 dark:hover:bg-slate-900/20 transition-colors duration-150"
                   >
-                    <td className="p-4 font-mono font-bold text-slate-400">{issue.id}</td>
+                    <td className="p-4 font-mono font-bold text-slate-450">{issue.id}</td>
                     <td className="p-4 max-w-[280px]">
-                      <div className="font-semibold text-sm line-clamp-1">{issue.title}</div>
-                      <div className="text-slate-400 mt-0.5">{issue.category}</div>
+                      <div className="font-bold text-sm text-slate-850 dark:text-slate-200 line-clamp-1 leading-snug">{issue.title}</div>
+                      <div className="text-slate-400 mt-1 font-medium">{issue.category}</div>
                     </td>
-                    <td className="p-4 font-medium">{issue.constituency}</td>
+                    <td className="p-4 font-bold text-slate-700 dark:text-slate-300">{issue.constituency}</td>
                     <td className="p-4">
                       <Badge
                         variant={
@@ -443,18 +447,18 @@ export default function OfficerDashboard() {
                         {issue.status.replace("_", " ")}
                       </Badge>
                     </td>
-                    <td className="p-4 text-muted-foreground">
+                    <td className="p-4 text-muted-foreground font-medium">
                       {new Date(issue.updatedAt).toLocaleString("en-IN", {
                         dateStyle: "short",
                         timeStyle: "short",
                       })}
                     </td>
-                    <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                    <td className="p-4 text-right space-x-1.5 whitespace-nowrap">
                       {issue.status === "Submitted" && (
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 text-[11px]"
+                          className="h-8 text-[11px] font-bold"
                           onClick={() => handleUpdateStatus(issue.id, "Validated")}
                         >
                           Validate AI
@@ -464,7 +468,7 @@ export default function OfficerDashboard() {
                         <Button
                           size="sm"
                           variant="secondary"
-                          className="h-8 text-[11px]"
+                          className="h-8 text-[11px] font-bold"
                           onClick={() => handleUpdateStatus(issue.id, "Assigned")}
                         >
                           Dispatch Crew
@@ -474,7 +478,7 @@ export default function OfficerDashboard() {
                         <Button
                           size="sm"
                           variant="default"
-                          className="h-8 text-[11px] bg-indigo-600 hover:bg-indigo-700"
+                          className="h-8 text-[11px] font-bold bg-indigo-650 hover:bg-indigo-700 text-white"
                           onClick={() => handleUpdateStatus(issue.id, "In_Progress")}
                         >
                           Start Work
@@ -484,14 +488,14 @@ export default function OfficerDashboard() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 text-[11px] border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+                          className="h-8 text-[11px] font-bold border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
                           onClick={() => handleUpdateStatus(issue.id, "Completed")}
                         >
                           Resolve SLA
                         </Button>
                       )}
                       <Link href={`/issues/${issue.id}`}>
-                        <Button size="sm" variant="ghost" className="h-8 text-[11px]">
+                        <Button size="sm" variant="ghost" className="h-8 text-[11px] font-bold">
                           Open Brief <ArrowRight className="h-3 w-3 ml-0.5" />
                         </Button>
                       </Link>
@@ -500,14 +504,81 @@ export default function OfficerDashboard() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-muted-foreground border-dashed">
-                    No municipal issues matched your search parameters.
+                  <td colSpan={7} className="p-0">
+                    <QueueEmptyState />
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         )}
+      </div>
+    </div>
+  );
+}
+
+// Skeletons
+function BriefingSkeleton() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse">
+      <Card className="lg:col-span-2 p-5 border space-y-4 bg-card">
+        <div className="flex items-center gap-2 border-b pb-3">
+          <div className="h-5 w-5 bg-slate-200 dark:bg-slate-800 rounded-full" />
+          <div className="h-4.5 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-4.5 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+          <div className="h-4.5 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+          <div className="h-4.5 w-5/6 bg-slate-200 dark:bg-slate-800 rounded" />
+          <div className="h-4.5 w-2/3 bg-slate-200 dark:bg-slate-800 rounded" />
+        </div>
+      </Card>
+      <Card className="p-5 border space-y-4 bg-card flex flex-col justify-between">
+        <div className="flex items-center gap-2 border-b pb-3">
+          <div className="h-5 w-5 bg-slate-200 dark:bg-slate-800 rounded-full" />
+          <div className="h-4.5 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+        </div>
+        <div className="space-y-3 flex-1 pt-2">
+          <div className="h-12 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+          <div className="h-12 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function QueueSkeleton() {
+  return (
+    <div className="divide-y animate-pulse">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="h-4 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
+          <div className="space-y-1.5 flex-1 max-w-[280px]">
+            <div className="h-4.5 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-3 w-2/3 bg-slate-200 dark:bg-slate-800 rounded" />
+          </div>
+          <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+          <div className="h-5.5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full" />
+          <div className="h-5.5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full" />
+          <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
+          <div className="h-8.5 w-24 bg-slate-200 dark:bg-slate-800 rounded sm:self-center" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function QueueEmptyState() {
+  return (
+    <div className="text-center py-16 px-4 space-y-4">
+      <div className="mx-auto h-12 w-12 rounded-full bg-slate-105 dark:bg-slate-800 flex items-center justify-center text-muted-foreground border">
+        <Search className="h-5 w-5 text-slate-500" />
+      </div>
+      <div className="space-y-1">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">No work items found</h3>
+        <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-normal">
+          No municipal issues match the selected filters or search keyword. Try broadening your query or selecting another status tab.
+        </p>
       </div>
     </div>
   );
