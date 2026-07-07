@@ -96,13 +96,11 @@ nav:
       - GIS & Maps: integrations/maps.md
       - Notifications: integrations/notifications.md
       - Object Storage: integrations/storage.md
-  - Infrastructure: infrastructure.md
   - API: api.md
   - Plugins: plugins.md
-  - Datasets: datasets.md
+  - Demo Data & Seeding: demo-data.md
   - Security: security.md
   - Operations: operations.md
   - Deployment: deployment.md
   - Roadmap: roadmap.md
-  - Research: research.md
   - Contributing: contributing.md

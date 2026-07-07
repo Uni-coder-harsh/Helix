@@ -49,6 +49,8 @@ This log records every significant action, decision, change, and status update i
 | `LOG-041` | 2026-07-07T15:55:00+05:30 | Sprint 12 | Unified Governance Lifecycle & Citizen Transparency | Frozen |
 | `LOG-042` | 2026-07-07T16:30:00+05:30 | Sprint 13 | Evidence Intelligence & Duplicate Clustering | Frozen |
 | `LOG-043` | 2026-07-07T17:15:00+05:30 | Sprint 14 | Production Deployment & Cloud Infrastructure | Frozen |
+| `LOG-044` | 2026-07-07T17:20:00+05:30 | Sprint 14.5 | Repository Cleanup & Production Hardening | Frozen |
+| `LOG-045` | 2026-07-07T17:25:00+05:30 | Sprint 15 | Cloud Deployment & Demo Readiness | Frozen |
 
 ---
 
@@ -550,4 +552,23 @@ This log records every significant action, decision, change, and status update i
   - **CI/CD Quality Gates:** Created `frontend-ci.yml` to run Next.js compilation, eslinting, and static validation checks.
   - **Type Safety & Linting:** Resolving all backend typecheck compilation failures in mypy (reaching 100% type safety on 122 checked files) and fixed all Ruff linter checks.
   - **Route Aliasing:** Configured endpoint aliases `/live` and `/ready` in `services/main.py` matching standard container probes.
+- **Issues/Resolutions:** None.
+
+### `LOG-044` (2026-07-07T17:20:00+05:30) - Repository Cleanup & Production Hardening
+- **Phase:** Sprint 14.5 (Repository Cleanup & Production Hardening)
+- **Status:** Frozen (v1.0.0)
+- **Changes:**
+  - **Placeholder Directory Purge:** Permanently deleted unused repository assets including `ml/`, `research/`, `mobile/`, `sdk/`, `services/` (top-level placeholder), `shared/` (top-level placeholder), and `infra/`.
+  - **Git Hygiene Stabilization:** Verified generated documentation build artifacts in `site/` are correctly ignored inside `.gitignore` and removed local log files like `test_out.log`.
+  - **Documentation Refactoring:** Cleaned up project structure representations in `README.md` and `docs/getting_started.md`. Replaced the outdated datasets page with `docs/demo-data.md` and updated `mkdocs.yml` navigation.
+- **Issues/Resolutions:** None.
+
+### `LOG-045` (2026-07-07T17:25:00+05:30) - Cloud Deployment & Demo Readiness
+- **Phase:** Sprint 15 (Cloud Deployment & Demo Readiness)
+- **Status:** Frozen (v1.0.0)
+- **Changes:**
+  - **Production Environment Template:** Generated `.env.production.example` documenting all mandatory backend/frontend variables needed for Neon Postgres, Vercel, and Railway.
+  - **Demo Dataset Generation:** Built a production-ready seeding engine in `demo-data/seed.py` dynamically spawning 350 realistic geo-clustered citizen reports, supporting duplicate incident groups, and matching AI recommendations.
+  - **Documentation Portals:** Updated `docs/deployment.md` with a comprehensive cloud topology mapping and deployment steps.
+  - **End-to-End Build Verification:** Rerun linter, mypy, pytest, and frontend next static builds to verify 100% success.
 - **Issues/Resolutions:** None.

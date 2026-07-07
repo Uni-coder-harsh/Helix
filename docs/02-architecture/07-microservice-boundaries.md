@@ -214,16 +214,8 @@ backend/
 │   ├── audit/                     # Cryptographic audit logging
 │   ├── plugin/                    # Isolated sandbox manager
 │   └── decision-intelligence/     # Analytical computations and aggregates
-├── shared/
-│   ├── domain/                    # Centralized ubiquitous language, value objects, and enums
-│   ├── contracts/                 # Unified domain configurations
-│   ├── events/                    # Event Catalog JSON-Schema/Protobuf models
-│   ├── protos/                    # Central API boundary interfaces
-│   └── sdk/                       # Standard Plugin development SDK
-└── libs/
-    ├── telemetry/                 # Shared OpenTelemetry configuration
-    ├── security/                  # Cryptographic token utils
-    └── db-utils/                  # Shared database transaction helper abstractions
+├── shared/                        # Shared domain logic and repository abstractions
+└── helix_platform/                # Platform logic (telemetry, spatial, persistence)
 ```
 
 ---

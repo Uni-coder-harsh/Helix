@@ -56,18 +56,11 @@ helix/
 ├── architecture/     # Architecture specification & C4 models
 ├── adr/              # Architecture Decision Records (ADRs)
 ├── rfc/              # Requests for Comments (RFCs)
-├── research/         # Research notes and whitepapers
-├── services/         # Microservices source code
-├── agents/           # AI Agent definitions & logic
-├── plugins/          # Plugin definitions & extensions
-├── sdk/              # Client SDK code
-├── infra/            # Terraform, Docker, and Kubernetes configuration
-├── deployments/      # Production deployment manifests
+├── backend/          # Backend FastAPI modular monolith service
 ├── frontend/         # Web dashboard frontend
-├── mobile/           # Mobile app client
-├── datasets/         # Knowledge graphs and schemas
-├── ml/               # Machine Learning model training scripts
-├── shared/           # Common utilities and libraries
+├── deployments/      # Production deployment configurations
+├── plugins/          # Plugin definitions & extensions
+├── demo-data/        # Synthesized realistic demo dataset & seed scripts
 ├── scripts/          # Developer tooling scripts
 ├── tools/            # Local developer utilities
 ├── tests/            # Test suites

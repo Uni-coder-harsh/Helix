@@ -58,18 +58,11 @@ PHASE 8: Pilot Deployment
 - [architecture/](file:///home/harsh/Desktop/CodeNova/Helix/architecture/) — High-level system design & diagrams
 - [adr/](file:///home/harsh/Desktop/CodeNova/Helix/adr/) — Architecture Decision Records (ADRs)
 - [rfc/](file:///home/harsh/Desktop/CodeNova/Helix/rfc/) — Requests for Comments (RFCs)
-- [research/](file:///home/harsh/Desktop/CodeNova/Helix/research/) — Research papers, benchmarks, and notes
-- [services/](file:///home/harsh/Desktop/CodeNova/Helix/services/) — Backend microservices
-- [agents/](file:///home/harsh/Desktop/CodeNova/Helix/agents/) — AI Agents, prompt templates, evaluation configs
+- [backend/](file:///home/harsh/Desktop/CodeNova/Helix/backend/) — Backend FastAPI modular monolith service
+- [frontend/](file:///home/harsh/Desktop/CodeNova/Helix/frontend/) — Next.js operational dashboards
+- [deployments/](file:///home/harsh/Desktop/CodeNova/Helix/deployments/) — Kubernetes manifests and docker compose configurations
 - [plugins/](file:///home/harsh/Desktop/CodeNova/Helix/plugins/) — Plugin configurations & definitions
-- [sdk/](file:///home/harsh/Desktop/CodeNova/Helix/sdk/) — Developer Client SDKs
-- [infra/](file:///home/harsh/Desktop/CodeNova/Helix/infra/) — Terraform, cloud run, IAM configurations
-- [deployments/](file:///home/harsh/Desktop/CodeNova/Helix/deployments/) — Kubernetes manifests and docker compose files
-- [frontend/](file:///home/harsh/Desktop/CodeNova/Helix/frontend/) — Dashboards and web portals
-- [mobile/](file:///home/harsh/Desktop/CodeNova/Helix/mobile/) — Mobile applications
-- [datasets/](file:///home/harsh/Desktop/CodeNova/Helix/datasets/) — DB schemas, Graph database configurations
-- [ml/](file:///home/harsh/Desktop/CodeNova/Helix/ml/) — Model training notebooks and weights tracking
-- [shared/](file:///home/harsh/Desktop/CodeNova/Helix/shared/) — Shared helper functions and base structures
+- [demo-data/](file:///home/harsh/Desktop/CodeNova/Helix/demo-data/) — Synthesized realistic demo dataset & seed scripts
 - [scripts/](file:///home/harsh/Desktop/CodeNova/Helix/scripts/) — Automation and CI tooling helper scripts
 - [tools/](file:///home/harsh/Desktop/CodeNova/Helix/tools/) — Internal developer tooling
 - [tests/](file:///home/harsh/Desktop/CodeNova/Helix/tests/) — Unit, integration, and security test suites
