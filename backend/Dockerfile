@@ -28,6 +28,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV HELIX_ENV=prod
+ENV PYTHONPATH="/app:/app/services/ai-platform/src"
 
 # Copy backend codebase to workspace
 COPY . .
