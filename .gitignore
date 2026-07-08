@@ -35,8 +35,6 @@ env/
 *.swo
 .DS_Store
 
-# MkDocs
-site/
 
 # Local configuration
 .env
