@@ -1,0 +1,3487 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Internal Engineering and Architecture Portal for Project Helix">
+      
+      
+        <meta name="author" content="Helix Project Team">
+      
+      
+      
+        <link rel="prev" href="../02-c4-context/">
+      
+      
+        <link rel="next" href="../04-event-driven-architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>C4 Container Diagram - Helix Engineering Portal</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#helix-arch-003-c4-level-2-container-diagram" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Helix Engineering Portal" class="md-header__button md-logo" aria-label="Helix Engineering Portal" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Helix Engineering Portal
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              C4 Container Diagram
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting_started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../culture/00-helix-constitution/" class="md-tabs__link">
+          
+  
+  
+  Culture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../01-product/" class="md-tabs__link">
+          
+  
+  
+  Product Discovery & Definition
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ai/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  AI
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../integrations/ai/" class="md-tabs__link">
+          
+  
+  
+  Integrations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../api/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../plugins/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Plugins
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../demo-data/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Demo Data & Seeding
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../security/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Security
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../operations/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Operations
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../deployment/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Deployment
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../roadmap/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Roadmap
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Helix Engineering Portal" class="md-nav__button md-logo" aria-label="Helix Engineering Portal" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Helix Engineering Portal
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Culture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Culture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../culture/00-helix-constitution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Constitution
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product Discovery & Definition
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Product Discovery & Definition
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/00-project-charter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Charter
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/01-vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/02-mission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mission
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/03-product-philosophy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product Philosophy
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/04-governance-design-principles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance Design Principles
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/05-governance-domain-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance Domain Model
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/06-problem-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem Analysis
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/07-user-personas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Personas
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/08-user-journeys/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Journeys
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/09-functional-requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Functional Requirements
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/10-non-functional-requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Non-Functional Requirements
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/11-success-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Success Metrics
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/12-product-roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product Roadmap
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/13-project-scope/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Scope
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/14-risk-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Analysis
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00-architecture-principles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Principles
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-system-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Context
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-c4-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C4 Context Diagram
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C4 Container Diagram
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C4 Container Diagram
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-c4-container-diagram-mermaid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. C4 Container Diagram (Mermaid)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-c4-container-diagram-plantuml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. C4 Container Diagram (PlantUML)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-container-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Container Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Container Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-frontend-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1. Frontend Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.1. Frontend Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-001-admin-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-001: Admin Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-002-citizen-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-002: Citizen Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-003-mobile-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-003: Mobile App
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-edge-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2. Edge Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.2. Edge Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-004-whatsapp-connector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-004: WhatsApp Connector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-005-sms-connector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-005: SMS Connector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-006-email-connector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-006: Email Connector
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-platform-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3. Platform Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.3. Platform Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-007-api-gateway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-007: API Gateway
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-008-identity-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-008: Identity Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-core-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4. Core Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.4. Core Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-009-workflow-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-009: Workflow Engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-010-ai-orchestrator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-010: AI Orchestrator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-011-plugin-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-011: Plugin Runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-012-notification-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-012: Notification Engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-data-store-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5. Data Store Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.5. Data Store Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-013-operational-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-013: Operational Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-014-knowledge-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-014: Knowledge Graph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-015-object-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-015: Object Storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-analytics-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6. Analytics Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.6. Analytics Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-016-analytics-platform" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-016: Analytics Platform
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-architectural-assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Architectural Assumptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-architectural-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Architectural Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-design-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Design Decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-design-validation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Design Validation Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-event-driven-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event-Driven Architecture
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-event-catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Catalog
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-component-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component Architecture
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-microservice-boundaries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Microservice Boundaries
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-plugin-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugin Architecture
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-deployment-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment Architecture
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/ai/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Platform
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/maps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GIS & Maps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Object Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Published"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../demo-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo Data & Seeding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Release"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-c4-container-diagram-mermaid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. C4 Container Diagram (Mermaid)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-c4-container-diagram-plantuml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. C4 Container Diagram (PlantUML)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-container-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Container Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Container Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-frontend-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1. Frontend Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.1. Frontend Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-001-admin-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-001: Admin Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-002-citizen-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-002: Citizen Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-003-mobile-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-003: Mobile App
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-edge-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2. Edge Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.2. Edge Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-004-whatsapp-connector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-004: WhatsApp Connector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-005-sms-connector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-005: SMS Connector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-006-email-connector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-006: Email Connector
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-platform-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3. Platform Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.3. Platform Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-007-api-gateway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-007: API Gateway
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-008-identity-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-008: Identity Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-core-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4. Core Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.4. Core Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-009-workflow-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-009: Workflow Engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-010-ai-orchestrator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-010: AI Orchestrator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-011-plugin-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-011: Plugin Runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-012-notification-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-012: Notification Engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-data-store-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5. Data Store Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.5. Data Store Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-013-operational-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-013: Operational Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-014-knowledge-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-014: Knowledge Graph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-015-object-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-015: Object Storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-analytics-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6. Analytics Containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.6. Analytics Containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#con-016-analytics-platform" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CON-016: Analytics Platform
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-architectural-assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Architectural Assumptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-architectural-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Architectural Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-design-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Design Decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-design-validation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Design Validation Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="helix-arch-003-c4-level-2-container-diagram">HELIX-ARCH-003: C4 Level 2 Container Diagram</h1>
+<p>This specification defines the C4 Level 2 Container Diagram for Helix. It details the system's logical runtime units, their responsibilities, dependencies, interfaces, and persistence store divisions.</p>
+<hr />
+<h2 id="1-c4-container-diagram-mermaid">1. C4 Container Diagram (Mermaid)</h2>
+<p>This diagram shows the runtime containers composing Helix, grouped into functional boundaries:</p>
+<pre class="mermaid"><code>flowchart TB
+    %% Styling Definitions
+    classDef container fill:#1261A0,stroke:#0A4275,color:#FFFFFF,stroke-width:2px;
+    classDef db fill:#00758F,stroke:#004D5E,color:#FFFFFF,stroke-width:2px;
+    classDef boundary stroke:#333,stroke-dasharray: 5 5,fill:none;
+
+    %% Subgraphs for Logical Boundaries
+    subgraph FrontendBound ["Frontend Containers"]
+        AP["Admin Portal (SPA)"]
+        CP["Citizen Portal (SPA)"]
+        MA["Mobile App (Mobile Client)"]
+    end
+
+    subgraph EdgeBound ["Edge Containers"]
+        WAC["WhatsApp Connector (Service)"]
+        SMC["SMS Connector (Service)"]
+        EMC["Email Connector (Service)"]
+    end
+
+    subgraph PlatformBound ["Platform Containers"]
+        GW["API Gateway (Service)"]
+        ID["Identity Service (Service)"]
+    end
+
+    subgraph CoreBound ["Core Containers"]
+        WE["Workflow Engine (Service)"]
+        AO["AI Orchestrator (Service)"]
+        PR["Plugin Runtime (Service)"]
+        NE["Notification Engine (Service)"]
+    end
+
+    subgraph DataBound ["Data Store Containers"]
+        ODB["Operational DB (Relational Database)"]
+        KG["Knowledge Graph (Graph Database)"]
+        OBJ["Object Storage (File Store)"]
+    end
+
+    subgraph AnalyticsBound ["Analytics Containers"]
+        ANL["Analytics Platform (Processing Engine)"]
+    end
+
+    %% Routing connections
+    CP --&gt;|Sends requests| GW
+    AP --&gt;|Sends requests| GW
+    MA --&gt;|Sends requests| GW
+    WAC --&gt;|Forwards raw reports| GW
+    SMC --&gt;|Forwards raw alerts| GW
+    EMC --&gt;|Forwards raw mail| GW
+
+    %% Gateway to Platform / Core Routing
+    GW --&gt;|Authenticates credentials| ID
+    GW --&gt;|Routes operational events| WE
+    GW --&gt;|Routes query requests| AO
+
+    %% Core Container Interactions
+    WE --&gt;|Reads / Writes state| ODB
+    WE --&gt;|Propagates facts and checks history| KG
+    WE --&gt;|Triggers custom step hooks| PR
+    WE --&gt;|Enqueues alerts| NE
+
+    AO --&gt;|Queries grounding policy circulars| KG
+    AO --&gt;|Invokes external model tasks| PR
+
+    NE --&gt;|Dispatches messages| WAC
+    NE --&gt;|Dispatches text alerts| SMC
+    NE --&gt;|Dispatches summary digests| EMC
+
+    PR --&gt;|Saves and loads images / documents| OBJ
+    ANL --&gt;|Reads metrics| ODB
+    ANL --&gt;|Aggregates performance outcomes| KG
+
+    %% Apply Style Classes
+    class AP,CP,MA,WAC,SMC,EMC,GW,ID,WE,AO,PR,NE,ANL container;
+    class ODB,KG,OBJ db;
+
+    %% Apply graph styles
+    style FrontendBound fill:#F8F9FA,stroke:#6C757D,stroke-width:2px;
+    style EdgeBound fill:#F1F3F5,stroke:#495057,stroke-width:2px;
+    style PlatformBound fill:#E9ECEF,stroke:#343A40,stroke-width:2px;
+    style CoreBound fill:#FFE8CC,stroke:#FD7E14,stroke-width:2px;
+    style DataBound fill:#E3FAF5,stroke:#0CA678,stroke-width:2px;
+    style AnalyticsBound fill:#E8F5E9,stroke:#2B8A3E,stroke-width:2px;</code></pre>
+<hr />
+<h2 id="2-c4-container-diagram-plantuml">2. C4 Container Diagram (PlantUML)</h2>
+<p>This version-controlled model defines the C4 Container structure:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>@startuml
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>&#39; In production, vendor this library locally to avoid external build dependencies:
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>&#39; !include C4_Container.puml
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>LAYOUT_WITH_LEGEND()
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>title Container Diagram for Helix Governance Operating System
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>System_Boundary(frontend, &quot;Frontend Containers&quot;) {
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    Container(admin_portal, &quot;Admin Portal&quot;, &quot;SPA / HTML / JS&quot;, &quot;Web console for officers to triage issues, edit responses, and sign decisions.&quot;)
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    Container(citizen_portal, &quot;Citizen Portal&quot;, &quot;SPA / HTML / JS&quot;, &quot;Web portal for citizens to submit reports and track status.&quot;)
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    Container(mobile_app, &quot;Mobile App&quot;, &quot;Mobile App / JS&quot;, &quot;Mobile client for field engineers to view task queues and upload repair photos.&quot;)
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>}
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>System_Boundary(edge, &quot;Edge Containers&quot;) {
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    Container(whatsapp_conn, &quot;WhatsApp Connector&quot;, &quot;Service&quot;, &quot;Processes incoming WhatsApp payloads and forwards requests; handles status delivery.&quot;)
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    Container(sms_conn, &quot;SMS Connector&quot;, &quot;Service&quot;, &quot;Carrier client for backup intake texts and dispatching alerts.&quot;)
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    Container(email_conn, &quot;Email Connector&quot;, &quot;Service&quot;, &quot;Ingests circular files and sends summary mail reports.&quot;)
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>}
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>System_Boundary(platform, &quot;Platform Services&quot;) {
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    Container(api_gateway, &quot;API Gateway&quot;, &quot;Reverse Proxy / Service&quot;, &quot;Single entry point for client channels; enforces routing, authentication, and rate limits.&quot;)
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    Container(identity_svc, &quot;Identity Service&quot;, &quot;OAuth2 / Directory Service&quot;, &quot;Authenticates administrators, officers, and engineers; validates role capabilities.&quot;)
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>}
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>System_Boundary(core, &quot;Core Containers&quot;) {
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    Container(workflow_eng, &quot;Workflow Engine&quot;, &quot;Stateful Service&quot;, &quot;Manages lifecycle transitions of Issues, Tasks, Workflows, and Decisions.&quot;)
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    Container(ai_orch, &quot;AI Orchestrator&quot;, &quot;Service&quot;, &quot;Coordinates classification, policy semantic query retrieval, and drafting recommendations.&quot;)
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    Container(plugin_rt, &quot;Plugin Runtime&quot;, &quot;Service Sandbox&quot;, &quot;Loads and runs isolated regional bindings dynamically.&quot;)
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>    Container(notification_eng, &quot;Notification Engine&quot;, &quot;Service Queue&quot;, &quot;Resolves channel routing rules and schedules notifications to citizens and officers.&quot;)
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>}
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>System_Boundary(data, &quot;Data Store Containers&quot;) {
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    ContainerDb(operational_db, &quot;Operational Database&quot;, &quot;Relational Database&quot;, &quot;Stores persistent states for Issues, Tasks, Accounts, and Decisions.&quot;)
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>    ContainerDb(knowledge_graph, &quot;Knowledge Graph&quot;, &quot;Graph/Vector Database&quot;, &quot;Maintains constituency mappings, assets, policy documents, and vector search embeddings.&quot;)
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>    Container(object_storage, &quot;Object Storage&quot;, &quot;File Storage&quot;, &quot;Persists unstructured media uploads (citizen photos, official circular PDFs).&quot;)
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>}
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>System_Boundary(analytics, &quot;Analytics Containers&quot;) {
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>    Container(analytics_platform, &quot;Analytics Platform&quot;, &quot;Processing Engine&quot;, &quot;Compiles outcomes, timings, and metrics to report historical constituency trends.&quot;)
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>}
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>Rel(citizen_portal, api_gateway, &quot;Sends queries and reports to&quot;)
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>Rel(admin_portal, api_gateway, &quot;Queries status and updates state via&quot;)
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>Rel(mobile_app, api_gateway, &quot;Uploads repair evidence via&quot;)
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>Rel(whatsapp_conn, api_gateway, &quot;Forwards parsed messages to&quot;)
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>Rel(sms_conn, api_gateway, &quot;Forwards text alerts to&quot;)
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>Rel(email_conn, api_gateway, &quot;Forwards files to&quot;)
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>Rel(api_gateway, identity_svc, &quot;Validates client credentials via&quot;)
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>Rel(api_gateway, workflow_eng, &quot;Dispatches operational actions to&quot;)
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>Rel(api_gateway, ai_orch, &quot;Requests recommendations and drafts from&quot;)
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>Rel(workflow_eng, operational_db, &quot;Reads and writes transactional state in&quot;)
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>Rel(workflow_eng, knowledge_graph, &quot;Propagates entities and reads history from&quot;)
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>Rel(workflow_eng, plugin_rt, &quot;Invokes customized state logic via&quot;)
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>Rel(workflow_eng, notification_eng, &quot;Triggers notification dispatch requests to&quot;)
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>Rel(ai_orch, knowledge_graph, &quot;Queries policy facts from&quot;)
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>Rel(ai_orch, plugin_rt, &quot;Executes model calls via&quot;)
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>Rel(notification_eng, whatsapp_conn, &quot;Routes notifications through&quot;)
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>Rel(notification_eng, sms_conn, &quot;Routes text alerts through&quot;)
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>Rel(notification_eng, email_conn, &quot;Routes reports through&quot;)
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>Rel(plugin_rt, object_storage, &quot;Stores and retrieves media objects from&quot;)
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>Rel(analytics_platform, operational_db, &quot;Extracts metrics from&quot;)
+</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>Rel(analytics_platform, knowledge_graph, &quot;Correlates outcomes from&quot;)
+</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>
+</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>@enduml
+</span></code></pre></div>
+<hr />
+<h2 id="3-container-definitions">3. Container Definitions</h2>
+<h3 id="31-frontend-containers">3.1. Frontend Containers</h3>
+<h4 id="con-001-admin-portal">CON-001: Admin Portal</h4>
+<ul>
+<li><strong>Purpose:</strong> Triage and verification interface for government officers and district administrators.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Displays queue summaries and prioritized task lists.</li>
+<li>Captures officer edits on AI recommendation response drafts.</li>
+<li>Submits transaction signatures for status transitions.</li>
+<li><strong>Interfaces:</strong> Outgoing requests to the API Gateway.</li>
+<li><strong>Dependencies:</strong> API Gateway.</li>
+</ul>
+<h4 id="con-002-citizen-portal">CON-002: Citizen Portal</h4>
+<ul>
+<li><strong>Purpose:</strong> Web-based report ingestion and progress tracking client for citizens.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Captures issue text description and geolocation indicators.</li>
+<li>Displays history status updates.</li>
+<li><strong>Interfaces:</strong> Outgoing requests to the API Gateway.</li>
+<li><strong>Dependencies:</strong> API Gateway.</li>
+</ul>
+<h4 id="con-003-mobile-app">CON-003: Mobile App</h4>
+<ul>
+<li><strong>Purpose:</strong> On-site task coordination app for field engineers.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Exposes task queue lists and location navigation targets.</li>
+<li>Captures geotagged completion photos and status validations.</li>
+<li><strong>Interfaces:</strong> Outgoing requests to the API Gateway.</li>
+<li><strong>Dependencies:</strong> API Gateway.</li>
+</ul>
+<hr />
+<h3 id="32-edge-containers">3.2. Edge Containers</h3>
+<h4 id="con-004-whatsapp-connector">CON-004: WhatsApp Connector</h4>
+<ul>
+<li><strong>Purpose:</strong> Interface bridge for citizen interactions via WhatsApp.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Listens to WhatsApp events, parsing incoming media payloads.</li>
+<li>Dispatches scheduled alert templates to citizens.</li>
+<li><strong>Interfaces:</strong> Ingress webhooks; egress requests to the API Gateway.</li>
+<li><strong>Dependencies:</strong> API Gateway.</li>
+</ul>
+<h4 id="con-005-sms-connector">CON-005: SMS Connector</h4>
+<ul>
+<li><strong>Purpose:</strong> Text network carrier gateway adapter.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Parses simple text reports and forwards payload schemas.</li>
+<li>Sends text notifications.</li>
+<li><strong>Interfaces:</strong> Carrier callback handlers; egress HTTP to the API Gateway.</li>
+<li><strong>Dependencies:</strong> API Gateway.</li>
+</ul>
+<h4 id="con-006-email-connector">CON-006: Email Connector</h4>
+<ul>
+<li><strong>Purpose:</strong> Mail ingestion and digest distribution node.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Parses circular attachments from incoming mail.</li>
+<li>Distributes digest mail circular summaries to officers.</li>
+<li><strong>Interfaces:</strong> Mail handlers; egress HTTP to the API Gateway.</li>
+<li><strong>Dependencies:</strong> API Gateway.</li>
+</ul>
+<hr />
+<h3 id="33-platform-containers">3.3. Platform Containers</h3>
+<blockquote>
+<p>[!NOTE]
+Operational infrastructure tooling (e.g. logging engines, tracing sinks, performance telemetry collection agents) is excluded from the application container schema. These concerns are managed inside <code>HELIX-ARCH-008: Deployment Architecture</code>.</p>
+</blockquote>
+<h4 id="con-007-api-gateway">CON-007: API Gateway</h4>
+<ul>
+<li><strong>Purpose:</strong> Unified gateway facade and routing proxy.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Validates identity headers against the Identity Service.</li>
+<li>Implements rate-limits and backpressure guards.</li>
+<li>Routes traffic to core workflow engines and orchestrators.</li>
+<li><strong>Interfaces:</strong> Ingress public endpoints; egress routing paths to internal containers.</li>
+<li><strong>Dependencies:</strong> Identity Service, Workflow Engine, AI Orchestrator.</li>
+</ul>
+<h4 id="con-008-identity-service">CON-008: Identity Service</h4>
+<ul>
+<li><strong>Purpose:</strong> Identity and directory store integration adapter.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Resolves administrative login tokens.</li>
+<li>Maps users to role and department directories.</li>
+<li><strong>Interfaces:</strong> Core internal RPC lookup.</li>
+<li><strong>Dependencies:</strong> None.</li>
+</ul>
+<hr />
+<h3 id="34-core-containers">3.4. Core Containers</h3>
+<h4 id="con-009-workflow-engine">CON-009: Workflow Engine</h4>
+<ul>
+<li><strong>Purpose:</strong> Orchestration engine for Issue and Task state paths.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Enforces state machine definitions.</li>
+<li>Records signed approvals to transition issue states.</li>
+<li>Emits event transaction records.</li>
+<li><strong>Interfaces:</strong> Core internal service endpoints.</li>
+<li><strong>Dependencies:</strong> Operational Database, Knowledge Graph, Plugin Runtime, Notification Engine.</li>
+</ul>
+<h4 id="con-010-ai-orchestrator">CON-010: AI Orchestrator</h4>
+<ul>
+<li><strong>Purpose:</strong> Coordination logic for recommendation pipelines.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Directs incoming messages to classification modules.</li>
+<li>Fetches grounding facts from the Knowledge Graph.</li>
+<li>Requests text generation from the Plugin Runtime.</li>
+<li><strong>Interfaces:</strong> Core internal service endpoints.</li>
+<li><strong>Dependencies:</strong> Knowledge Graph, Plugin Runtime.</li>
+</ul>
+<h4 id="con-011-plugin-runtime">CON-011: Plugin Runtime</h4>
+<ul>
+<li><strong>Purpose:</strong> Isolated execution sandbox for external plugin tasks.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Loads external provider interfaces dynamically.</li>
+<li>Executes model execution calls.</li>
+<li><strong>Interfaces:</strong> Abstract plugin SDK loop interfaces.</li>
+<li><strong>Dependencies:</strong> Object Storage.</li>
+</ul>
+<h4 id="con-012-notification-engine">CON-012: Notification Engine</h4>
+<ul>
+<li><strong>Purpose:</strong> Delivery scheduler for citizen and officer messages.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Resolves user contact channel preferences.</li>
+<li>Schedules alerts and manages retry parameters.</li>
+<li><strong>Interfaces:</strong> Event listeners and queue handlers.</li>
+<li><strong>Dependencies:</strong> WhatsApp Connector, SMS Connector, Email Connector.</li>
+</ul>
+<hr />
+<h3 id="35-data-store-containers">3.5. Data Store Containers</h3>
+<h4 id="con-013-operational-database">CON-013: Operational Database</h4>
+<ul>
+<li><strong>Purpose:</strong> Structured storage for operational transactions.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Guarantees ACID transactional compliance for Issues and Tasks.</li>
+<li><strong>Interfaces:</strong> Database client query protocols.</li>
+<li><strong>Dependencies:</strong> None.</li>
+</ul>
+<h4 id="con-014-knowledge-graph">CON-014: Knowledge Graph</h4>
+<ul>
+<li><strong>Purpose:</strong> Entity topology and policy vector semantic registry.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Maintains constituency networks, assets, and policy regulations.</li>
+<li>Provides vector search indexes.</li>
+<li><strong>Interfaces:</strong> Database client query protocols.</li>
+<li><strong>Dependencies:</strong> None.</li>
+<li><strong>Traceability:</strong><blockquote>
+<p>[!NOTE]
+Future versions of the architecture may separate vector semantic indexing from the graph storage container.</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="con-015-object-storage">CON-015: Object Storage</h4>
+<ul>
+<li><strong>Purpose:</strong> Blob file repository.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Stores binary circular PDFs and upload verification images.</li>
+<li><strong>Interfaces:</strong> Simple storage query endpoints.</li>
+<li><strong>Dependencies:</strong> None.</li>
+</ul>
+<hr />
+<h3 id="36-analytics-containers">3.6. Analytics Containers</h3>
+<h4 id="con-016-analytics-platform">CON-016: Analytics Platform</h4>
+<ul>
+<li><strong>Purpose:</strong> Analytical query and report processing engine.</li>
+<li><strong>Responsibilities:</strong></li>
+<li>Extracts metrics from the Operational Database.</li>
+<li>Aggregates outcome statistics from the Knowledge Graph.</li>
+<li>Renders report queries indicating historical constituency performance patterns.</li>
+<li><strong>Interfaces:</strong> Internal query client APIs.</li>
+<li><strong>Dependencies:</strong> Operational Database, Knowledge Graph.</li>
+</ul>
+<hr />
+<h2 id="4-architectural-assumptions">4. Architectural Assumptions</h2>
+<ul>
+<li><strong>Gateway Decoupling:</strong> We assume the API Gateway isolates the core services from any external-facing routing parameters.</li>
+<li><strong>State Decoupling:</strong> We assume operational transactions (Operational DB) and context embeddings (Knowledge Graph) are kept in isolated, decoupled containers.</li>
+<li><strong>Trace Standard Integrity:</strong> We assume all core containers carry distributed tracing context propagation headers across execution boundaries.</li>
+</ul>
+<hr />
+<h2 id="5-architectural-constraints">5. Architectural Constraints</h2>
+<ul>
+<li><strong>PII Leakage Boundary:</strong> The API Gateway and Ingestion Connectors must execute PII masking operations before routing payloads to core containers.</li>
+<li><strong>Permissive Licenses:</strong> All core and platform containers must be constructed utilizing components that are free from copyleft license restrictions.</li>
+<li><strong>Isolation of Plugins:</strong> The Plugin Runtime must sandbox third-party plugin executions to prevent memory or process failure cascades into the core engines.</li>
+</ul>
+<hr />
+<h2 id="6-design-decisions">6. Design Decisions</h2>
+<ul>
+<li><strong>API Gateway Routing Pattern:</strong> Integrating a single API Gateway protects internal services from direct public traffic, standardizes request sanitization, and centralizes rate-limiting guards.</li>
+<li><strong>Decoupled Analytics Container:</strong> Separating analytical calculations from primary data repositories protects database performance from reporting query execution peaks.</li>
+</ul>
+<hr />
+<h2 id="7-design-validation-checklist">7. Design Validation Checklist</h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Charter Alignment:</strong> Directly matches the core principles defined in <code>HELIX-SPEC-000</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Constitution Alignment:</strong> Conforms to all Twelve Laws of the Helix Constitution.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>C4 Level 2 Standards:</strong> Identifies distinct container boundaries (Frontend, Edge, Platform, Core, Data, Analytics).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Diagram Sync:</strong> Mermaid and PlantUML models display identical container definitions and relations.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>UML and Markdown Sync:</strong> Attributes listed in the text match definitions inside the visual schemas.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>No Microservices Internal Detail:</strong> Avoids discussing internal components, code classes, packages, or specific vendor technologies.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Checklist Compliance:</strong> Ends with this validation gate.</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

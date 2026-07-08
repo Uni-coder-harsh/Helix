@@ -1,0 +1,4086 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Internal Engineering and Architecture Portal for Project Helix">
+      
+      
+        <meta name="author" content="Helix Project Team">
+      
+      
+      
+        <link rel="prev" href="../04-event-driven-architecture/">
+      
+      
+        <link rel="next" href="../06-component-architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Event Catalog - Helix Engineering Portal</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#helix-arch-005-event-catalog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Helix Engineering Portal" class="md-header__button md-logo" aria-label="Helix Engineering Portal" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Helix Engineering Portal
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Event Catalog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting_started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../culture/00-helix-constitution/" class="md-tabs__link">
+          
+  
+  
+  Culture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../01-product/" class="md-tabs__link">
+          
+  
+  
+  Product Discovery & Definition
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ai/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  AI
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../integrations/ai/" class="md-tabs__link">
+          
+  
+  
+  Integrations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../api/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../plugins/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Plugins
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../demo-data/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Demo Data & Seeding
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../security/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Security
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../operations/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Operations
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../deployment/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Deployment
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../roadmap/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Roadmap
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Helix Engineering Portal" class="md-nav__button md-logo" aria-label="Helix Engineering Portal" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Helix Engineering Portal
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Culture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Culture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../culture/00-helix-constitution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Constitution
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product Discovery & Definition
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Product Discovery & Definition
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/00-project-charter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Charter
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/01-vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/02-mission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mission
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/03-product-philosophy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product Philosophy
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/04-governance-design-principles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance Design Principles
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/05-governance-domain-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance Domain Model
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/06-problem-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem Analysis
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/07-user-personas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Personas
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/08-user-journeys/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Journeys
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/09-functional-requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Functional Requirements
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/10-non-functional-requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Non-Functional Requirements
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/11-success-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Success Metrics
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/12-product-roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product Roadmap
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/13-project-scope/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Scope
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-product/14-risk-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Risk Analysis
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00-architecture-principles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Principles
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-system-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Context
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-c4-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C4 Context Diagram
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-c4-container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C4 Container Diagram
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-event-driven-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event-Driven Architecture
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Catalog
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Catalog
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-event-design-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Event Design Standards
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Event Design Standards">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-event-naming-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1. Event Naming Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-event-metadata-standard-standard-envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2. Event Metadata Standard (Standard Envelope)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-conceptual-event-header-specification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3. Conceptual Event Header Specification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-event-lifecycle-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Event Lifecycle Mapping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-event-ownership-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Event Ownership Matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-event-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Event Registry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Event Registry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-citizen-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1. Citizen Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.1. Citizen Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-101-citizenreportsubmitted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-101: CitizenReportSubmitted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-102-citizenfeedbacksubmitted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-102: CitizenFeedbackSubmitted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-103-citizenoptedout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-103: CitizenOptedOut
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-workflow-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2. Workflow Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.2. Workflow Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-201-issuevalidated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-201: IssueValidated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-202-evidenceattached" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-202: EvidenceAttached
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-203-departmentassigned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-203: DepartmentAssigned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-204-taskcreated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-204: TaskCreated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-205-taskcompleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-205: TaskCompleted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-206-issueresolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-206: IssueResolved
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-ai-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3. AI Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.3. AI Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-301-recommendationgenerated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-301: RecommendationGenerated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-302-evidenceclustered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-302: EvidenceClustered
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-303-anomalydetected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-303: AnomalyDetected
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-notification-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4. Notification Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.4. Notification Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-401-alertenqueued" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-401: AlertEnqueued
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-402-dispatchsucceeded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-402: DispatchSucceeded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-403-dispatchfailed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-403: DispatchFailed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-administration-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5. Administration Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.5. Administration Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-501-schemeconfigured" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-501: SchemeConfigured
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-502-roleassigned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-502: RoleAssigned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-503-slathresholdexceeded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-503: SLAThresholdExceeded
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-audit-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6. Audit Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.6. Audit Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-601-schemachanged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-601: SchemaChanged
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-602-accessloggenerated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-602: AccessLogGenerated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-603-systemconfigoverridden" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-603: SystemConfigOverridden
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-plugin-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7. Plugin Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.7. Plugin Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-701-hooktriggered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-701: HookTriggered
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-702-pluginresponsereturned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-702: PluginResponseReturned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-703-pluginexecutionfailed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-703: PluginExecutionFailed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-event-governance-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Event Governance Policies
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Event Governance Policies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-version-compatibility-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1. Version Compatibility Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-deprecation-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2. Deprecation Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-event-schema-validation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Event Schema Validation Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-component-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component Architecture
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-microservice-boundaries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Microservice Boundaries
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Frozen"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-plugin-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugin Architecture
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-deployment-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment Architecture
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/ai/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Platform
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/maps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GIS & Maps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Object Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Published"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../demo-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo Data & Seeding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Release"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--Draft"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-event-design-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Event Design Standards
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Event Design Standards">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-event-naming-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1. Event Naming Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-event-metadata-standard-standard-envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2. Event Metadata Standard (Standard Envelope)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-conceptual-event-header-specification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3. Conceptual Event Header Specification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-event-lifecycle-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Event Lifecycle Mapping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-event-ownership-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Event Ownership Matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-event-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Event Registry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Event Registry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-citizen-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1. Citizen Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.1. Citizen Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-101-citizenreportsubmitted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-101: CitizenReportSubmitted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-102-citizenfeedbacksubmitted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-102: CitizenFeedbackSubmitted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-103-citizenoptedout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-103: CitizenOptedOut
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-workflow-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2. Workflow Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.2. Workflow Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-201-issuevalidated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-201: IssueValidated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-202-evidenceattached" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-202: EvidenceAttached
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-203-departmentassigned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-203: DepartmentAssigned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-204-taskcreated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-204: TaskCreated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-205-taskcompleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-205: TaskCompleted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-206-issueresolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-206: IssueResolved
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-ai-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3. AI Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.3. AI Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-301-recommendationgenerated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-301: RecommendationGenerated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-302-evidenceclustered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-302: EvidenceClustered
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-303-anomalydetected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-303: AnomalyDetected
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-notification-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4. Notification Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.4. Notification Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-401-alertenqueued" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-401: AlertEnqueued
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-402-dispatchsucceeded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-402: DispatchSucceeded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-403-dispatchfailed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-403: DispatchFailed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-administration-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5. Administration Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.5. Administration Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-501-schemeconfigured" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-501: SchemeConfigured
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-502-roleassigned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-502: RoleAssigned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-503-slathresholdexceeded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-503: SLAThresholdExceeded
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-audit-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6. Audit Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.6. Audit Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-601-schemachanged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-601: SchemaChanged
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-602-accessloggenerated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-602: AccessLogGenerated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-603-systemconfigoverridden" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-603: SystemConfigOverridden
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-plugin-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7. Plugin Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.7. Plugin Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evt-701-hooktriggered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-701: HookTriggered
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-702-pluginresponsereturned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-702: PluginResponseReturned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evt-703-pluginexecutionfailed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EVT-703: PluginExecutionFailed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-event-governance-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Event Governance Policies
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Event Governance Policies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-version-compatibility-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1. Version Compatibility Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-deprecation-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2. Deprecation Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-event-schema-validation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Event Schema Validation Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="helix-arch-005-event-catalog">HELIX-ARCH-005: Event Catalog</h1>
+<p>This document serves as the authoritative, canonical registry for all domain events produced and consumed within the Helix Governance Operating System.</p>
+<hr />
+<h2 id="1-event-design-standards">1. Event Design Standards</h2>
+<p>To ensure consistency, readability, and compatibility across all microservices and external plugins, every event registered in this catalog must adhere to the following design standards.</p>
+<h3 id="11-event-naming-rules">1.1. Event Naming Rules</h3>
+<ul>
+<li><strong>Tense:</strong> Event names must be written in the <strong>past tense</strong>, representing a historical fact that has already occurred (e.g., <code>IssueValidated</code>, not <code>ValidateIssue</code>).</li>
+<li><strong>Casing:</strong> Event names must use <strong>PascalCase</strong> format (e.g., <code>CitizenReportSubmitted</code>).</li>
+<li><strong>Structure:</strong> Names must follow the pattern <code>[DomainEntity][ActionPastTense]</code>.</li>
+<li><em>Good:</em> <code>TaskCompleted</code>, <code>EvidenceAttached</code>.</li>
+<li><em>Bad:</em> <code>CompletedTask</code> (inverted), <code>NotifyCitizen</code> (imperative command).</li>
+<li><strong>Suffixes:</strong> Suffixes such as <code>Event</code> or <code>Message</code> are prohibited to avoid redundancy. Suffixes like <code>Command</code> or <code>Query</code> are reserved for synchronous/request payloads and must not be used for asynchronous events.</li>
+</ul>
+<h3 id="12-event-metadata-standard-standard-envelope">1.2. Event Metadata Standard (Standard Envelope)</h3>
+<p>Every event emitted in Helix consists of two parts: a standard metadata header envelope (for routing, tracing, and validation) and the event payload.</p>
+<p>The standard metadata envelope contains the following logical attributes:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Attribute</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>event_id</code></td>
+<td style="text-align: left;">UUIDv4</td>
+<td style="text-align: left;">Universally unique identifier for this specific event instance. Used for deduplication.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>correlation_id</code></td>
+<td style="text-align: left;">UUIDv4</td>
+<td style="text-align: left;">Distributed tracing identifier carried across all downstream events generated by this trigger.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>timestamp</code></td>
+<td style="text-align: left;">ISO-8601</td>
+<td style="text-align: left;">The UTC timestamp when the event was generated by the producer.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>producer_id</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;">Unique identifier of the component or service instance that published the event.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>schema_name</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;">The exact schema identifier matching this event type (e.g., <code>helix.events.workflow.issue_validated</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>schema_version</code></td>
+<td style="text-align: left;">SemVer</td>
+<td style="text-align: left;">The semantic version of the schema that this payload complies with (e.g., <code>1.0.0</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ordering_key</code></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;">The partitioning key used to guarantee sequential delivery of related events (e.g., <code>issue_id</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>actor_context</code></td>
+<td style="text-align: left;">Object</td>
+<td style="text-align: left;">Conceptual authentication and authorization context of the user or system token that triggered the action. Includes <code>actor_id</code> and <code>roles</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-conceptual-event-header-specification">1.3. Conceptual Event Header Specification</h3>
+<p>Below is the conceptual structure of the standard event wrapper:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Event Wrapper
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── Metadata Header (Envelope)
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── event_id: UUIDv4
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── correlation_id: UUIDv4
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   ├── timestamp: DateTime (UTC)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── producer_id: String
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── schema_name: String
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   ├── schema_version: String (SemVer)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   ├── ordering_key: String
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   └── actor_context: Map
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│       ├── actor_id: String
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│       └── roles: List[String]
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>└── Payload (Entity-specific domain data)
+</span></code></pre></div>
+<hr />
+<h2 id="2-event-lifecycle-mapping">2. Event Lifecycle Mapping</h2>
+<p>This diagram maps the standard execution steps of an event, from production to archival or quarantine:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>[Producer Action]
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>       │
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>       ▼ (Outbox Transaction)
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>[Validation Boundary] ────► Invalid Schema? ───► [System Audit Log]
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>       │ (Valid Schema)
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>       ▼ (Event Bus Ingestion)
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>[Routing Gateway]
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>       │
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>       ├─────────────────────────┐
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>       ▼ (Subscription Match)    ▼ (Topic Broadcast)
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>[Active Consumers]         [Audit Event Store]
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>       │                         │
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>       ├─► Success ➔ [Acknowledge]│
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>       │                         ▼
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>       └─► Fail ➔ [Retry Loops] ──► Max Retries? ➔ [Dead Letter Queue (DLQ)]
+</span></code></pre></div>
+<hr />
+<h2 id="3-event-ownership-matrix">3. Event Ownership Matrix</h2>
+<p>Event schemas are owned by the Bounded Context responsible for the corresponding entities. Changes to schemas must be approved by the context stewards.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Bounded Context</th>
+<th style="text-align: left;">Schema Owner Service</th>
+<th style="text-align: left;">Reviewer / Steward</th>
+<th style="text-align: left;">Primary Events Managed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Citizen Intake</strong></td>
+<td style="text-align: left;">WhatsApp/SMS Connectors</td>
+<td style="text-align: left;">Intake Lead</td>
+<td style="text-align: left;"><code>CitizenReportSubmitted</code>, <code>CitizenOptedOut</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Workflow Engine</strong></td>
+<td style="text-align: left;">Workflow Engine Service</td>
+<td style="text-align: left;">Core System Architect</td>
+<td style="text-align: left;"><code>IssueValidated</code>, <code>EvidenceAttached</code>, <code>DepartmentAssigned</code>, <code>TaskCreated</code>, <code>TaskCompleted</code>, <code>IssueResolved</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Intelligence</strong></td>
+<td style="text-align: left;">AI Orchestrator Service</td>
+<td style="text-align: left;">AI &amp; Data Lead</td>
+<td style="text-align: left;"><code>RecommendationGenerated</code>, <code>EvidenceClustered</code>, <code>AnomalyDetected</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Communications</strong></td>
+<td style="text-align: left;">Notification Engine</td>
+<td style="text-align: left;">Operations Lead</td>
+<td style="text-align: left;"><code>AlertEnqueued</code>, <code>DispatchSucceeded</code>, <code>DispatchFailed</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Identity &amp; Admin</strong></td>
+<td style="text-align: left;">Identity &amp; Admin Services</td>
+<td style="text-align: left;">Security Lead</td>
+<td style="text-align: left;"><code>SchemeConfigured</code>, <code>RoleAssigned</code>, <code>SLAThresholdExceeded</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Audit &amp; Platform</strong></td>
+<td style="text-align: left;">Schema Registry / Gateway</td>
+<td style="text-align: left;">System Architect</td>
+<td style="text-align: left;"><code>SchemaChanged</code>, <code>AccessLogGenerated</code>, <code>SystemConfigOverridden</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Extensibility</strong></td>
+<td style="text-align: left;">Plugin Runtime Service</td>
+<td style="text-align: left;">Integration Architect</td>
+<td style="text-align: left;"><code>HookTriggered</code>, <code>PluginResponseReturned</code>, <code>PluginExecutionFailed</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-event-registry">4. Event Registry</h2>
+<h3 id="41-citizen-events">4.1. Citizen Events</h3>
+<h4 id="evt-101-citizenreportsubmitted"><code>EVT-101</code>: CitizenReportSubmitted</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>CitizenReportSubmitted</code></li>
+<li><strong>Category:</strong> Citizen Events</li>
+<li><strong>Producer:</strong> WhatsApp Connector, SMS Connector, Citizen Portal</li>
+<li><strong>Consumers:</strong> Workflow Engine, AI Orchestrator</li>
+<li><strong>Trigger:</strong> A citizen successfully sends a text, audio report, or image to Helix via a supported intake channel.</li>
+<li><strong>Ordering Key:</strong> <code>citizen_id</code></li>
+<li><strong>PII Classification:</strong> Restricted (Contains citizen phone number/account handle and raw submission text).</li>
+<li><strong>Schema Owner:</strong> Citizen Intake Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>citizen_id</code> (Unique identifier or hash of intake handle)</li>
+<li><code>channel_type</code> (e.g., <code>WHATSAPP</code>, <code>SMS</code>, <code>WEB</code>)</li>
+<li><code>raw_payload_uri</code> (Object storage URI to raw audio, text, or image metadata)</li>
+<li><code>submission_timestamp</code> (Raw ingestion date)</li>
+<li><strong>Description:</strong> Emitted immediately when a citizen submission passes edge authentication and validation, indicating new raw content is ready for workflow evaluation.</li>
+</ul>
+<h4 id="evt-102-citizenfeedbacksubmitted"><code>EVT-102</code>: CitizenFeedbackSubmitted</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>CitizenFeedbackSubmitted</code></li>
+<li><strong>Category:</strong> Citizen Events</li>
+<li><strong>Producer:</strong> WhatsApp Connector, Citizen Portal</li>
+<li><strong>Consumers:</strong> Analytics Platform, Workflow Engine</li>
+<li><strong>Trigger:</strong> A citizen responds to a completion notification with a rating or text feedback.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Restricted (Contains reference to user identifier and subjective comments).</li>
+<li><strong>Schema Owner:</strong> Citizen Intake Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>issue_id</code> (The reference resolved issue)</li>
+<li><code>rating</code> (Integer 1-5 scale)</li>
+<li><code>comments</code> (Optional raw response string)</li>
+<li><strong>Description:</strong> Tracks citizen satisfaction and verification of the provided resolution. Used to calculate department and constituency success metrics.</li>
+</ul>
+<h4 id="evt-103-citizenoptedout"><code>EVT-103</code>: CitizenOptedOut</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>CitizenOptedOut</code></li>
+<li><strong>Category:</strong> Citizen Events</li>
+<li><strong>Producer:</strong> Citizen Portal, Administration Portal</li>
+<li><strong>Consumers:</strong> Identity Service, Workflow Engine, Notification Engine</li>
+<li><strong>Trigger:</strong> A citizen requests profile deletion or revokes contact permissions.</li>
+<li><strong>Ordering Key:</strong> <code>citizen_id</code></li>
+<li><strong>PII Classification:</strong> None (Does not contain PII, but commands its erasure).</li>
+<li><strong>Schema Owner:</strong> Identity &amp; Admin Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>citizen_id</code> (The identifier to be purged)</li>
+<li><code>opt_out_timestamp</code> (Date of request)</li>
+<li><code>reason_code</code> (Standardized categorical reason for opting out)</li>
+<li><strong>Description:</strong> Triggers the privacy-cleansing (crypto-shredding) sequence across all operational stores.</li>
+</ul>
+<hr />
+<h3 id="42-workflow-events">4.2. Workflow Events</h3>
+<h4 id="evt-201-issuevalidated"><code>EVT-201</code>: IssueValidated</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>IssueValidated</code></li>
+<li><strong>Category:</strong> Workflow Events</li>
+<li><strong>Producer:</strong> Workflow Engine</li>
+<li><strong>Consumers:</strong> AI Orchestrator, Notification Engine, Knowledge Graph Sync</li>
+<li><strong>Trigger:</strong> An incoming report is reviewed and approved as a valid municipal or state issue.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Private (Contains general location and issue details, citizen identifier).</li>
+<li><strong>Schema Owner:</strong> Workflow Engine Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>issue_id</code> (Newly assigned operational issue ID)</li>
+<li><code>citizen_id</code> (Owner citizen identifier)</li>
+<li><code>category</code> (Classified category of issue, e.g., <code>WATER_LEAKAGE</code>)</li>
+<li><code>location</code> (Geo-coordinates and ward mapping)</li>
+<li><code>severity</code> (Calculated priority status)</li>
+<li><strong>Description:</strong> Represents the transition from a raw, unverified submission to a formal operational issue in the Helix registry.</li>
+</ul>
+<h4 id="evt-202-evidenceattached"><code>EVT-202</code>: EvidenceAttached</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>EvidenceAttached</code></li>
+<li><strong>Category:</strong> Workflow Events</li>
+<li><strong>Producer:</strong> Mobile App (Field Agent), Citizen Portal, Workflow Engine</li>
+<li><strong>Consumers:</strong> AI Orchestrator, Knowledge Graph Sync</li>
+<li><strong>Trigger:</strong> A field worker uploads validation photographs or a citizen uploads extra context for an active issue.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Private (May contain images containing faces, license plates, or location clues).</li>
+<li><strong>Schema Owner:</strong> Workflow Engine Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>issue_id</code> (The reference issue ID)</li>
+<li><code>evidence_id</code> (Unique identifier for this artifact)</li>
+<li><code>uploader_id</code> (Identifier of actor who attached it)</li>
+<li><code>file_uri</code> (Object storage URI of evidence asset)</li>
+<li><code>file_type</code> (e.g., <code>IMAGE</code>, <code>PDF</code>, <code>AUDIO</code>)</li>
+<li><strong>Description:</strong> Logs that additional supporting materials have been permanently associated with the active issue, triggering re-evaluation of routing or severity.</li>
+</ul>
+<h4 id="evt-203-departmentassigned"><code>EVT-203</code>: DepartmentAssigned</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>DepartmentAssigned</code></li>
+<li><strong>Category:</strong> Workflow Events</li>
+<li><strong>Producer:</strong> Workflow Engine, AI Orchestrator (with human verification)</li>
+<li><strong>Consumers:</strong> Analytics Platform, Knowledge Graph Sync, Notification Engine</li>
+<li><strong>Trigger:</strong> An issue is assigned to a specific department or municipal unit for resolution.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Private (Contains reference to assigned officer/department IDs).</li>
+<li><strong>Schema Owner:</strong> Workflow Engine Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>issue_id</code> (The reference issue ID)</li>
+<li><code>department_id</code> (The assigned organizational unit ID)</li>
+<li><code>assigned_officer_id</code> (Optional specific supervisor ID)</li>
+<li><code>sla_duration_seconds</code> (Allotted resolution timeline)</li>
+<li><strong>Description:</strong> Transitions accountability of the issue to a specific administrative authority.</li>
+</ul>
+<h4 id="evt-204-taskcreated"><code>EVT-204</code>: TaskCreated</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>TaskCreated</code></li>
+<li><strong>Category:</strong> Workflow Events</li>
+<li><strong>Producer:</strong> Workflow Engine</li>
+<li><strong>Consumers:</strong> Notification Engine, Mobile App Gateway</li>
+<li><strong>Trigger:</strong> A concrete work order or physical task is spawned under an issue.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Private (Contains instructions, locations, and worker details).</li>
+<li><strong>Schema Owner:</strong> Workflow Engine Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>task_id</code> (Unique task identifier)</li>
+<li><code>issue_id</code> (Parent issue identifier)</li>
+<li><code>assigned_team_id</code> (Field team assigned to perform work)</li>
+<li><code>description</code> (Detailed engineering description of work required)</li>
+<li><code>scheduled_start</code> (Proposed start date)</li>
+<li><strong>Description:</strong> Represents a physical action item assigned to field crews (e.g. "Replace pipe at ward 4").</li>
+</ul>
+<h4 id="evt-205-taskcompleted"><code>EVT-205</code>: TaskCompleted</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>TaskCompleted</code></li>
+<li><strong>Category:</strong> Workflow Events</li>
+<li><strong>Producer:</strong> Mobile App (Field Agent)</li>
+<li><strong>Consumers:</strong> Workflow Engine, Analytics Platform</li>
+<li><strong>Trigger:</strong> A field worker completes the work order and submits completion photos/records.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Private (May contain worker signatures, site photos).</li>
+<li><strong>Schema Owner:</strong> Workflow Engine Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>task_id</code> (Reference task identifier)</li>
+<li><code>issue_id</code> (Parent issue identifier)</li>
+<li><code>completion_timestamp</code> (Completion date)</li>
+<li><code>resolution_summary</code> (Notes describing the physical fix)</li>
+<li><code>evidence_uris</code> (URIs to validation photos)</li>
+<li><strong>Description:</strong> Signals that the physical remediation work is done. It triggers the Workflow Engine to transition the parent issue status.</li>
+</ul>
+<h4 id="evt-206-issueresolved"><code>EVT-206</code>: IssueResolved</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>IssueResolved</code></li>
+<li><strong>Category:</strong> Workflow Events</li>
+<li><strong>Producer:</strong> Workflow Engine</li>
+<li><strong>Consumers:</strong> Notification Engine, Analytics Platform, Knowledge Graph Sync</li>
+<li><strong>Trigger:</strong> The administrative supervisor approves the resolution and closes the issue.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Private (Contains details of final resolution, citizen contact references).</li>
+<li><strong>Schema Owner:</strong> Workflow Engine Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>issue_id</code> (The closed issue ID)</li>
+<li><code>resolution_timestamp</code> (Closure date)</li>
+<li><code>resolution_type</code> (e.g., <code>FIXED</code>, <code>DUPLICATE</code>, <code>OUT_OF_JURISDICTION</code>)</li>
+<li><code>final_report_uri</code> (URI to the comprehensive summary document)</li>
+<li><strong>Description:</strong> The terminal state of a primary Helix workflow, indicating resolution approval and triggering feedback loops.</li>
+</ul>
+<hr />
+<h3 id="43-ai-events">4.3. AI Events</h3>
+<h4 id="evt-301-recommendationgenerated"><code>EVT-301</code>: RecommendationGenerated</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>RecommendationGenerated</code></li>
+<li><strong>Category:</strong> AI Events</li>
+<li><strong>Producer:</strong> AI Orchestrator Service</li>
+<li><strong>Consumers:</strong> Workflow Engine, Admin Portal (UI suggestion panel)</li>
+<li><strong>Trigger:</strong> An AI model processes raw issue text/photos and suggests routes or priorities.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Private (Contains recommendations tied to specific locations and citizen reports).</li>
+<li><strong>Schema Owner:</strong> Intelligence Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>issue_id</code> (The reference issue ID)</li>
+<li><code>recommendation_type</code> (e.g., <code>ROUTING</code>, <code>PRIORITY</code>, <code>PREPARED_REPLY</code>)</li>
+<li><code>suggested_values</code> (Map containing proposed options like department IDs, SLA durations)</li>
+<li><code>confidence_score</code> (Float value representing model confidence, 0.0 - 1.0)</li>
+<li><code>grounding_references</code> (List of knowledge graph node identifiers used for grounding)</li>
+<li><strong>Description:</strong> Broadcasts an advisory suggestion. These are caught by the Workflow Engine and queued for human operator verification.</li>
+</ul>
+<h4 id="evt-302-evidenceclustered"><code>EVT-302</code>: EvidenceClustered</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>EvidenceClustered</code></li>
+<li><strong>Category:</strong> AI Events</li>
+<li><strong>Producer:</strong> AI Orchestrator Service (Analytics clustering module)</li>
+<li><strong>Consumers:</strong> Workflow Engine, Analytics Platform, Knowledge Graph Sync</li>
+<li><strong>Trigger:</strong> Machine learning models group multiple individual citizen complaints into a single root-cause cluster.</li>
+<li><strong>Ordering Key:</strong> <code>cluster_id</code></li>
+<li><strong>PII Classification:</strong> None (Abstract cluster mappings, references only issue IDs).</li>
+<li><strong>Schema Owner:</strong> Intelligence Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>cluster_id</code> (Unique identifier for the structural problem)</li>
+<li><code>associated_issue_ids</code> (List of grouped citizen issue IDs)</li>
+<li><code>centroid_location</code> (Average geographical coordinate)</li>
+<li><code>confidence_level</code> (Float value representing cluster density)</li>
+<li><strong>Description:</strong> Groups duplicate complaints together, facilitating a single municipal fix rather than scattered dispatch actions.</li>
+</ul>
+<h4 id="evt-303-anomalydetected"><code>EVT-303</code>: AnomalyDetected</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>AnomalyDetected</code></li>
+<li><strong>Category:</strong> AI Events</li>
+<li><strong>Producer:</strong> AI Orchestrator Service (Guardrail checks)</li>
+<li><strong>Consumers:</strong> Workflow Engine, Security Audit Log</li>
+<li><strong>Trigger:</strong> Ingestion guardrails detect malicious activity, policy conflicts, or fraud patterns.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Restricted (Contains flagged raw payloads).</li>
+<li><strong>Schema Owner:</strong> Intelligence Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>issue_id</code> (Reference issue ID)</li>
+<li><code>anomaly_type</code> (e.g., <code>FRAUD_PROJECTION</code>, <code>PROMPT_INJECTION</code>, <code>DUPLICATE_SPAM</code>)</li>
+<li><code>flagged_details</code> (Reasoning behind the anomaly classification)</li>
+<li><strong>Description:</strong> Flags suspicious reports immediately for quarantine, isolating the system core from spam or security injection vectors.</li>
+</ul>
+<hr />
+<h3 id="44-notification-events">4.4. Notification Events</h3>
+<h4 id="evt-401-alertenqueued"><code>EVT-401</code>: AlertEnqueued</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>AlertEnqueued</code></li>
+<li><strong>Category:</strong> Notification Events</li>
+<li><strong>Producer:</strong> Workflow Engine, Administration Service</li>
+<li><strong>Consumers:</strong> Notification Engine</li>
+<li><strong>Trigger:</strong> A workflow change requires an outbound update to a citizen or staff member.</li>
+<li><strong>Ordering Key:</strong> <code>recipient_id</code></li>
+<li><strong>PII Classification:</strong> Restricted (Contains recipient contact handles, names, custom details).</li>
+<li><strong>Schema Owner:</strong> Communications Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>notification_id</code> (Unique identifier for the message queue)</li>
+<li><code>recipient_id</code> (Target citizen or staff ID)</li>
+<li><code>channel</code> (e.g., <code>WHATSAPP</code>, <code>SMS</code>, <code>EMAIL</code>)</li>
+<li><code>template_name</code> (Target messaging structure to apply)</li>
+<li><code>template_variables</code> (Map of variables to hydrate text)</li>
+<li><strong>Description:</strong> Represents a request to dispatch a user-facing update. Captured by the Notification Engine.</li>
+</ul>
+<h4 id="evt-402-dispatchsucceeded"><code>EVT-402</code>: DispatchSucceeded</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>DispatchSucceeded</code></li>
+<li><strong>Category:</strong> Notification Events</li>
+<li><strong>Producer:</strong> Notification Engine (Connector gateway)</li>
+<li><strong>Consumers:</strong> Workflow Engine, Analytics Platform</li>
+<li><strong>Trigger:</strong> An external delivery gateway (e.g., Twilio, SMTP) confirms message receipt.</li>
+<li><strong>Ordering Key:</strong> <code>recipient_id</code></li>
+<li><strong>PII Classification:</strong> Private (References recipient IDs and delivery receipts).</li>
+<li><strong>Schema Owner:</strong> Communications Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>notification_id</code> (Reference message identifier)</li>
+<li><code>gateway_receipt</code> (Receipt handle from delivery channel)</li>
+<li><code>delivered_timestamp</code> (Confirmation date)</li>
+<li><strong>Description:</strong> Closes the feedback loop for communications, proving the citizen was successfully updated.</li>
+</ul>
+<h4 id="evt-403-dispatchfailed"><code>EVT-403</code>: DispatchFailed</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>DispatchFailed</code></li>
+<li><strong>Category:</strong> Notification Events</li>
+<li><strong>Producer:</strong> Notification Engine (Connector gateway)</li>
+<li><strong>Consumers:</strong> Workflow Engine, Operational Alerting</li>
+<li><strong>Trigger:</strong> Outbound delivery fails due to invalid credentials, rate limit, or phone disconnection.</li>
+<li><strong>Ordering Key:</strong> <code>recipient_id</code></li>
+<li><strong>PII Classification:</strong> Private (References recipient IDs, gateway error logs).</li>
+<li><strong>Schema Owner:</strong> Communications Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>notification_id</code> (Reference message identifier)</li>
+<li><code>error_code</code> (Gateway-specific error code)</li>
+<li><code>error_message</code> (Detailed description of delivery failure)</li>
+<li><code>retry_count</code> (Attempts made before failure confirmation)</li>
+<li><strong>Description:</strong> Flags communication breakdowns. Allows workflow handlers to route updates to alternative channels.</li>
+</ul>
+<hr />
+<h3 id="45-administration-events">4.5. Administration Events</h3>
+<h4 id="evt-501-schemeconfigured"><code>EVT-501</code>: SchemeConfigured</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>SchemeConfigured</code></li>
+<li><strong>Category:</strong> Administration Events</li>
+<li><strong>Producer:</strong> Administration Service (Operator portal)</li>
+<li><strong>Consumers:</strong> Workflow Engine, AI Orchestrator, Knowledge Graph Sync</li>
+<li><strong>Trigger:</strong> An administrator creates or changes a government scheme policy or validation rule.</li>
+<li><strong>Ordering Key:</strong> <code>scheme_id</code></li>
+<li><strong>PII Classification:</strong> None (Public policy rules).</li>
+<li><strong>Schema Owner:</strong> Identity &amp; Admin Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>scheme_id</code> (Unique scheme identifier)</li>
+<li><code>scheme_name</code> (Public title of scheme)</li>
+<li><code>rules_definition_uri</code> (URI mapping to operational routing rules and JSON policy structures)</li>
+<li><code>is_active</code> (Boolean active state flag)</li>
+<li><strong>Description:</strong> Broadcasts configuration changes. Consuming services update their caches to enforce new policy parameters.</li>
+</ul>
+<h4 id="evt-502-roleassigned"><code>EVT-502</code>: RoleAssigned</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>RoleAssigned</code></li>
+<li><strong>Category:</strong> Administration Events</li>
+<li><strong>Producer:</strong> Identity Service (Operator portal)</li>
+<li><strong>Consumers:</strong> API Gateway, All Services (RBAC caches)</li>
+<li><strong>Trigger:</strong> Permissions of an administrative user or officer are modified.</li>
+<li><strong>Ordering Key:</strong> <code>user_id</code></li>
+<li><strong>PII Classification:</strong> Private (References user IDs and operational security clearances).</li>
+<li><strong>Schema Owner:</strong> Identity &amp; Admin Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>user_id</code> (Target user identifier)</li>
+<li><code>role_names</code> (List of newly assigned active security roles)</li>
+<li><code>jurisdiction_boundaries</code> (Map representing assigned ward or district limits)</li>
+<li><strong>Description:</strong> Real-time synchronization of security bounds across distributed nodes.</li>
+</ul>
+<h4 id="evt-503-slathresholdexceeded"><code>EVT-503</code>: SLAThresholdExceeded</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>SLAThresholdExceeded</code></li>
+<li><strong>Category:</strong> Administration Events</li>
+<li><strong>Producer:</strong> Workflow Engine (Cron/Tick service)</li>
+<li><strong>Consumers:</strong> Analytics Platform, Operational Alerting, Notification Engine</li>
+<li><strong>Trigger:</strong> An active issue fails to transition to resolved within the legal time allocation.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Private (Contains reference to stalled issue details and assigned department).</li>
+<li><strong>Schema Owner:</strong> Identity &amp; Admin Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>issue_id</code> (The violating issue ID)</li>
+<li><code>assigned_department_id</code> (Owner department of stalled issue)</li>
+<li><code>days_overdue</code> (Floating point scale of SLA breach)</li>
+<li><strong>Description:</strong> Critical operational warning. Escalates issues to supervisors and triggers systemic alerts.</li>
+</ul>
+<hr />
+<h3 id="46-audit-events">4.6. Audit Events</h3>
+<h4 id="evt-601-schemachanged"><code>EVT-601</code>: SchemaChanged</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>SchemaChanged</code></li>
+<li><strong>Category:</strong> Audit Events</li>
+<li><strong>Producer:</strong> Schema Registry</li>
+<li><strong>Consumers:</strong> All active producers and consumers</li>
+<li><strong>Trigger:</strong> A new version of an event contract is officially registered and approved.</li>
+<li><strong>Ordering Key:</strong> <code>schema_name</code></li>
+<li><strong>PII Classification:</strong> None (Schema layout strings).</li>
+<li><strong>Schema Owner:</strong> Audit &amp; Platform Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>schema_name</code> (The modified schema identifier)</li>
+<li><code>old_version</code> (Previous active version tag)</li>
+<li><code>new_version</code> (New version tag)</li>
+<li><code>compatibility_mode</code> (e.g. <code>BACKWARD</code>, <code>FORWARD</code>, <code>NONE</code>)</li>
+<li><strong>Description:</strong> Informs microservices that event parsing parameters have changed, triggering schema dynamic cache invalidations.</li>
+</ul>
+<h4 id="evt-602-accessloggenerated"><code>EVT-602</code>: AccessLogGenerated</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>AccessLogGenerated</code></li>
+<li><strong>Category:</strong> Audit Events</li>
+<li><strong>Producer:</strong> API Gateway, Core Services</li>
+<li><strong>Consumers:</strong> Security Audit Log Archiver</li>
+<li><strong>Trigger:</strong> A user queries or exports citizen PII records.</li>
+<li><strong>Ordering Key:</strong> <code>actor_id</code></li>
+<li><strong>PII Classification:</strong> Private (References accessing actor ID and targets accessed).</li>
+<li><strong>Schema Owner:</strong> Audit &amp; Platform Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>log_id</code> (Unique audit log ID)</li>
+<li><code>actor_id</code> (The actor requesting information)</li>
+<li><code>queried_resource_type</code> (e.g. <code>CITIZEN_PROFILE</code>, <code>PII_EXPORT</code>)</li>
+<li><code>resource_id</code> (Reference target entity queried)</li>
+<li><code>ip_address</code> (Access IP mapping)</li>
+<li><strong>Description:</strong> Cryptographically signed security audit trail, ensuring zero-trust trace tracking.</li>
+</ul>
+<h4 id="evt-603-systemconfigoverridden"><code>EVT-603</code>: SystemConfigOverridden</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>SystemConfigOverridden</code></li>
+<li><strong>Category:</strong> Audit Events</li>
+<li><strong>Producer:</strong> Administration Service</li>
+<li><strong>Consumers:</strong> All Core Services</li>
+<li><strong>Trigger:</strong> A developer or system operator overrides a critical system runtime constant or environment configuration.</li>
+<li><strong>Ordering Key:</strong> <code>config_key</code></li>
+<li><strong>PII Classification:</strong> Private (Mentions config parameters and actor details).</li>
+<li><strong>Schema Owner:</strong> Audit &amp; Platform Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>config_key</code> (The modified key)</li>
+<li><code>previous_value_hash</code> (Secure hash of previous config state)</li>
+<li><code>new_value_hash</code> (Secure hash of new config state)</li>
+<li><code>actor_id</code> (The administrator who applied the override)</li>
+<li><strong>Description:</strong> Logs direct operational mutations, critical for tracing systemic regressions.</li>
+</ul>
+<hr />
+<h3 id="47-plugin-events">4.7. Plugin Events</h3>
+<h4 id="evt-701-hooktriggered"><code>EVT-701</code>: HookTriggered</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>HookTriggered</code></li>
+<li><strong>Category:</strong> Plugin Events</li>
+<li><strong>Producer:</strong> Workflow Engine, API Gateway</li>
+<li><strong>Consumers:</strong> Plugin Runtime Service</li>
+<li><strong>Trigger:</strong> Core workflows reach a registered hook extension boundary (e.g., custom geo-routing calculations).</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Private (Carries raw contextual arguments of workflow entities).</li>
+<li><strong>Schema Owner:</strong> Extensibility Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>hook_execution_id</code> (Unique lifecycle execution identifier)</li>
+<li><code>plugin_id</code> (Target extension plugin configured)</li>
+<li><code>hook_name</code> (The target function hook, e.g. <code>pre_route_validation</code>)</li>
+<li><code>context_payload</code> (State Map injected into the plugin sandbox)</li>
+<li><strong>Description:</strong> Commands the Plugin Runtime to initialize sandboxed subprocesses or WASM instances for custom logic.</li>
+</ul>
+<h4 id="evt-702-pluginresponsereturned"><code>EVT-702</code>: PluginResponseReturned</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>PluginResponseReturned</code></li>
+<li><strong>Category:</strong> Plugin Events</li>
+<li><strong>Producer:</strong> Plugin Runtime Service</li>
+<li><strong>Consumers:</strong> Workflow Engine, API Gateway</li>
+<li><strong>Trigger:</strong> An isolated plugin completes its task successfully and reports results back.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> Private (Contains outputs of custom calculations on citizen data).</li>
+<li><strong>Schema Owner:</strong> Extensibility Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>hook_execution_id</code> (The reference execution trigger ID)</li>
+<li><code>plugin_id</code> (Executing plugin identifier)</li>
+<li><code>execution_duration_ms</code> (Time spent in sandbox)</li>
+<li><code>response_payload</code> (Output data returned by plugin)</li>
+<li><strong>Description:</strong> Notifies core engines that third-party calculations are finished, injecting results back to the workflow.</li>
+</ul>
+<h4 id="evt-703-pluginexecutionfailed"><code>EVT-703</code>: PluginExecutionFailed</h4>
+<ul>
+<li><strong>Event Name:</strong> <code>PluginExecutionFailed</code></li>
+<li><strong>Category:</strong> Plugin Events</li>
+<li><strong>Producer:</strong> Plugin Runtime Service</li>
+<li><strong>Consumers:</strong> Workflow Engine, Operational Alerting</li>
+<li><strong>Trigger:</strong> A sandboxed plugin throws an error, exceeds CPU/Memory limits, or times out.</li>
+<li><strong>Ordering Key:</strong> <code>issue_id</code></li>
+<li><strong>PII Classification:</strong> None (Mentions execution diagnostics only).</li>
+<li><strong>Schema Owner:</strong> Extensibility Bounded Context</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Payload Summary:</strong></li>
+<li><code>hook_execution_id</code> (The reference execution trigger ID)</li>
+<li><code>plugin_id</code> (Failing plugin identifier)</li>
+<li><code>error_class</code> (e.g., <code>TIMEOUT</code>, <code>OUT_OF_MEMORY</code>, <code>UNCAUGHT_EXCEPTION</code>)</li>
+<li><code>diagnostic_message</code> (Sandbox error logs)</li>
+<li><strong>Description:</strong> Signals plugin failures to the core coordinator to trigger fallback default pathways (such as manual routing).</li>
+</ul>
+<hr />
+<h2 id="5-event-governance-policies">5. Event Governance Policies</h2>
+<h3 id="51-version-compatibility-rules">5.1. Version Compatibility Rules</h3>
+<p>Every schema change registered in the Helix registry must follow these strict compatibility parameters:</p>
+<ol>
+<li><strong>Backward Compatibility (Default REQUIREMENT):</strong> Consuming applications running older code must be able to process new events without crashing. Adding optional fields or metadata parameters are fully backward-compatible changes.</li>
+<li><strong>Forward Compatibility:</strong> Older events must be readable by updated consumer code. Removing optional fields or adding default values to required fields ensures forward compatibility.</li>
+<li><strong>Breaking Changes:</strong> If a schema must undergo breaking changes (e.g., changing data type formats, making optional fields required, or removing fields):</li>
+<li>A new major schema version must be registered (e.g., <code>1.0.0</code> ➔ <code>2.0.0</code>).</li>
+<li>The event name remains unchanged, but the Event Metadata version updates.</li>
+<li>For a transition period, the event bus must support automated adapters that translate <code>2.0.0</code> payloads to <code>1.0.0</code> for legacy consumers.</li>
+</ol>
+<h3 id="52-deprecation-policy">5.2. Deprecation Policy</h3>
+<p>When an event schema is replaced by a newer version or retired, it enters the <strong>Deprecation Lifecycle</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>[Active Schema] ────► [Deprecated] ────► [Grace Period (180 days)] ────► [Sunset / Retired]
+</span></code></pre></div>
+<ol>
+<li><strong>Notification:</strong> The Schema owner triggers a <code>SchemaChanged</code> event detailing the deprecation plan.</li>
+<li><strong>Grace Period:</strong> The schema remains fully supported for a grace period of <strong>180 days</strong> or <strong>two minor system versions</strong>, whichever is longer. Consuming teams must migrate to the new schema during this window.</li>
+<li><strong>Sunset:</strong> After the grace period, the Schema Registry rejects validation queries for the deprecated version, and producers cease dual-publication.</li>
+</ol>
+<hr />
+<h2 id="6-event-schema-validation-checklist">6. Event Schema Validation Checklist</h2>
+<p>Before submitting an addition or change to this catalog to the Architecture Review Board, verify the following details:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Past Tense Name:</strong> Is the event named using PascalCase past-tense format (<code>DomainEntityAction</code>)?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Ordering Key Defined:</strong> Is there an explicit partition ordering key designated to prevent race conditions during concurrent consumer runs?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>PII Mapped:</strong> Are all fields containing sensitive personal details declared as Private/Restricted, and is the key encryption mechanism defined?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Schema Owner Assigned:</strong> Is a specific microservice context and team steward assigned to this schema definition?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Traceability:</strong> Does the payload carry standard identifier references to correlate it with the parent <code>issue_id</code> or <code>citizen_id</code>?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Semantic Versioning:</strong> Is the starting schema version marked as <code>1.0.0</code> for new events, or is the increment correctly typed (Major/Minor/Patch) for modifications?</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
