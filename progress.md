@@ -51,6 +51,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-043` | 2026-07-07T17:15:00+05:30 | Sprint 14 | Production Deployment & Cloud Infrastructure | Frozen |
 | `LOG-044` | 2026-07-07T17:20:00+05:30 | Sprint 14.5 | Repository Cleanup & Production Hardening | Frozen |
 | `LOG-045` | 2026-07-07T17:25:00+05:30 | Sprint 15 | Cloud Deployment & Demo Readiness | Frozen |
+| `LOG-046` | 2026-07-08T09:10:00+05:30 | Sprint A1 | Sprint A1 Stabilization & Security Complete | Completed |
 
 ---
 
@@ -572,3 +573,17 @@ This log records every significant action, decision, change, and status update i
   - **Documentation Portals:** Updated `docs/deployment.md` with a comprehensive cloud topology mapping and deployment steps.
   - **End-to-End Build Verification:** Rerun linter, mypy, pytest, and frontend next static builds to verify 100% success.
 - **Issues/Resolutions:** None.
+
+### `LOG-046` (2026-07-08T09:10:00+05:30) - Sprint A1 Stabilization & Security Complete
+- **Phase:** Sprint A1 (Identity Service Stabilization)
+- **Status:** Completed
+- **Changes:**
+  - **Remove Auditor Role:** Cleaned up the "Auditor" role across security settings, database seeding (`seed.py`), and parameterized integration tests to focus the architecture on core Citizen, Officer, MLA, MP, and System Admin roles.
+  - **TODO Warning on Static Fallback:** Added a `TODO: REMOVE STATIC ROLE_PERMISSIONS before release` warning in the security middleware permissions resolver to enforce fully database-driven RBAC before production release.
+  - **Account Settings APIs:** Implemented `/identity/change-password` endpoint to allow users to update their credentials securely.
+  - **Active Session Revocation API:** Implemented `/identity/sessions/logout-all` endpoint to terminate all active sessions and invalidate all refresh tokens for a user.
+  - **Query Filter Correctness:** Fixed SQLAlchemy query syntax in `/identity/refresh` and `/identity/reset-password` endpoints, substituting incorrect Python `not` conditions with SQLAlchemy `== False` comparisons to resolve 401/400 failures under strict environments.
+  - **Unified Client Auth:** Removed the Auditor role option from frontend context and active role selector to guarantee portal separation consistency.
+- **Issues/Resolutions:**
+  - *Issue:* Integration tests for token refresh and password reset failed due to Boolean query filter evaluation.
+  - *Resolution:* Swapped `not Column` with `Column == False`.
