@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { fetchWithAuth } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,11 +55,13 @@ export interface Issue {
 }
 
 export default function IssueDetailsPage({ params }: { params: { id: string } }) {
+  const { user } = useAuth();
   const [issue, setIssue] = useState<Issue | null>(null);
   const [draftResponse, setDraftResponse] = useState("");
   const [dispatcherNote, setDispatcherNote] = useState("");
   const [isSuccessMsg, setIsSuccessMsg] = useState(false);
   const [recommendationId, setRecommendationId] = useState<string | null>(null);
+  const [loadingIssue, setLoadingIssue] = useState(true);
 
   // Decision Context States
   const [context, setContext] = useState<any>(null);
@@ -96,6 +99,10 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
 
   useEffect(() => {
     // 1. Fetch Issue Details
+    if (user?.role === "Citizen") {
+      setLoadingIssue(false);
+      return;
+    }
     fetchWithAuth(`/governance/issues/pending`)
       .then((data) => {
         const found = data.find((i: any) => i.id === params.id);
