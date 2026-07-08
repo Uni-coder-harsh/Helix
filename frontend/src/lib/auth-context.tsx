@@ -93,24 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  useEffect(() => {
-    const originalFetch = window.fetch;
-    window.fetch = async (input, init) => {
-      const token = localStorage.getItem("helix-token");
-      let headers = new Headers(init?.headers);
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return originalFetch(input, {
-        ...init,
-        headers,
-      });
-    };
-
-    return () => {
-      window.fetch = originalFetch;
-    };
-  }, []);
 
   const login = async (token: string) => {
     localStorage.setItem("helix-token", token);
