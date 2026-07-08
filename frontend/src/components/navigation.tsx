@@ -26,7 +26,7 @@ export function Navigation() {
           <Link href="/citizen" className="flex items-center gap-1.5 hover:text-foreground transition">
             <LayoutDashboard className="h-4 w-4" /> Dashboard
           </Link>
-          <Link href="/citizen/new" className="flex items-center gap-1.5 hover:text-foreground transition">
+          <Link href="/citizen" className="flex items-center gap-1.5 hover:text-foreground transition">
             <Users className="h-4 w-4" /> My Complaints
           </Link>
         </>

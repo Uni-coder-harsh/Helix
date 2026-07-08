@@ -77,7 +77,14 @@ export default function CitizenDashboard() {
 
   const handleCreateIssue = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle || !newDescription) return;
+    if (!newTitle || newTitle.length < 3) {
+      alert("Title must be at least 3 characters");
+      return;
+    }
+    if (!newDescription || newDescription.length < 10) {
+      alert("Description must be at least 10 characters");
+      return;
+    }
 
     const payload = {
       citizen_id: user?.id || "00000000-0000-0000-0000-000000000000",
