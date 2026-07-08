@@ -53,6 +53,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-045` | 2026-07-07T17:25:00+05:30 | Sprint 15 | Cloud Deployment & Demo Readiness | Frozen |
 | `LOG-046` | 2026-07-08T09:10:00+05:30 | Sprint A1 | Sprint A1 Stabilization & Security Complete | Completed |
 | `LOG-047` | 2026-07-08T10:04:02+05:30 | Sprint A2 | Administrative Hierarchy & Jurisdiction Engine | Completed |
+| `LOG-048` | 2026-07-08T10:41:26+05:30 | Sprint A2 | HTTP Transport Stall Root Cause Fixed & Sprint A2 Frozen | Frozen |
 
 ---
 
@@ -603,3 +604,17 @@ This log records every significant action, decision, change, and status update i
 - **Issues/Resolutions:**
   - *Issue:* HTTP transport-based verification paths in the current backend test environment hang inside FastAPI response serialization for existing route suites.
   - *Resolution:* Kept production behavior intact, limited new verification to direct route/service integration tests, and added test-environment guards to skip telemetry/logging middleware that was unnecessary for the local verification path.
+
+### `LOG-048` (2026-07-08T10:41:26+05:30) - HTTP Transport Stall Root Cause Fixed & Sprint A2 Frozen
+- **Phase:** Sprint A2 (Administrative Hierarchy & Jurisdiction Engine)
+- **Status:** Frozen (v1.0.0)
+- **Changes:**
+  - **Root Cause Identification:** Traced the HTTP client stall past Helix middleware into the runtime wakeup path and confirmed that `asyncio` cross-thread wakeups were silently failing because threaded socket writes on the event loop self-pipe raised `PermissionError: [Errno 1] Operation not permitted` in the active execution environment.
+  - **Runtime Compatibility Fix:** Added `backend/helix_platform/runtime.py` with a pipe-backed selector event loop policy, replacing the default socketpair wakeup mechanism with an `os.pipe()` wakeup path that works correctly for `call_soon_threadsafe`, AnyIO worker handoffs, `httpx.ASGITransport`, and Starlette `TestClient`.
+  - **Production/Test Startup Wiring:** Installed the runtime policy during backend startup in `backend/services/main.py` and during pytest bootstrap in `backend/conftest.py` so both application execution and backend verification use the same corrected wakeup behavior.
+  - **Removed Temporary Bypasses:** Restored the real logging/correlation middleware path in `backend/services/main.py`, restored FastAPI instrumentation execution, and replaced test-time telemetry exporter noise with a no-export telemetry configuration plus deterministic shutdown instead of skipping instrumentation entirely.
+  - **Verification Cleanup:** Reformatted the backend files required by `black --check`, including the existing governance formatting drifts in `backend/services/governance/application/decision_brief/evidence.py` and `backend/services/governance/application/timeline/engine.py`, so the requested quality gates complete cleanly.
+  - **Full Backend Verification:** Passed complete backend verification with `pytest -q`, `ruff check .`, `black --check .`, and `MYPYPATH=services/ai-platform/src mypy .` from the `backend/` workspace, which includes the identity suites, governance suites, integration tests, and supporting unit tests.
+- **Issues/Resolutions:**
+  - *Issue:* Cross-thread HTTP transport wakeups were blocked below FastAPI/Starlette, causing sync-route `AsyncClient` requests and `TestClient` startup to hang indefinitely.
+  - *Resolution:* Replaced the socket-based asyncio wakeup channel with a pipe-based wakeup policy, then reran the full backend verification successfully and froze Sprint A2.

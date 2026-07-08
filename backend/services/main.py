@@ -25,7 +25,11 @@ from helix_platform.logging import (
     request_id_var,
 )
 from helix_platform.persistence import engine
+from helix_platform.runtime import configure_asyncio_runtime
 from helix_platform.telemetry import instrument_app, setup_telemetry
+
+# Ensure asyncio wakeups remain functional in restricted runtimes.
+configure_asyncio_runtime()
 
 # 1. Initialize logging
 configure_logging()
