@@ -1,4 +1,3 @@
-# Configure path so that platform and shared can be imported from root backend folder
 import sys
 import time
 import uuid
@@ -9,8 +8,6 @@ from fastapi import FastAPI, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-import services.ai_platform as ai_platform
 import services.audit as audit
 import services.decision_intelligence as decision_intelligence
 import services.governance as governance
@@ -56,7 +53,7 @@ Base.metadata.create_all(bind=engine)
 # Seed database with standard lookup tables and default System Admin
 db = SessionLocal()
 try:
-    if not db.query(services.identity.models.DB).first():
+    if not db.query(services.identity.models.UserDB).first():
         seed_database(db)
 finally:
     db.close()
@@ -133,7 +130,6 @@ app.add_middleware(LoggingAndCorrelationMiddleware)
 # 7. Mount Service Routers (Scaffolding the Modular Monolith)
 app.include_router(governance.router)
 app.include_router(identity.router)
-app.include_router(ai_platform.router)
 app.include_router(media.router)
 app.include_router(audit.router)
 app.include_router(plugin.router)

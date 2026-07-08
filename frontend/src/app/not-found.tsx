@@ -21,9 +21,6 @@ export default function NotFound() {
         <Link href="/" className="w-full sm:w-auto h-10 inline-flex items-center justify-center rounded-lg bg-primary px-5 text-xs sm:text-sm font-semibold text-primary-foreground hover:bg-primary/95 transition shadow-sm gap-2">
           <Home className="h-4 w-4" /> Return Home
         </Link>
-        <Link href="/officer" className="w-full sm:w-auto h-10 inline-flex items-center justify-center rounded-lg border px-5 text-xs sm:text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-900 transition gap-2 shadow-sm">
-          <Shield className="h-4 w-4 text-muted-foreground" /> Officer Deck
-        </Link>
       </div>
     </div>
   );
