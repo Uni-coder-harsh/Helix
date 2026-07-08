@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>Helix 🧬</h1>
+  <h1>Helix</h1>
   <p><strong>AI Governance Operating System</strong></p>
 
   <p>
