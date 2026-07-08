@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { ThumbsUp, MapPin, Plus, Search, Calendar, ChevronRight, Users, Compass, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth-context";
 
 export default function CitizenDashboard() {
+  const { user } = useAuth();
   const [issues, setIssues] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,6 +27,11 @@ export default function CitizenDashboard() {
   const [newConstituency, setNewConstituency] = useState("Central Bengaluru");
 
   useEffect(() => {
+    // Citizens do not have permission for /pending. Bypass if citizen.
+    if (user?.role === "Citizen") {
+      setLoading(false);
+      return;
+    }
     fetchWithAuth(`/governance/issues/pending`)
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -52,7 +59,7 @@ export default function CitizenDashboard() {
         console.log("Backend not running, using mock data:", err);
         setLoading(false);
       });
-  }, []);
+  }, [user]);
 
   const handleUpvote = (id: string) => {
     if (votedIssues[id]) return; // prevent multiple upvotes in session
@@ -73,12 +80,13 @@ export default function CitizenDashboard() {
     if (!newTitle || !newDescription) return;
 
     const payload = {
+      citizen_id: user?.id || "00000000-0000-0000-0000-000000000000",
       title: newTitle,
       description: newDescription,
       category: newCategory.toLowerCase().replace(" & ", "_").replace(" ", "_"),
       latitude: 12.9716,
       longitude: 77.5946,
-      address: newConstituency,
+      formatted_address: newConstituency,
     };
 
     fetchWithAuth(`/governance/issues`, {
