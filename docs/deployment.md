@@ -1,67 +1,77 @@
----
-owner: "@harsh"
-version: "1.0.0"
-status: "Release"
-last_updated: "2026-07-07"
-reviewer: "@harsh"
-dependencies: []
----
+# Deployment Guide
 
-# Production Deployment Guide
+This document outlines the current production architecture and deployment steps for the Helix project.
 
-This document outlines the step-by-step instructions to deploy the Helix Governance Monolith to cloud environments.
+## Production Architecture
 
-## 1. Cloud Architecture Overview
+Helix employs a decoupled modern stack deployed across specialized cloud providers:
 
-```mermaid
-graph TD
-    User[Citizen / Officer] --> Vercel[Vercel: Next.js Frontend]
-    Vercel --> Railway[Railway: FastAPI Backend Monolith]
-    Railway --> Neon[Neon: Cloud PostgreSQL Database]
-```
+- **Frontend Application**: Vercel (Next.js Edge Network)
+- **Backend Services**: Railway (FastAPI Python Application)
+- **Database**: Neon (Serverless PostgreSQL)
+- **AI / LLM Integration**: Google Gemini API
+- **Spatial / Maps**: MapLibre GL JS + OpenStreetMap (OSM)
+- **Documentation**: GitHub Pages (MkDocs)
 
----
+## Deployment Order
 
-## 2. Step-by-Step Deployment Instructions
+To ensure a seamless deployment without broken references, services must be provisioned and deployed in the following order:
 
-### Step 1: Provision database (Neon PostgreSQL)
-1. Register/Login to [Neon Console](https://neon.tech/).
-2. Create a new project and select **PostgreSQL 16+**.
-3. Copy the generated `DATABASE_URL` connection string (e.g., `postgresql://user:password@endpoint.neon.tech/neondb?sslmode=require`).
-
-### Step 2: Deploy Backend to Railway
-1. Create a new project on [Railway](https://railway.app/).
-2. Deploy using the GitHub repository integration, pointing to the `/backend` sub-directory containing the `Dockerfile`.
-3. Expose port `8000`.
-4. Configure the following environment variables:
-   * `DATABASE_URL`: `<Your Neon connection string>`
-   * `GEMINI_API_KEY`: `<Your Google Gemini API Key>`
-   * `APP_ENV`: `production`
-   * `LOG_LEVEL`: `INFO`
-5. Configure health check path targets:
-   * **Liveness Probe:** `/live` (returns HTTP 200 `{"status": "alive"}`)
-   * **Readiness Probe:** `/ready` (verifies DB connection; returns HTTP 200 `{"status": "ready"}`)
-
-### Step 3: Deploy Frontend to Vercel
-1. Create a new project on [Vercel](https://vercel.com/).
-2. Import the GitHub repository and set the root directory to `frontend/`.
-3. Configure the environment variable:
-   * `NEXT_PUBLIC_API_URL`: `<The public domain URL of the deployed Railway backend>`
-4. Deploy the project (Vercel automatically compiles the static Next.js pages).
-
-### Step 4: Seed Demo Data
-Once the database and backend are operational, seed the cloud database with 350 realistic Shivaji Nagar citizen reports:
-```bash
-# From the repository root
-PYTHONPATH=backend/:backend/services/ai-platform/src DATABASE_URL=<YOUR_NEON_DATABASE_URL> .venv/bin/python demo-data/seed.py
-```
+1. **Database** (Neon)
+2. **Backend API** (Railway)
+3. **Frontend App** (Vercel)
 
 ---
 
-## 3. Operations & Smoke Testing
+## 1. Database Deployment (Neon)
 
-Verify the deployed application by hitting the following public endpoints:
-* **Swagger OpenAPI:** `https://<your-railway-url>/docs`
-* **Liveness Endpoint:** `https://<your-railway-url>/live`
-* **Readiness Endpoint:** `https://<your-railway-url>/ready`
-* **Pending Issues API:** `https://<your-railway-url>/governance/issues/pending`
+1. Create a new project in [Neon](https://neon.tech).
+2. Provision a PostgreSQL database.
+3. Obtain the connection string.
+   - Example: `postgresql://user:password@ep-cold-shadow-1234.us-east-2.aws.neon.tech/neondb?sslmode=require`
+
+## 2. Backend Deployment (Railway)
+
+1. Connect your GitHub repository to [Railway](https://railway.app).
+2. Create a new service from the repository and set the root directory to `/backend`.
+3. Configure the start command (if not automatically detected):
+   `uvicorn services.main:app --host 0.0.0.0 --port $PORT`
+4. **Environment Variables**:
+   Configure the following variables in the Railway dashboard:
+   - `DATABASE_URL`: The Neon connection string.
+   - `GEMINI_API_KEY`: Your Google Gemini API Key.
+   - `ENVIRONMENT`: `production`
+5. Deploy the backend and capture the generated public URL (e.g., `https://helix-production.up.railway.app`).
+
+## 3. Frontend Deployment (Vercel)
+
+1. Import your GitHub repository into [Vercel](https://vercel.com).
+2. Set the Root Directory to `frontend`.
+3. Ensure the Build Command is `npm run build` and Output Directory is `.next`.
+4. **Environment Variables**:
+   Configure the following variables in the Vercel dashboard:
+   - `NEXT_PUBLIC_API_URL`: The URL of your Railway backend.
+5. Deploy the frontend.
+
+## 4. Documentation (GitHub Pages)
+
+Documentation is hosted via GitHub Pages using MkDocs. To deploy documentation changes:
+
+1. Install MkDocs with `pip install mkdocs-material`.
+2. Run `mkdocs gh-deploy` from the project root.
+
+---
+
+## Required Environment Variables Summary
+
+### Backend (.env)
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | Full PostgreSQL connection string (Neon). |
+| `GEMINI_API_KEY` | Secret key for Gemini LLM endpoints. |
+| `ENVIRONMENT` | Used to toggle production vs dev behavior (`production` or `development`). |
+
+### Frontend (.env.local)
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_API_URL` | Base URL for the backend API, enabling Vercel rewrites. |

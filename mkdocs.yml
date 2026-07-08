@@ -55,52 +55,13 @@ markdown_extensions:
 plugins:
   - search
 
-
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
-  - Culture:
-      - Constitution: culture/00-helix-constitution.md
-  - Product Discovery & Definition:
-      - Overview: 01-product/README.md
-      - Project Charter: 01-product/00-project-charter.md
-      - Vision: 01-product/01-vision.md
-      - Mission: 01-product/02-mission.md
-      - Product Philosophy: 01-product/03-product-philosophy.md
-      - Governance Design Principles: 01-product/04-governance-design-principles.md
-      - Governance Domain Model: 01-product/05-governance-domain-model.md
-      - Problem Analysis: 01-product/06-problem-analysis.md
-      - User Personas: 01-product/07-user-personas.md
-      - User Journeys: 01-product/08-user-journeys.md
-      - Functional Requirements: 01-product/09-functional-requirements.md
-      - Non-Functional Requirements: 01-product/10-non-functional-requirements.md
-      - Success Metrics: 01-product/11-success-metrics.md
-      - Product Roadmap: 01-product/12-product-roadmap.md
-      - Project Scope: 01-product/13-project-scope.md
-      - Risk Analysis: 01-product/14-risk-analysis.md
   - Architecture:
       - Overview: 02-architecture/README.md
-      - Architecture Principles: 02-architecture/00-architecture-principles.md
-      - System Context: 02-architecture/01-system-context.md
-      - C4 Context Diagram: 02-architecture/02-c4-context.md
-      - C4 Container Diagram: 02-architecture/03-c4-container.md
-      - Event-Driven Architecture: 02-architecture/04-event-driven-architecture.md
-      - Event Catalog: 02-architecture/05-event-catalog.md
-      - Component Architecture: 02-architecture/06-component-architecture.md
-      - Microservice Boundaries: 02-architecture/07-microservice-boundaries.md
-      - Plugin Architecture: 02-architecture/08-plugin-architecture.md
-      - Deployment Architecture: 02-architecture/09-deployment-architecture.md
-  - AI: ai.md
-  - Integrations:
-      - AI Platform: integrations/ai.md
-      - GIS & Maps: integrations/maps.md
-      - Notifications: integrations/notifications.md
-      - Object Storage: integrations/storage.md
-  - API: api.md
-  - Plugins: plugins.md
-  - Demo Data & Seeding: demo-data.md
-  - Security: security.md
-  - Operations: operations.md
+  - AI & Integrations: ai.md
+  - API Reference: api.md
   - Deployment: deployment.md
-  - Roadmap: roadmap.md
-  - Contributing: contributing.md
+  - Operations: operations.md
+  - Security: security.md

@@ -1,101 +1,97 @@
-# Helix
+<div align="center">
+  <h1>Helix 🧬</h1>
+  <p><strong>AI Governance Operating System</strong></p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python Version](https://img.shields.io/badge/python-3.13%2B-blue.svg)](pyproject.toml)
-[![Pre-Commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](.pre-commit-config.yaml)
-
-Helix is a highly disciplined, specifications-first engineering framework designed for building reliable, modular AI systems, datasets, and agents.
+  <p>
+    <a href="https://helix-sigma-kohl.vercel.app"><strong>Live Demo</strong></a> ·
+    <a href="https://helix-sigma-kohl.vercel.app/docs"><strong>Documentation</strong></a>
+  </p>
+</div>
 
 ---
 
-## 🛠️ The Helix Engineering Philosophy
+## 🌍 What is Helix?
 
-> **"We are NOT going to vibe code Helix. We are going to engineer Helix."**
+Helix is a secure, transparent, event-driven governance system designed for modern cities. We bridge the gap between citizens reporting issues and the field operations repairing them, using spatial intelligence and AI-driven decision support to create smarter, more responsive cities.
 
-To prevent architectural drift and keep the project aligned with enterprise standards:
-1. **Every commit has a reason.**
-2. **Every document has an owner.**
-3. **Every service has a contract.**
-4. **Every API is designed before implementation.**
+## 🚨 What problem does it solve?
 
-### Development Lifecycle
+Traditional civic platforms are fragmented, slow, and opaque. Citizens report potholes, broken streetlights, or sanitation issues into a black hole, and officers struggle to prioritize them without real context or spatial awareness.
 
-Helix is developed sequentially through 9 clear phases. Implementation (coding) only starts in Phase 6, after the prior designs have been frozen.
+Helix solves this by providing:
+- **Instant Triage:** AI categorizes and prioritizes issues instantly.
+- **Spatial Intelligence:** Map-based visualizations help officers see hotspots (e.g., clusters of water logging).
+- **Proactive Interventions:** Helix doesn't just manage tickets; it drafts decision briefs, suggests interventions, and generates dispatch plans using LLMs.
+- **Full Transparency:** Citizens can track the exact status and timeline of their reports.
 
+## 🚀 Can I try it?
+
+Yes! The platform is live and fully functional.
+
+- **Frontend (Citizen & Officer Portals):** [https://helix-sigma-kohl.vercel.app](https://helix-sigma-kohl.vercel.app)
+- **Backend API (FastAPI):** [https://helix-production-a8c2.up.railway.app/docs](https://helix-production-a8c2.up.railway.app/docs)
+
+*(Note: The platform is seeded with mock data for demonstrations. You can log in as a Citizen or Officer to explore the different dashboards.)*
+
+## 📚 Where are the docs?
+
+Detailed technical documentation, API specifications, and deployment guides are available in our Engineering Portal.
+You can read the docs locally using `mkdocs serve` or browse the `docs/` folder in this repository.
+
+## ✨ How is it different?
+
+Helix is not just a CRUD application for issue tracking. It is a modern **Event-Driven AI platform**:
+- **Next.js App Router Frontend:** A premium, dynamic, glassmorphic UI built for speed.
+- **FastAPI Backend:** High-performance async Python backend.
+- **Gemini AI Integration:** Automated morning briefings for officers, AI decision briefs, and automated dispatch routing.
+- **MapLibre Spatial Integration:** Real-time spatial clustering and geographic analysis.
+
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend:** Next.js 14, React, TailwindCSS, Lucide Icons, MapLibre
+- **Backend:** FastAPI, Python, SQLAlchemy
+- **Database:** Neon Serverless PostgreSQL
+- **AI / Intelligence:** Google Gemini Pro
+- **Deployment:** Vercel (Frontend), Railway (Backend)
+
+---
+
+## 🏗️ Repository Structure
+
+```text
+Helix/
+├── backend/            # FastAPI application & AI Agents
+├── frontend/           # Next.js web application
+├── docs/               # MkDocs Engineering Portal
+└── mkdocs.yml          # Documentation configuration
 ```
-PHASE 0: Foundation (We are here)
-   │
-   ▼
-PHASE 1: Product Engineering
-   │
-   ▼
-PHASE 2: Architecture
-   │
-   ▼
-PHASE 3: Data Engineering
-   │
-   ▼
-PHASE 4: AI System Design
-   │
-   ▼
-PHASE 5: Infrastructure
-   │
-   ▼
-PHASE 6: Development (Coding starts here)
-   │
-   ▼
-PHASE 7: Production Hardening
-   │
-   ▼
-PHASE 8: Pilot Deployment
-```
 
----
+## 💻 Local Development
 
-## 📂 Repository Directory Tour
+### Prerequisites
+- Node.js 20+
+- Python 3.12+
+- PostgreSQL database
 
-- [docs/](file:///home/harsh/Desktop/CodeNova/Helix/docs/) — Documentation portal source (MkDocs Material)
-- [architecture/](file:///home/harsh/Desktop/CodeNova/Helix/architecture/) — High-level system design & diagrams
-- [adr/](file:///home/harsh/Desktop/CodeNova/Helix/adr/) — Architecture Decision Records (ADRs)
-- [rfc/](file:///home/harsh/Desktop/CodeNova/Helix/rfc/) — Requests for Comments (RFCs)
-- [backend/](file:///home/harsh/Desktop/CodeNova/Helix/backend/) — Backend FastAPI modular monolith service
-- [frontend/](file:///home/harsh/Desktop/CodeNova/Helix/frontend/) — Next.js operational dashboards
-- [deployments/](file:///home/harsh/Desktop/CodeNova/Helix/deployments/) — Kubernetes manifests and docker compose configurations
-- [plugins/](file:///home/harsh/Desktop/CodeNova/Helix/plugins/) — Plugin configurations & definitions
-- [demo-data/](file:///home/harsh/Desktop/CodeNova/Helix/demo-data/) — Synthesized realistic demo dataset & seed scripts
-- [scripts/](file:///home/harsh/Desktop/CodeNova/Helix/scripts/) — Automation and CI tooling helper scripts
-- [tools/](file:///home/harsh/Desktop/CodeNova/Helix/tools/) — Internal developer tooling
-- [tests/](file:///home/harsh/Desktop/CodeNova/Helix/tests/) — Unit, integration, and security test suites
-
----
-
-## 🚀 Getting Started
-
-Check out [getting_started.md](file:///home/harsh/Desktop/CodeNova/Helix/docs/getting_started.md) for complete instructions.
-
-### Quick Local Dev Environment Setup:
-
+### 1. Backend Setup
 ```bash
-# 1. Setup virtual env
-python3 -m venv .venv
+cd backend
+python -m venv .venv
 source .venv/bin/activate
-
-# 2. Install dependencies
-pip install -r requirements-dev.txt
-
-# 3. Setup pre-commit hooks
-pre-commit install
+pip install -r requirements.txt
+cp .env.example .env # Configure your DB and Gemini API Key
+uvicorn services.main:app --reload
 ```
 
-### Run the Engineering Portal Local Server:
-
+### 2. Frontend Setup
 ```bash
-mkdocs serve
+cd frontend
+npm install
+cp .env.example .env.local
+npm run dev
 ```
-Open [http://localhost:8000](http://localhost:8000) in your browser.
 
----
-
-## 🤝 Contributing
-
-Contributions must follow the strict review pipeline. Please review the [CONTRIBUTING.md](file:///home/harsh/Desktop/CodeNova/Helix/CONTRIBUTING.md) guide before opening a pull request.
+## 📄 License
+This project is licensed under the MIT License.
