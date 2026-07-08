@@ -57,7 +57,7 @@ async def get_current_user(
 
 
 class JWTRouteProtectionMiddleware(BaseHTTPMiddleware):
-    """Base HTTP middleware class providing automated JWT protection on specific path prefixes."""  # noqa: E501
+    """Base HTTP middleware class providing automated JWT protection on specific path prefixes."""
 
     def __init__(self, app: Any, protected_prefixes: list[str] | None = None) -> None:
         super().__init__(app)

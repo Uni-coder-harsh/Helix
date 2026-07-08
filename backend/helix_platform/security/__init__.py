@@ -177,17 +177,6 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permissions.SPATIAL_READ,
         Permissions.TIMELINE_READ,
     },
-    "Auditor": {
-        Permissions.ISSUES_READ,
-        Permissions.ISSUES_LIST_PENDING,
-        Permissions.RECOMMENDATIONS_READ,
-        Permissions.PLANNING_READ,
-        Permissions.SPATIAL_READ,
-        Permissions.TIMELINE_READ,
-        Permissions.CONSTITUENCY_READ,
-        Permissions.AUDIT_READ,
-        Permissions.INCIDENTS_READ,
-    },
 }
 
 
@@ -216,9 +205,67 @@ def normalize_role(role_str: str | None) -> str | None:
         return "Field Engineer"
     if r == "citizen":
         return "Citizen"
-    if r == "auditor":
-        return "Auditor"
     return None
+
+
+def get_user_permissions(role_name: str) -> set[str]:
+    """Retrieves all permissions for a given role name, resolving inheritance dynamically."""
+    from sqlalchemy import text
+
+    from helix_platform.persistence import SessionLocal
+
+    static_perms = ROLE_PERMISSIONS.get(role_name, set())
+
+    db = SessionLocal()
+    try:
+        # Check if roles table exists and is seeded
+        roles_exist = db.execute(text("SELECT COUNT(*) FROM roles")).scalar()
+        if not roles_exist:
+            return static_perms
+
+        permissions = set()
+        current_role_name = role_name
+        visited_roles = set()
+
+        while current_role_name and current_role_name not in visited_roles:
+            visited_roles.add(current_role_name)
+            role_row = db.execute(
+                text("SELECT id, parent_role_id FROM roles WHERE name = :name"),
+                {"name": current_role_name},
+            ).first()
+            if not role_row:
+                if len(visited_roles) == 1:
+                    # TODO: REMOVE STATIC ROLE_PERMISSIONS fallback before release
+                    return static_perms
+                break
+            role_id, parent_role_id = role_row[0], role_row[1]
+
+            # Query permissions for this role
+            perm_rows = db.execute(
+                text(
+                    "SELECT p.name FROM permissions p "
+                    "JOIN role_permissions rp ON p.id = rp.permission_id "
+                    "WHERE rp.role_id = :role_id"
+                ),
+                {"role_id": role_id},
+            ).fetchall()
+
+            for row in perm_rows:
+                permissions.add(row[0])
+
+            if not parent_role_id:
+                break
+
+            parent_role_row = db.execute(
+                text("SELECT name FROM roles WHERE id = :id"), {"id": parent_role_id}
+            ).first()
+            current_role_name = parent_role_row[0] if parent_role_row else None
+
+        return permissions
+    except Exception:
+        return static_perms
+    finally:
+        db.close()
 
 
 def get_current_user_from_request(request: Request) -> CurrentUser:
@@ -257,7 +304,7 @@ def get_current_user_from_request(request: Request) -> CurrentUser:
             detail=f"Invalid role: {role_str}",
         )
 
-    permissions = ROLE_PERMISSIONS.get(normalized_role, set())
+    permissions = get_user_permissions(normalized_role)
     return CurrentUser(user_id=user_id, role=normalized_role, permissions=permissions)
 
 
@@ -276,7 +323,7 @@ def get_current_user(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=f"Invalid role: {role_str}",
                 )
-            permissions = ROLE_PERMISSIONS.get(normalized_role, set())
+            permissions = get_user_permissions(normalized_role)
             return CurrentUser(
                 user_id=user_id, role=normalized_role, permissions=permissions
             )
@@ -296,7 +343,7 @@ def require_permission(permission: str) -> Callable[[CurrentUser], CurrentUser]:
         if permission not in user.permissions:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Permission denied: required permission '{permission}' not found for role '{user.role}'",  # noqa: E501
+                detail=f"Permission denied: required permission '{permission}' not found for role '{user.role}'",
             )
         return user
 
@@ -319,14 +366,14 @@ def has_permission(
                             break
                 if not request:
                     raise RuntimeError(
-                        "Request object must be in route signature to use @has_permission decorator"  # noqa: E501
+                        "Request object must be in route signature to use @has_permission decorator"
                     )
 
                 user = get_current_user_from_request(request)
                 if permission not in user.permissions:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
-                        detail=f"Permission denied: required permission '{permission}' not found for role '{user.role}'",  # noqa: E501
+                        detail=f"Permission denied: required permission '{permission}' not found for role '{user.role}'",
                     )
                 if "current_user" in kwargs:
                     kwargs["current_user"] = user
@@ -344,14 +391,14 @@ def has_permission(
                         break
             if not request:
                 raise RuntimeError(
-                    "Request object must be in route signature to use @has_permission decorator"  # noqa: E501
+                    "Request object must be in route signature to use @has_permission decorator"
                 )
 
             user = get_current_user_from_request(request)
             if permission not in user.permissions:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail=f"Permission denied: required permission '{permission}' not found for role '{user.role}'",  # noqa: E501
+                    detail=f"Permission denied: required permission '{permission}' not found for role '{user.role}'",
                 )
             if "current_user" in kwargs:
                 kwargs["current_user"] = user

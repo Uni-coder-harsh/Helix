@@ -20,7 +20,7 @@ def test_citizen_self_registration_and_login(client: TestClient) -> None:
     data = response.json()
     assert data["email"] == "citizen@example.com"
     assert data["name"] == "Citizen John"
-    assert data["role"] == "CITIZEN"
+    assert data["role"] == "Citizen"
     assert data["status"] == "ACTIVE"
     assert "id" in data
 
@@ -196,7 +196,7 @@ def test_invitation_and_approval_workflow(client: TestClient) -> None:
     assert off_invite_resp.status_code == 201
     off_invite_data = off_invite_resp.json()
     off_token = off_invite_data["token"]
-    assert off_invite_data["role"] == "OFFICER"
+    assert off_invite_data["role"] == "Officer"
 
     # 8. Officer accepts invitation
     off_accept_resp = client.post(

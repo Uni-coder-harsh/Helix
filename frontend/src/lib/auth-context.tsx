@@ -10,8 +10,7 @@ export type Role =
   | "MP"
   | "Officer"
   | "Field Engineer"
-  | "Citizen"
-  | "Auditor";
+  | "Citizen";
 
 export const ROLE_PERMISSIONS: Record<Role, string[]> = {
   "System Administrator": [
@@ -110,17 +109,6 @@ export const ROLE_PERMISSIONS: Record<Role, string[]> = {
     "issues:read",
     "spatial:read",
     "timeline:read",
-  ],
-  "Auditor": [
-    "issues:read",
-    "issues:list_pending",
-    "recommendations:read",
-    "planning:read",
-    "spatial:read",
-    "timeline:read",
-    "constituency:read",
-    "audit:read",
-    "incidents:read",
   ],
 };
 

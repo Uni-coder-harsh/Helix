@@ -269,7 +269,6 @@ async def test_token_based_authorization() -> None:
         ("MLA", 200),
         ("MP", 200),
         ("Officer", 200),
-        ("Auditor", 200),
         ("Citizen", 403),
         ("Field Engineer", 403),
     ],

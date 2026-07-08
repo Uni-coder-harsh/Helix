@@ -68,6 +68,8 @@ ignore = ["A002", "B024", "N818", "B008"]
 "**/knowledge/**/*.py" = ["E501"]
 "services/main.py" = ["E402", "E501"]
 "services/governance/**/*.py" = ["E501"]
+"services/identity/**/*.py" = ["E501"]
+"helix_platform/security/**/*.py" = ["E501"]
 "shared/domain/**/*.py" = ["E501"]
 
 [tool.mypy]

@@ -15,7 +15,6 @@ export function RoleSelector() {
     "Officer",
     "Field Engineer",
     "Citizen",
-    "Auditor",
   ];
 
   return (

@@ -143,11 +143,13 @@ def test_token_refresh_flow(client: TestClient) -> None:
     # 2. Refresh via JSON payload
     resp = client.post("/identity/refresh", json={"refresh_token": refresh_token})
     assert resp.status_code == 200
-    assert "access_token" in resp.json()
-    assert "refresh_token" in resp.json()
+    data = resp.json()
+    assert "access_token" in data
+    assert "refresh_token" in data
+    new_refresh_token = data["refresh_token"]
 
     # 3. Refresh via cookie
-    client.cookies.set("refresh_token", refresh_token)
+    client.cookies.set("refresh_token", new_refresh_token)
     resp = client.post("/identity/refresh")
     assert resp.status_code == 200
     assert "access_token" in resp.json()
@@ -222,3 +224,48 @@ def test_password_reset_skeleton(client: TestClient) -> None:
         "/identity/login", json={"email": email, "password": new_password}
     )
     assert login_resp.status_code == 200
+
+
+def test_change_password_and_logout_all(client: TestClient) -> None:
+    email = "change_pwd_test@example.com"
+    password = "password123"
+
+    # Register
+    client.post("/identity/register", json={"email": email, "password": password})
+
+    # Login
+    login_resp = client.post(
+        "/identity/login", json={"email": email, "password": password}
+    )
+    assert login_resp.status_code == 200
+    token = login_resp.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Change password (wrong old password)
+    change_resp = client.post(
+        "/identity/change-password",
+        json={"old_password": "wrongpassword", "new_password": "newpassword123"},
+        headers=headers,
+    )
+    assert change_resp.status_code == 400
+
+    # Change password successfully
+    change_resp = client.post(
+        "/identity/change-password",
+        json={"old_password": password, "new_password": "newpassword123"},
+        headers=headers,
+    )
+    assert change_resp.status_code == 200
+    assert change_resp.json()["message"] == "Password changed successfully"
+
+    # Login again with new password
+    login_resp2 = client.post(
+        "/identity/login", json={"email": email, "password": "newpassword123"}
+    )
+    assert login_resp2.status_code == 200
+    token2 = login_resp2.json()["access_token"]
+    headers2 = {"Authorization": f"Bearer {token2}"}
+
+    # Logout all sessions
+    logout_resp = client.post("/identity/sessions/logout-all", headers=headers2)
+    assert logout_resp.status_code == 204
