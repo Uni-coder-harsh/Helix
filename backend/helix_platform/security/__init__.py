@@ -224,7 +224,7 @@ def get_user_permissions(role_name: str) -> set[str]:
             return static_perms
 
         permissions = set()
-        current_role_name = role_name
+        current_role_name: str | None = role_name
         visited_roles = set()
 
         while current_role_name and current_role_name not in visited_roles:
