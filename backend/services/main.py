@@ -47,7 +47,7 @@ from services.governance.workflows import register_subscriptions
 register_subscriptions()
 
 import services.governance.infrastructure.models
-import services.identity.models  # noqa: F401
+import services.identity.models
 from helix_platform.persistence import Base, SessionLocal
 from services.identity.seed import seed_database
 
@@ -56,7 +56,8 @@ Base.metadata.create_all(bind=engine)
 # Seed database with standard lookup tables and default System Admin
 db = SessionLocal()
 try:
-    seed_database(db)
+    if not db.query(services.identity.models.DB).first():
+        seed_database(db)
 finally:
     db.close()
 

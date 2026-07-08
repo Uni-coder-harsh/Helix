@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { API_BASE_URL } from "@/config";
 
 export type Role =
   | "System Administrator"
@@ -13,109 +14,32 @@ export type Role =
   | "Citizen";
 
 export const ROLE_PERMISSIONS: Record<Role, string[]> = {
-  "System Administrator": [
-    "issues:create",
-    "issues:read",
-    "issues:list_pending",
-    "recommendations:read",
-    "recommendations:write",
-    "planning:read",
-    "planning:write",
-    "spatial:read",
-    "copilot:query",
-    "proactive:read",
-    "pipeline:read",
-    "brief:read",
-    "timeline:read",
-    "constituency:read",
-    "incidents:read",
-    "incidents:write",
-    "audit:read",
-    "audit:write",
-    "system:admin",
-  ],
-  "Platform Administrator": [
-    "issues:create",
-    "issues:read",
-    "issues:list_pending",
-    "recommendations:read",
-    "recommendations:write",
-    "planning:read",
-    "planning:write",
-    "spatial:read",
-    "copilot:query",
-    "proactive:read",
-    "pipeline:read",
-    "brief:read",
-    "timeline:read",
-    "constituency:read",
-    "incidents:read",
-    "incidents:write",
-    "audit:read",
-    "system:admin",
-  ],
-  "MLA": [
-    "issues:read",
-    "issues:list_pending",
-    "recommendations:read",
-    "planning:read",
-    "planning:write",
-    "spatial:read",
-    "copilot:query",
-    "proactive:read",
-    "pipeline:read",
-    "brief:read",
-    "timeline:read",
-    "constituency:read",
-  ],
-  "MP": [
-    "issues:read",
-    "issues:list_pending",
-    "recommendations:read",
-    "planning:read",
-    "spatial:read",
-    "copilot:query",
-    "proactive:read",
-    "pipeline:read",
-    "brief:read",
-    "timeline:read",
-    "constituency:read",
-  ],
-  "Officer": [
-    "issues:create",
-    "issues:read",
-    "issues:list_pending",
-    "recommendations:read",
-    "recommendations:write",
-    "planning:read",
-    "planning:write",
-    "spatial:read",
-    "copilot:query",
-    "proactive:read",
-    "pipeline:read",
-    "brief:read",
-    "timeline:read",
-    "constituency:read",
-    "incidents:read",
-    "incidents:write",
-  ],
-  "Field Engineer": [
-    "issues:read",
-    "spatial:read",
-    "timeline:read",
-  ],
-  "Citizen": [
-    "issues:create",
-    "issues:read",
-    "spatial:read",
-    "timeline:read",
-  ],
+  "System Administrator": ["issues:create", "issues:read", "issues:list_pending", "recommendations:read", "recommendations:write", "planning:read", "planning:write", "spatial:read", "copilot:query", "proactive:read", "pipeline:read", "brief:read", "timeline:read", "constituency:read", "incidents:read", "incidents:write", "audit:read", "audit:write", "system:admin"],
+  "Platform Administrator": ["issues:create", "issues:read", "issues:list_pending", "recommendations:read", "recommendations:write", "planning:read", "planning:write", "spatial:read", "copilot:query", "proactive:read", "pipeline:read", "brief:read", "timeline:read", "constituency:read", "incidents:read", "incidents:write", "audit:read", "system:admin"],
+  "MLA": ["issues:read", "issues:list_pending", "recommendations:read", "planning:read", "planning:write", "spatial:read", "copilot:query", "proactive:read", "pipeline:read", "brief:read", "timeline:read", "constituency:read"],
+  "MP": ["issues:read", "issues:list_pending", "recommendations:read", "planning:read", "spatial:read", "copilot:query", "proactive:read", "pipeline:read", "brief:read", "timeline:read", "constituency:read"],
+  "Officer": ["issues:create", "issues:read", "issues:list_pending", "recommendations:read", "recommendations:write", "planning:read", "planning:write", "spatial:read", "copilot:query", "proactive:read", "pipeline:read", "brief:read", "timeline:read", "constituency:read", "incidents:read", "incidents:write"],
+  "Field Engineer": ["issues:read", "spatial:read", "timeline:read"],
+  "Citizen": ["issues:create", "issues:read", "spatial:read", "timeline:read"],
 };
 
-interface AuthContextType {
+export interface User {
+  id: string;
+  email: string;
+  name: string;
   role: Role;
+  status: string;
+  constituency_id?: string;
+  district_id?: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  role: Role | null;
   permissions: string[];
-  setRole: (role: Role) => void;
+  isLoading: boolean;
+  login: (token: string) => Promise<void>;
+  logout: () => void;
   hasPermission: (permission: string) => boolean;
 }
 
@@ -128,27 +52,55 @@ export function getRequiredPermissionForPath(path: string): string | null {
   if (path.startsWith("/settings")) return "audit:read";
   if (path.startsWith("/map")) return "spatial:read";
   if (path.startsWith("/citizen")) return "issues:create";
+  if (path.startsWith("/admin")) return "system:admin";
   return null;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRoleState] = useState<Role>("Officer");
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const savedRole = localStorage.getItem("helix-user-role") as Role;
-    if (savedRole && Object.keys(ROLE_PERMISSIONS).includes(savedRole)) {
-      setRoleState(savedRole);
-    }
+    checkAuth();
   }, []);
 
-  // Global window.fetch hook to inject custom X-User-Role header
+  const checkAuth = async () => {
+    const token = localStorage.getItem("helix-token");
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/identity/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else {
+        localStorage.removeItem("helix-token");
+        setUser(null);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const originalFetch = window.fetch;
     window.fetch = async (input, init) => {
-      const headers = new Headers(init?.headers);
-      headers.set("X-User-Role", role);
+      const token = localStorage.getItem("helix-token");
+      let headers = new Headers(init?.headers);
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
       return originalFetch(input, {
         ...init,
         headers,
@@ -158,29 +110,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       window.fetch = originalFetch;
     };
-  }, [role]);
+  }, []);
 
-  const setRole = (newRole: Role) => {
-    setRoleState(newRole);
-    localStorage.setItem("helix-user-role", newRole);
+  const login = async (token: string) => {
+    localStorage.setItem("helix-token", token);
+    await checkAuth();
+  };
 
-    const requiredPermission = getRequiredPermissionForPath(pathname);
-    if (
-      requiredPermission &&
-      !ROLE_PERMISSIONS[newRole].includes(requiredPermission)
-    ) {
-      router.push("/");
-    }
+  const logout = () => {
+    localStorage.removeItem("helix-token");
+    setUser(null);
+    router.push("/");
   };
 
   const hasPermission = (permission: string) => {
-    return ROLE_PERMISSIONS[role].includes(permission);
+    if (!user) return false;
+    return ROLE_PERMISSIONS[user.role]?.includes(permission) ?? false;
   };
 
-  const permissions = ROLE_PERMISSIONS[role];
+  const role = user?.role ?? null;
+  const permissions = role ? ROLE_PERMISSIONS[role] : [];
 
   return (
-    <AuthContext.Provider value={{ role, permissions, setRole, hasPermission }}>
+    <AuthContext.Provider value={{ user, role, permissions, isLoading, login, logout, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { API_BASE_URL } from "@/config";
-import { mockIssues, Issue, IssueUpdate } from "@/lib/mock-data";
+import { fetchWithAuth } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +26,32 @@ import {
   CheckCircle,
   Users,
 } from "lucide-react";
+
+export interface IssueUpdate {
+  id?: string;
+  note: string;
+  timestamp: string;
+  author: string;
+  authorRole?: string;
+  status?: string;
+}
+
+export interface Issue {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  status: string;
+  priority: "Low" | "Medium" | "High" | "Critical" | string;
+  citizenName: string;
+  createdAt: string;
+  updatedAt: string;
+  constituency: string;
+  location: { lat: number; lng: number };
+  upvotes: number;
+  updates: IssueUpdate[];
+  aiDraftResponse?: string;
+}
 
 export default function IssueDetailsPage({ params }: { params: { id: string } }) {
   const [issue, setIssue] = useState<Issue | null>(null);
@@ -71,744 +96,87 @@ export default function IssueDetailsPage({ params }: { params: { id: string } })
 
   useEffect(() => {
     // 1. Fetch Issue Details
-    if (params.id.includes("-")) {
-      fetch(`${API_BASE_URL}/governance/issues/pending`)
-        .then((res) => res.json())
-        .then((data) => {
-          const found = data.find((i: any) => i.id === params.id);
-          if (found) {
-            const mapped: Issue = {
-              id: found.id,
-              title: found.title,
-              description: found.description,
-              category:
-                found.category === "sanitation"
-                  ? "Water Supply & Sanitation"
-                  : found.category === "roads"
-                  ? "Roads & Sidewalks"
-                  : found.category,
-              status:
-                found.status === "INTAKE"
-                  ? "Submitted"
-                  : found.status === "TRIAGE" || found.status === "TRIAGED"
-                  ? "Validated"
-                  : found.status === "ASSIGNED"
-                  ? "Assigned"
-                  : found.status === "REJECTED"
-                  ? "Rejected"
-                  : found.status,
-              priority:
-                found.priority === "HIGH"
-                  ? "High"
-                  : found.priority === "MEDIUM"
-                  ? "Medium"
-                  : "Low",
-              citizenName: "Jan Doe",
-              createdAt: found.created_at || new Date().toISOString(),
-              updatedAt: found.created_at || new Date().toISOString(),
-              constituency: "Central Bengaluru",
-              location: { lat: found.latitude, lng: found.longitude },
-              upvotes: 1,
-              updates: [
-                {
-                  timestamp: found.created_at || new Date().toISOString(),
-                  status: found.status,
-                  note: `Issue logged in system. Status: ${found.status}`,
-                  author: "System Engine",
-                },
-              ],
-              aiDraftResponse: "AI recommendation pending...",
-            };
-            setIssue(mapped);
+    fetchWithAuth(`/governance/issues/pending`)
+      .then((data) => {
+        const found = data.find((i: any) => i.id === params.id);
+        if (found) {
+          const mapped: any = {
+            id: found.id,
+            title: found.title,
+            description: found.description,
+            category: found.category,
+            status: found.status,
+            priority: found.priority,
+            citizenName: "Jan Doe",
+            createdAt: found.created_at || new Date().toISOString(),
+            updatedAt: found.created_at || new Date().toISOString(),
+            constituency: "Central Bengaluru",
+            location: { lat: found.latitude, lng: found.longitude },
+            upvotes: 1,
+            updates: [],
+            aiDraftResponse: "AI recommendation pending...",
+          };
+          setIssue(mapped);
 
-            // Fetch Recommendation
-            fetch(`${API_BASE_URL}/governance/recommendations/${found.id}`)
-              .then((r) => r.json())
-              .then((rec) => {
+          // Fetch Recommendation
+          fetchWithAuth(`/governance/recommendations/${found.id}`)
+            .then((rec) => {
+              if (rec) {
                 setRecommendationId(rec.id);
                 setDraftResponse(rec.rationale);
-                setIssue((prev) =>
+                setIssue((prev: any) =>
                   prev ? { ...prev, aiDraftResponse: rec.rationale } : null
                 );
-              })
-              .catch((err) => console.log("Failed to fetch recommendation:", err));
+              }
+            })
+            .catch((err) => console.log("Failed to fetch recommendation:", err));
 
-            // Fetch Decision Brief
-            fetch(`${API_BASE_URL}/governance/issues/${found.id}/decision-brief`)
-              .then((r) => r.json())
-              .then((ctx) => {
+          // Fetch Decision Brief
+          fetchWithAuth(`/governance/issues/${found.id}/decision-brief`)
+            .then((ctx) => {
+              if (ctx) {
                 setContext(ctx);
-                setLoadingContext(false);
                 if (ctx.alternative_actions) {
                   const recIdx = ctx.alternative_actions.findIndex((a: any) => a.is_recommended);
                   if (recIdx !== -1) {
                     setSelectedAlternative(recIdx);
                   }
                 }
-              })
-              .catch((err) => {
-                console.log("Failed to fetch decision-brief, falling back to client-calculated:", err);
-                loadFallbackContext(mapped);
-              });
+              }
+              setLoadingContext(false);
+            })
+            .catch((err) => {
+              console.log("Failed to fetch decision-brief:", err);
+              setLoadingContext(false);
+            });
 
-            // Fetch AI Pipeline
-            fetch(`${API_BASE_URL}/governance/issues/${found.id}/decision-pipeline`)
-              .then((r) => r.json())
-              .then((pipe) => {
-                setPipeline(pipe);
-                setLoadingPipeline(false);
-              })
-              .catch((err) => {
-                console.log("Failed to fetch pipeline, using fallback:", err);
-                loadFallbackPipeline(mapped);
-              });
+          // Fetch AI Pipeline
+          fetchWithAuth(`/governance/issues/${found.id}/decision-pipeline`)
+            .then((pipe) => {
+              setPipeline(pipe || null);
+              setLoadingPipeline(false);
+            })
+            .catch((err) => {
+              console.log("Failed to fetch pipeline:", err);
+              setLoadingPipeline(false);
+            });
 
-            // Fetch Timeline
-            fetch(`${API_BASE_URL}/governance/issues/${found.id}/timeline?role=${currentRole}`)
-              .then((r) => r.json())
-              .then((tl) => {
-                setTimelineData(tl);
-                setLoadingTimeline(false);
-              })
-              .catch((err) => {
-                console.log("Failed to fetch timeline, falling back:", err);
-                loadFallbackTimeline(mapped);
-              });
-          }
-        })
-        .catch((err) => console.log("Failed to load issue details:", err));
-    } else {
-      const found = mockIssues.find((i) => i.id === params.id);
-      if (found) {
-        setIssue(found);
-        setDraftResponse(found.aiDraftResponse || "");
-        loadFallbackContext(found);
-        loadFallbackPipeline(found);
-        loadFallbackTimeline(found);
-      }
-    }
+          // Fetch Timeline
+          fetchWithAuth(`/governance/issues/${found.id}/timeline?role=${currentRole}`)
+            .then((tl) => {
+              setTimelineData(tl || null);
+              setLoadingTimeline(false);
+            })
+            .catch((err) => {
+              console.log("Failed to fetch timeline:", err);
+              setLoadingTimeline(false);
+            });
+        }
+      })
+      .catch((err) => console.log("Failed to load issue details:", err));
   }, [params.id, currentRole]);
 
-  const loadFallbackContext = (issueData: Issue) => {
-    const isSanitation =
-      issueData.category.toLowerCase().includes("sanit") ||
-      issueData.category.toLowerCase().includes("water");
-    setContext({
-      problem: {
-        id: issueData.id,
-        title: issueData.title,
-        description: issueData.description,
-        category: issueData.category,
-        location: {
-          latitude: issueData.location?.lat || 12.9755,
-          longitude: issueData.location?.lng || 77.5955,
-        },
-        status: issueData.status,
-        priority: issueData.priority,
-      },
-      evidence: isSanitation
-        ? [
-            "18 duplicate complaints reported in the immediate coordinate buffer.",
-            "Active constituency hotspot status triggered for this georeference coordinate.",
-            "2 civic assets located within the buffer impact zone: Ward 12 Playground Garbage Bin Terminal, Govt School Block A.",
-            "Mapped regulatory guideline compliance: 'Sanitation Waste Management Regulation 2024'.",
-            "Clearance eligibility verified under developmental scheme: 'Swachh Bharat Abhiyan Subsidy'.",
-            "Estimated regional population footprint affected: 4,320 citizens."
-          ]
-        : [
-            "6 duplicate complaints reported in the immediate coordinate buffer.",
-            "1 civic asset located within the buffer impact zone: Main School Zone Arterial Road Sector 4.",
-            "Mapped regulatory guideline compliance: 'Municipal Road Maintenance Policy 2023'.",
-            "Clearance eligibility verified under developmental scheme: 'PMGSY Roads Fund'.",
-            "Estimated regional population footprint affected: 350 citizens."
-          ],
-      nearby_assets: isSanitation
-        ? [
-            { id: "asset-ref-0", name: "Govt School Block A", type: "school", distance_meters: 140 },
-            { id: "asset-ref-1", name: "Ward 12 Playground Garbage Bin Terminal", type: "park", distance_meters: 250 }
-          ]
-        : [
-            { id: "asset-ref-0", name: "Main School Zone Arterial Road Sector 4", type: "school", distance_meters: 180 }
-          ],
-      applicable_policies: isSanitation
-        ? [{ name: "Sanitation Waste Management Regulation 2024", code: "REG-2024-09" }]
-        : [{ name: "Municipal Road Maintenance Policy 2023", code: "REG-2023-04" }],
-      applicable_schemes: isSanitation
-        ? [{ name: "Swachh Bharat Abhiyan Subsidy", subsidy_ratio: 0.60 }]
-        : [{ name: "PMGSY Roads Fund", subsidy_ratio: 0.50 }],
-      impact_summary: {
-        affected_population: isSanitation ? 4320 : 350,
-        urgency_score: isSanitation ? 0.90 : 0.70,
-        severity_level: isSanitation ? "HIGH" : "MEDIUM",
-      },
-      alternative_actions: isSanitation
-        ? [
-            {
-              option_name: "Spot Patch Repair",
-              description: "Localized clearing and temporary segment sealing.",
-              estimated_cost: "₹2.5 Lakhs",
-              sla: "24 Hours",
-              durability: "Low (estimated lifespan < 6 months)",
-              risks: "High risk of recurring leak blockages under high water pressure.",
-              feasibility: "High",
-              is_recommended: false,
-            },
-            {
-              option_name: "Capital Pipeline Trunk Reconstruction",
-              description: "Full replacement of the damaged structural main trunk.",
-              estimated_cost: "₹18.0 Lakhs",
-              sla: "45 Days",
-              durability: "High (estimated lifespan 15+ years)",
-              risks: "Higher budget requirement; requires brief localized traffic detour.",
-              feasibility: "Medium-High",
-              is_recommended: true,
-            },
-            {
-              option_name: "Monitor and Defer Action",
-              description: "Add to monthly oversight log and deploy warning barriers.",
-              estimated_cost: "₹0.2 Lakhs",
-              sla: "90 Days",
-              durability: "None",
-              risks: "Likely to trigger increased public complaints and local flooding.",
-              feasibility: "High",
-              is_recommended: false,
-            }
-          ]
-        : [
-            {
-              option_name: "Pothole Cold-Mix Patching",
-              description: "Deploy cold-mix asphalt to fill potholes immediately.",
-              estimated_cost: "₹1.8 Lakhs",
-              sla: "48 Hours",
-              durability: "Low-Medium (estimated lifespan < 1 year)",
-              risks: "Monsoon washouts likely to strip patch repairs quickly.",
-              feasibility: "High",
-              is_recommended: false,
-            },
-            {
-              option_name: "Full Corridor Road Overlay & drainage",
-              description: "Milling and paving of the entire street segment with concrete overlay.",
-              estimated_cost: "₹12.0 Lakhs",
-              sla: "30 Days",
-              durability: "High (estimated lifespan 10+ years)",
-              risks: "Higher capital budget; temporary disruption to pedestrian zones.",
-              feasibility: "Medium-High",
-              is_recommended: true,
-            },
-            {
-              option_name: "Observation list",
-              description: "Place under ongoing observation pending next budget cycle.",
-              estimated_cost: "₹0",
-              sla: "120 Days",
-              durability: "None",
-              risks: "Escalating road safety hazards and pedestrian claims.",
-              feasibility: "High",
-              is_recommended: false,
-            }
-          ],
-      recommendation: {
-        suggested_department: isSanitation ? "Municipal Sanitation Department" : "Public Works Department",
-        recommended_action: isSanitation
-          ? "Dispatch Emergency Sanitation Leak Clearing Crew"
-          : "Dispatch Road Restoration Patch Crew",
-        estimated_cost: isSanitation ? "₹2.5 Lakhs" : "₹1.8 Lakhs",
-        sla: isSanitation ? "24 Hours" : "48 Hours",
-      },
-      reasoning: isSanitation
-        ? [
-            "Historical cases show that localized patch repair of high-pressure pipes fails within 3 months in 82% of occurrences.",
-            "High duplicate density (18 reports) indicates a systemic trunk line failure rather than an isolated block.",
-            "Proximity to Govt School Block A (within 140m) increases priority to prevent public health hazards.",
-            "Jal Jeevan Mission guidelines suggest complete rebuilds for trunk failures exceeding 15 active tickets."
-          ]
-        : [
-            "Road restoration patch crew provides temporary transit relief but does not resolve underlying base course erosion.",
-            "Matched with PMGSY Road Infrastructure Upgrade Program for long-term reconstruction funding.",
-            "Presence of active transit hubs and schools requires coordination to schedule works during off-peak hours.",
-            "High population footprint (350 citizens) justifies priority resource allocation."
-          ],
-      confidence: isSanitation ? 94 : 82,
-      follow_up_actions: isSanitation
-        ? [
-            "Initiate structural design validation for the pipeline trunk.",
-            "Notify school administration of the scheduled construction window.",
-            "Submit funding authorization request under the Swachh Bharat Abhiyan Subsidy."
-          ]
-        : [
-            "Deploy temporary safety barricades and warning signs.",
-            "Coordinate transit routing with local traffic authorities.",
-            "Approve budget requisition of ₹1.8 Lakhs from PMGSY scheme."
-          ],
-    });
-    setLoadingContext(false);
-  };
 
-  const loadFallbackPipeline = (issueData: Issue) => {
-    const isSanit =
-      issueData.category.toLowerCase().includes("sanit") ||
-      issueData.category.toLowerCase().includes("water");
-    setPipeline({
-      pipeline_id: "simulated-pipeline-id-1049",
-      overall_status: "SUCCESS",
-      total_latency_ms: 472.0,
-      average_confidence: 0.96,
-      timeline: [
-        {
-          agent_name: "Intake Agent",
-          status: "SUCCESS",
-          confidence: 1.0,
-          execution_time_ms: 12.0,
-          inputs: { description: issueData.description.substring(0, 30) },
-          outputs: { sanitized_description: issueData.description },
-          evidence: ["Description satisfies minimum ingestion formats.", "Valid regional GPS coords."],
-          warnings: [],
-          errors: [],
-        },
-        {
-          agent_name: "Classification Agent",
-          status: "SUCCESS",
-          confidence: 0.97,
-          execution_time_ms: 92.0,
-          inputs: { description_sample: issueData.description.substring(0, 40) },
-          outputs: { category: isSanit ? "Water Supply & Sanitation" : "Roads & Sidewalks" },
-          evidence: [
-            isSanit
-              ? "Matched keyword 'water' / 'leak' inside description text."
-              : "Matched keyword 'road' / 'pothole' inside description text.",
-          ],
-          warnings: [],
-          errors: [],
-        },
-        {
-          agent_name: "Duplicate Agent",
-          status: "SUCCESS",
-          confidence: 0.98,
-          execution_time_ms: 140.0,
-          inputs: { latitude: issueData.location?.lat, longitude: issueData.location?.lng },
-          outputs: { duplicate_count: isSanit ? 18 : 6 },
-          evidence: [
-            isSanit
-              ? "18 duplicate complaints detected in शिवाजी नगर region."
-              : "6 duplicate complaints detected in region Sector 4.",
-          ],
-          warnings: isSanit ? ["High duplicate complaints density; active hotspot warned."] : [],
-          errors: [],
-        },
-        {
-          agent_name: "Context Agent",
-          status: "SUCCESS",
-          confidence: 0.96,
-          execution_time_ms: 60.0,
-          inputs: { lat: issueData.location?.lat, lng: issueData.location?.lng },
-          outputs: {
-            nearby_assets: isSanit
-              ? ["Ward 12 Playground Garbage Bin Terminal", "Govt School Block A"]
-              : ["Main School Zone Arterial Road Sector 4", "Regional Transit Bus Hub"],
-          },
-          evidence: ["2 critical civic assets matched within regional buffer radius."],
-          warnings: [],
-          errors: [],
-        },
-        {
-          agent_name: "Policy Agent",
-          status: "SUCCESS",
-          confidence: 0.94,
-          execution_time_ms: 50.0,
-          inputs: { category: isSanit ? "Water Supply & Sanitation" : "Roads & Sidewalks" },
-          outputs: {
-            matched_policy: isSanit
-              ? "Sanitation Waste Management Regulation 2024"
-              : "Municipal Road Maintenance Policy 2023",
-            matched_scheme: isSanit ? "Swachh Bharat Abhiyan Subsidy" : "PMGSY Roads Fund",
-          },
-          evidence: ["Fund eligibility verified against local administration parameters."],
-          warnings: [],
-          errors: [],
-        },
-        {
-          agent_name: "Impact Agent",
-          status: "SUCCESS",
-          confidence: 0.95,
-          execution_time_ms: 68.0,
-          inputs: { duplicates: isSanit ? 18 : 6 },
-          outputs: {
-            affected_population: isSanit ? 4320 : 350,
-            urgency_score: isSanit ? 0.90 : 0.70,
-            priority: isSanit ? "HIGH" : "MEDIUM",
-          },
-          evidence: [
-            isSanit
-              ? "Emergency ambulance route. Impact weight sets priority to HIGH."
-              : "Standard arterial road. Impact weight sets priority to MEDIUM.",
-          ],
-          warnings: [],
-          errors: [],
-        },
-        {
-          agent_name: "Recommendation Agent",
-          status: "SUCCESS",
-          confidence: 0.96,
-          execution_time_ms: 50.0,
-          inputs: { priority: isSanit ? "HIGH" : "MEDIUM" },
-          outputs: {
-            suggested_department: isSanit ? "Municipal Sanitation Department" : "Public Works Department",
-            recommended_action: isSanit
-              ? "Dispatch Emergency Sanitation Leak Clearing Crew"
-              : "Dispatch Road Restoration Patch Crew",
-            sla: isSanit ? "24 Hours" : "48 Hours",
-          },
-          evidence: ["Assigned department owns SLA resolution guidelines."],
-warnings: [],
-          errors: [],
-        },
-      ],
-    });
-  };
-
-  const loadFallbackTimeline = (issueData: Issue) => {
-    const isSanit =
-      issueData.category.toLowerCase().includes("sanit") ||
-      issueData.category.toLowerCase().includes("water");
-
-    const created = issueData.createdAt || new Date().toISOString();
-    const baseDate = new Date(created);
-
-    // Deterministic progress and next action mapping
-    let stage = "AI Verification & Grounding";
-    let progress = 10;
-    let next_action = "AI multi-agent verification & duplicate mapping scan.";
-    let sla_hours = 48;
-
-    const status = issueData.status.toUpperCase();
-    if (status === "SUBMITTED" || status === "INGESTED") {
-      stage = "AI Verification & Grounding";
-      progress = 10;
-      next_action = "AI multi-agent verification & duplicate mapping scan.";
-      sla_hours = 48;
-    } else if (status === "VALIDATED" || status === "TRIAGED") {
-      stage = "Officer Approval";
-      progress = 40;
-      next_action = "Officer verification of generated Decision Brief options.";
-      sla_hours = 44;
-    } else if (status === "ASSIGNED" || status === "IN_PROGRESS" || status === "ASSIGNED TASK BASED ON AI RECOMMENDATION") {
-      stage = "Work In Progress";
-      progress = 70;
-      next_action = "Operations team dispatched to resolve the reported incident.";
-      sla_hours = 24;
-    } else if (status === "RESOLVED") {
-      stage = "Work Completed";
-      progress = 85;
-      next_action = "Awaiting citizen feedback verification and outcome metrics logging.";
-      sla_hours = 2;
-    } else if (status === "CLOSED" || status === "COMPLETED") {
-      stage = "Outcome Recorded & Closed";
-      progress = 100;
-      next_action = "None. Lifecycle resolved and closed.";
-      sla_hours = 0;
-    }
-
-    const isTriaged = status !== "SUBMITTED" && status !== "INGESTED";
-    const isAssigned = status !== "SUBMITTED" && status !== "INGESTED" && status !== "VALIDATED" && status !== "TRIAGED";
-    const isResolved = status === "RESOLVED" || status === "CLOSED" || status === "COMPLETED";
-    const isClosed = status === "CLOSED" || status === "COMPLETED";
-
-    const allEvents = [
-      {
-        id: "tl-rep",
-        timestamp: created,
-        actor: "Citizen (Mobile App)",
-        actor_type: "citizen",
-        action: "REPORTED",
-        description: "Your complaint has been successfully registered.",
-        status: "COMPLETED",
-        visibility: ["citizen", "officer", "administrator"],
-        metadata: {
-          channel: "mobile_app",
-          audit_log: "Issue ingested and recorded in SQLAlchemyIssueRepository.",
-          notification: {
-            type: "SMS",
-            status: "DELIVERED",
-            text: "Helix: Your complaint has been successfully registered."
-          }
-        }
-      },
-      {
-        id: "tl-review-citizen",
-        timestamp: new Date(baseDate.getTime() + 5000).toISOString(),
-        actor: "Helix AI Triage Engine",
-        actor_type: "system",
-        action: "UNDER_REVIEW",
-        description: isTriaged ? "AI verification of duplicate tickets, geocoding and policy matching completed." : "AI verification engine is scanning duplicates and policy rules.",
-        status: isTriaged ? "COMPLETED" : "IN_PROGRESS",
-        visibility: ["citizen"],
-        metadata: {
-          agents_active: ["ClassificationAgent", "DuplicateAgent", "SpatialAgent", "PolicyAgent"]
-        }
-      },
-      {
-        id: "tl-dup",
-        timestamp: new Date(baseDate.getTime() + 10000).toISOString(),
-        actor: "Duplicate Agent",
-        actor_type: "agent",
-        action: "DUPLICATE_SCANNED",
-        description: "Scan complete. Verified duplicate clusters in regional buffer zone.",
-        status: isTriaged ? "COMPLETED" : "IN_PROGRESS",
-        visibility: ["officer", "administrator"],
-        metadata: {
-          audit_log: "Checked active duplicate clusters using spatial radius search (150m).",
-          duplicates_found: isSanit ? 18 : 6,
-          hotspot_triggered: true
-        }
-      },
-      {
-        id: "tl-class",
-        timestamp: new Date(baseDate.getTime() + 20000).toISOString(),
-        actor: "Classification Agent",
-        actor_type: "agent",
-        action: "CLASSIFIED",
-        description: `Complaint text analyzed and classified under the category '${issueData.category}'.`,
-        status: isTriaged ? "COMPLETED" : "PENDING",
-        visibility: ["officer", "administrator"],
-        metadata: {
-          audit_log: `NLP Classifier parsed category '${issueData.category}' with 97% confidence score.`,
-          confidence: 0.97
-        }
-      },
-      {
-        id: "tl-spatial",
-        timestamp: new Date(baseDate.getTime() + 30000).toISOString(),
-        actor: "Spatial Engine",
-        actor_type: "system",
-        action: "SPATIAL_MAPPED",
-        description: "Cross-referenced complaint GPS coordinates with regional constituency and ward boundary polygons.",
-        status: isTriaged ? "COMPLETED" : "PENDING",
-        visibility: ["officer", "administrator"],
-        metadata: {
-          audit_log: "Grounded geo-coordinates with local Ward 12 constituency boundary.",
-          constituency: "Ward 12",
-          nearby_assets: isSanit ? ["Govt School Block A", "Ward 12 Playground Bin Terminal"] : ["Sector 4 Primary School"]
-        }
-      },
-      {
-        id: "tl-policy",
-        timestamp: new Date(baseDate.getTime() + 40000).toISOString(),
-        actor: "Policy Agent",
-        actor_type: "agent",
-        action: "POLICY_GROUNDED",
-        description: "Regulatory checklist verified. Grounded eligibility for matched scheme.",
-        status: isTriaged ? "COMPLETED" : "PENDING",
-        visibility: ["officer", "administrator"],
-        metadata: {
-          audit_log: "Cross-referenced matched schemes. Policy rule criteria met.",
-          policy_matched: isSanit ? "Sanitation Waste Management Regulation 2024" : "Municipal Road Maintenance Policy 2023",
-          scheme_matched: isSanit ? "Swachh Bharat Abhiyan Subsidy" : "PMGSY Roads Fund"
-        }
-      },
-      {
-        id: "tl-brief",
-        timestamp: new Date(baseDate.getTime() + 50000).toISOString(),
-        actor: "Helix AI Decision Engine",
-        actor_type: "system",
-        action: "BRIEF_GENERATED",
-        description: "Executive structured Decision Brief successfully generated and proposed to operations deck.",
-        status: isTriaged ? "COMPLETED" : "PENDING",
-        visibility: ["officer", "administrator"],
-        metadata: {
-          audit_log: "Aggregated evidence signals and compiled decision brief payload.",
-          brief_id: "brief-mock-id",
-          version: "1.0.0",
-          confidence_score: isSanit ? 94 : 88
-        }
-      },
-      {
-        id: "tl-approve",
-        timestamp: isAssigned ? new Date(baseDate.getTime() + 600000).toISOString() : null,
-        actor: "Officer Suresh Rao",
-        actor_type: "officer",
-        action: "OFFICER_REVIEWED",
-        description: isAssigned ? "Officer reviewed Decision Brief recommendations and approved the strategy." : "Awaiting Officer approval on proposed Decision Brief.",
-        status: isAssigned ? "COMPLETED" : isTriaged ? "IN_PROGRESS" : "PENDING",
-        visibility: ["citizen", "officer", "administrator"],
-        metadata: {
-          audit_log: isAssigned ? "Officer Suresh Rao signed off recommendation on the operations deck." : "Decision Brief options proposed to Officer Suresh Rao.",
-          action_taken: isAssigned ? "ACCEPT_RECOMMENDATION" : null,
-          strategy_selected: isSanit ? "Capital Pipeline Trunk Reconstruction" : "Full Corridor Road Overlay & drainage"
-        }
-      },
-      {
-        id: "tl-dispatch",
-        timestamp: isAssigned ? new Date(baseDate.getTime() + 660000).toISOString() : null,
-        actor: "Municipal Router",
-        actor_type: "system",
-        action: "DISPATCHED",
-        description: `Work order routed and assigned to '${isSanit ? "Municipal Sanitation Department" : "Public Works Department"}'.`,
-        status: isAssigned ? "COMPLETED" : "PENDING",
-        visibility: ["citizen", "officer", "administrator"],
-        metadata: {
-          audit_log: `Routed work task order to ${isSanit ? "Municipal Sanitation Department" : "Public Works Department"} database outbox.`,
-          department: isSanit ? "Municipal Sanitation Department" : "Public Works Department",
-          notification: {
-            type: "Email",
-            status: "SENT",
-            recipient: isSanit ? "Municipal Sanitation Department" : "Public Works Department"
-          }
-        }
-      },
-      {
-        id: "tl-field-disp",
-        timestamp: isAssigned ? new Date(baseDate.getTime() + 720000).toISOString() : null,
-        actor: "Municipal Router",
-        actor_type: "system",
-        action: "FIELD_DISPATCHED",
-        description: "Field crew scheduled and dispatched for on-site visit.",
-        status: isAssigned ? "COMPLETED" : "PENDING",
-        visibility: ["officer", "administrator"],
-        metadata: {
-          audit_log: "Generated crew work assignment order.",
-          crew_id: "Sector-Maintenance-Unit-B",
-          notification: {
-            type: "Push",
-            status: "DELIVERED",
-            recipient: "Crew-Unit-B App"
-          }
-        }
-      },
-      {
-        id: "tl-wip",
-        timestamp: isResolved ? new Date(baseDate.getTime() + 7200000).toISOString() : isAssigned ? new Date(baseDate.getTime() + 900000).toISOString() : null,
-        actor: "Field Operations Team",
-        actor_type: "field_crew",
-        action: "WORK_STARTED",
-        description: "Repair crew has arrived on-site. Excavators deployed.",
-        status: isResolved ? "COMPLETED" : isAssigned ? "IN_PROGRESS" : "PENDING",
-        visibility: ["citizen", "officer", "administrator"],
-        metadata: {
-          audit_log: "Crew checked in on-site. GPS coordinates matching target location.",
-          crew_id: "Sector-Maintenance-Unit-B",
-          barriers_deployed: true,
-          notification: {
-            type: "WhatsApp",
-            status: "QUEUED"
-          }
-        }
-      },
-      {
-        id: "tl-resolved",
-        timestamp: isResolved ? new Date(baseDate.getTime() + 86400000).toISOString() : null,
-        actor: "Resolving Department",
-        actor_type: "department",
-        action: "RESOLVED",
-        description: "Maintenance crew completed restoration works.",
-        status: isResolved ? "COMPLETED" : "PENDING",
-        visibility: ["citizen", "officer", "administrator"],
-        metadata: {
-          audit_log: "Work resolution notes submitted by resolving division foreman.",
-          resolution_notes: "Replaced damaged pipeline segment. Conducted water pressure flow audit.",
-          quality_audit: "PASS",
-          notification: {
-            type: "SMS",
-            status: "SENT",
-            text: "Helix Notice: Maintenance complete! Tap link to verify resolution."
-          }
-        }
-      },
-      {
-        id: "tl-verified",
-        timestamp: isClosed ? new Date(baseDate.getTime() + 90000000).toISOString() : null,
-        actor: "Citizen (Mobile App)",
-        actor_type: "citizen",
-        action: "VERIFIED",
-        description: "Citizen verified resolution of the reported issue.",
-        status: isClosed ? "COMPLETED" : isResolved ? "IN_PROGRESS" : "PENDING",
-        visibility: ["citizen", "officer", "administrator"],
-        metadata: {
-          audit_log: "Citizen verified resolution via mobile app interface.",
-          feedback_rating: 5
-        }
-      },
-      {
-        id: "tl-closed",
-        timestamp: isClosed ? new Date(baseDate.getTime() + 90000000).toISOString() : null,
-        actor: "Citizen & Outcome Engine",
-        actor_type: "system",
-        action: "CLOSED",
-        description: "Citizen verified resolution. Health score metrics updated.",
-        status: isClosed ? "COMPLETED" : "PENDING",
-        visibility: ["citizen", "officer", "administrator"],
-        metadata: {
-          audit_log: "Outcome recorded. Closed task lifecycle.",
-          constituency_health_delta: 0.04,
-          outcome_connection: {
-            linked_project: {
-              id: "project-mock-id",
-              title: isSanit ? "Shivaji Nagar Drainage & Water Pipe Trunk Reconstruction" : "Sector 4 Pedestrian Corridor & Road Reconstruction",
-              cost: isSanit ? "₹1.8 Crores" : "₹1.2 Crores",
-              status: isClosed ? "COMPLETED" : "PROPOSED"
-            },
-            outcomes: [
-              {"metric": isSanit ? "Water Health Index" : "Road Health Index", "before": isSanit ? 61 : 82, "after": isSanit ? 83 : 95},
-              {"metric": "Constituency Health Score", "before": "Baseline", "after": "+0.04"}
-            ]
-          }
-        }
-      }
-    ];
-
-    // Filter and format for role
-    const filtered = [];
-    for (const entry of allEvents) {
-      if (currentRole !== "administrator" && !entry.visibility.includes(currentRole)) {
-        continue;
-      }
-      const item = { ...entry };
-      if (currentRole === "citizen") {
-        const act = entry.action;
-        if (act === "REPORTED") {
-          item.action = "REPORT_SUBMITTED";
-          item.actor = "Citizen";
-          item.description = "Your complaint has been successfully registered.";
-        } else if (act === "UNDER_REVIEW") {
-          item.action = "UNDER_REVIEW";
-          item.actor = "Helix Platform";
-          item.description = "AI verification scan, duplicate mapping, and policy checks are in progress.";
-        } else if (act === "OFFICER_REVIEWED") {
-          item.action = "UNDER_REVIEW";
-          item.actor = "Review Officer";
-          item.description = "AI recommendation brief is being reviewed by city officials.";
-        } else if (act === "DISPATCHED") {
-          item.action = "DEPARTMENT_ASSIGNED";
-          item.actor = "Department Dispatch";
-          const dept = entry.metadata?.department || "Assigned Department";
-          item.description = `Task assigned to ${dept} for execution.`;
-        } else if (act === "FIELD_DISPATCHED") {
-          continue;
-        } else if (act === "WORK_STARTED") {
-          item.action = "WORK_IN_PROGRESS";
-          item.actor = "Field Crew";
-          item.description = "Field team has arrived on-site and repair work is underway.";
-        } else if (act === "RESOLVED") {
-          item.action = "COMPLETED";
-          item.actor = "Maintenance Division";
-          item.description = "Repair work completed. Segment pavement and utility checks passed.";
-        } else if (act === "CLOSED" || act === "VERIFIED") {
-          item.action = "FEEDBACK_REQUESTED";
-          item.actor = "Citizen Relations";
-          item.description = "Awaiting citizen satisfaction review and closeout confirmation.";
-        }
-      }
-      filtered.push(item);
-    }
-
-    setTimelineData({
-      issue_id: issueData.id,
-      current_stage: stage,
-      progress: progress,
-      estimated_next_action: next_action,
-      estimated_remaining_sla_hours: sla_hours,
-      timeline: filtered
-    });
-    setLoadingTimeline(false);
-  };
 
   if (!issue) {
     return (
@@ -826,7 +194,7 @@ warnings: [],
     );
   }
 
-  const handleStatusChange = (newStatus: Issue["status"], note: string) => {
+  const handleStatusChange = (newStatus: string, note: string) => {
     const timestamp = new Date().toISOString();
     const newUpdate: IssueUpdate = {
       timestamp,
@@ -848,10 +216,9 @@ warnings: [],
 
   const handleApproveDraft = () => {
     if (issue.id.includes("-") && recommendationId) {
-      fetch(`${API_BASE_URL}/governance/recommendations/${recommendationId}/accept`, {
+      fetchWithAuth(`/governance/recommendations/${recommendationId}/accept`, {
         method: "POST",
       })
-        .then((res) => res.json())
         .then((data) => {
           setIsSuccessMsg(true);
           setTimeout(() => setIsSuccessMsg(false), 3000);
@@ -902,16 +269,18 @@ warnings: [],
   const queryCopilot = async (action: string) => {
     setQueryingCopilot(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/governance/copilot`, {
+      const data = await fetchWithAuth(`/governance/copilot`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action,
           issue_id: issue.id,
           query_details: { language: copilotLanguage },
         }),
       });
-      const data = await res.json();
+      setDraftResponse(data.analysis || "Analysis received.");
+      if (data.recommendations && data.recommendations.length > 0) {
+        setRecommendationId(data.recommendations[0].id);
+      }
       setCopilotResponse(data);
     } catch (err) {
       console.log("Offline fallback for copilot query:", err);
@@ -953,8 +322,8 @@ warnings: [],
         citations = ["SMS Dispatcher Notification Log"];
       } else if (action === "meeting_brief") {
         summary =
-          "Constituency Review Brief: 18 pending tickets in Shivaji Nagar W12. Heavy backlog in PWD road patch operations due to recent utility pipeline excavations.";
-        evidence = ["Active backlogs: 8 days behind schedule.", "Recommended: Allocate ₹18L contingency funds."];
+          `Constituency Review Brief: pending tickets in ${issue.constituency}. Heavy backlog in PWD road patch operations due to recent utility pipeline excavations.`;
+        evidence = ["Active backlogs: 8 days behind schedule.", "Recommended: Allocate contingency funds."];
         recommendations = [
           "Table backlog report in tomorrow's MP review meeting.",
           "Request fast-track utility clearance.",
@@ -1281,7 +650,7 @@ warnings: [],
                           <div>LNG: {context.problem.location.longitude.toFixed(4)}</div>
                         </div>
                         <Badge variant="outline" className="text-[8px] justify-center mt-2 font-mono">
-                          Shivaji Nagar W12
+                          {issue.constituency}
                         </Badge>
                       </div>
                     </div>

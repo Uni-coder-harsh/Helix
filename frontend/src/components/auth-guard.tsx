@@ -1,19 +1,45 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth, getRequiredPermissionForPath } from "@/lib/auth-context";
 import { usePathname, useRouter } from "next/navigation";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, Loader2 } from "lucide-react";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { role, hasPermission } = useAuth();
+  const { user, role, hasPermission, isLoading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!isLoading) {
+      const isPublicPath = pathname === "/" || pathname === "/login" || pathname === "/register";
+
+      if (!user && !isPublicPath) {
+        router.push("/login");
+      }
+    }
+  }, [isLoading, user, pathname, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center text-center p-8 space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-muted-foreground text-sm">Authenticating...</p>
+      </div>
+    );
+  }
+
+  const isPublicPath = pathname === "/" || pathname === "/login" || pathname === "/register";
+  if (isPublicPath) {
+    return <>{children}</>;
+  }
+
+  if (!user) {
+    return null; // Will redirect in useEffect
+  }
+
   const requiredPermission = getRequiredPermissionForPath(pathname);
-  const isAuthorized = requiredPermission
-    ? hasPermission(requiredPermission)
-    : true;
+  const isAuthorized = requiredPermission ? hasPermission(requiredPermission) : true;
 
   if (!isAuthorized) {
     return (
@@ -31,10 +57,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           <span className="font-semibold text-foreground">"{pathname}"</span>.
         </p>
         <button
-          onClick={() => router.push("/")}
-          className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition shadow"
+          onClick={() => {
+             if (role === "Citizen") router.push("/citizen");
+             else if (role === "Officer") router.push("/officer");
+             else if (role === "System Administrator" || role === "Platform Administrator") router.push("/settings");
+             else router.push("/analytics");
+          }}
+          className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition shadow mt-4"
         >
-          Return to Dashboard Home
+          Return to Dashboard
         </button>
       </div>
     );

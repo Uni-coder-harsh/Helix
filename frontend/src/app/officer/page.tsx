@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { API_BASE_URL } from "@/config";
-import { mockIssues, Issue, IssueUpdate } from "@/lib/mock-data";
+import { fetchWithAuth } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ import {
 } from "lucide-react";
 
 export default function OfficerDashboard() {
-  const [issues, setIssues] = useState<Issue[]>(mockIssues);
+  const [issues, setIssues] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [activeTab, setActiveTab] = useState<"all" | "pending_ai" | "in_progress">("all");
@@ -35,154 +34,44 @@ export default function OfficerDashboard() {
 
   useEffect(() => {
     // 1. Fetch Proactive Morning Briefing
-    fetch(`${API_BASE_URL}/governance/proactive/morning-brief`)
-      .then((res) => res.json())
+    fetchWithAuth("/governance/proactive/morning-brief")
       .then((data) => {
-        setBriefing(data);
+        setBriefing(data || null);
         setLoadingBriefing(false);
       })
       .catch((err) => {
-        console.log("Offline, falling back to mock briefing:", err);
-        setBriefing({
-          constituency: "Central Bengaluru Constituency",
-          overall_health_score: 78,
-          overall_health_trend: "UP",
-          morning_brief:
-            "Good Morning MLA Suresh Rao. This week: \n• Water complaints have risen by 27% due to pipeline maintenance in Sector 4.\n• Ward 12 sanitation metrics require immediate intervention.\n• PMGSY road upgrade project in Ward 8 is running stable.\n• Urgent dispatch warning: Hospital route utility block is approaching SLA breach.",
-          category_forecasts: [
-            {
-              category: "Water & Sanitation",
-              current_score: 61,
-              forecast_direction: "DOWN",
-              reasoning: "Substandard utility capacity under monsoon overload risk.",
-            },
-            {
-              category: "Roads & Sidewalks",
-              current_score: 82,
-              forecast_direction: "UP",
-              reasoning: "Recent PMGSY pothole repairs completed in Ward 5.",
-            },
-            {
-              category: "Electricity & Power",
-              current_score: 90,
-              forecast_direction: "STABLE",
-              reasoning: "Smart grid distribution transformers cleared standard checks.",
-            },
-          ],
-          risk_alerts: [
-            {
-              issue_id: "ISSUE-001",
-              title: "Broken Main Pipeline Shivaji Nagar W12",
-              category: "Water Supply & Sanitation",
-              risk_level: "CRITICAL",
-              sla_remaining: "2.5 Hours",
-              impact_weight: "4,320 Citizens",
-            },
-            {
-              issue_id: "ISSUE-002",
-              title: "Utility Dig Block near Clinic Road Sector 4",
-              category: "Roads & Sidewalks",
-              risk_level: "HIGH",
-              sla_remaining: "5.0 Hours",
-              impact_weight: "350 Citizens",
-            },
-          ],
-        });
+        console.error("Failed to load briefing:", err);
+        setBriefing(null);
         setLoadingBriefing(false);
       });
 
     // 2. Fetch pending issues
-    fetch(`${API_BASE_URL}/governance/issues/pending`)
-      .then((res) => res.json())
+    fetchWithAuth("/governance/issues/pending")
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped: Issue[] = data.map((item) => ({
-            id: item.id,
-            title: item.title,
-            description: item.description,
-            category:
-              item.category === "sanitation"
-                ? "Water Supply & Sanitation"
-                : item.category === "roads"
-                ? "Roads & Sidewalks"
-                : item.category,
-            status:
-              item.status === "INTAKE"
-                ? "Submitted"
-                : item.status === "TRIAGE" || item.status === "TRIAGED"
-                ? "Validated"
-                : item.status === "ASSIGNED"
-                ? "Assigned"
-                : item.status === "REJECTED"
-                ? "Rejected"
-                : item.status,
-            priority:
-              item.priority === "HIGH"
-                ? "High"
-                : item.priority === "MEDIUM"
-                ? "Medium"
-                : "Low",
-            citizenName: "Jan Doe",
-            createdAt: item.created_at || new Date().toISOString(),
-            updatedAt: item.created_at || new Date().toISOString(),
-            constituency: "Central Bengaluru",
-            location: { lat: item.latitude, lng: item.longitude },
-            upvotes: 1,
-            updates: [],
-            aiDraftResponse:
-              "AI analysis completed. Standard resolution timeline initiated.",
-          }));
-          setIssues((prev) => {
-            const mockOnly = prev.filter(
-              (p) => !p.id.includes("-") && !data.some((d) => d.id === p.id)
-            );
-            return [...mapped, ...mockOnly];
-          });
+        if (Array.isArray(data)) {
+          setIssues(data);
         }
         setLoading(false);
       })
       .catch((err) => {
-        console.log("Backend not running, using mock data:", err);
+        console.error("Failed to fetch pending issues:", err);
         setLoading(false);
       });
   }, []);
 
-  const handleUpdateStatus = (id: string, newStatus: Issue["status"]) => {
-    setIssues((prevIssues) =>
-      prevIssues.map((issue) => {
-        if (issue.id === id) {
-          const timestamp = new Date().toISOString();
-          const newUpdate: IssueUpdate = {
-            timestamp,
-            status: newStatus,
-            note: `Status updated to ${newStatus.replace("_", " ")} by Officer सुरेश.`,
-            author: "Officer Suresh Rao (Admin)",
-          };
-          return {
-            ...issue,
-            status: newStatus,
-            updatedAt: timestamp,
-            updates: [newUpdate, ...issue.updates],
-          };
-        }
-        return issue;
-      })
-    );
-  };
-
   const filteredIssues = issues.filter((issue) => {
     const matchesSearch =
-      issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      issue.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      issue.id.toLowerCase().includes(searchTerm.toLowerCase());
+      issue.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      issue.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      issue.id?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === "All" || issue.status === statusFilter;
 
     let matchesTab = true;
     if (activeTab === "pending_ai") {
-      matchesTab = issue.status === "Submitted" || issue.status === "Validated";
+      matchesTab = issue.status === "INTAKE" || issue.status === "TRIAGE";
     } else if (activeTab === "in_progress") {
-      matchesTab = issue.status === "Assigned" || issue.status === "In_Progress";
+      matchesTab = issue.status === "ASSIGNED" || issue.status === "IN_PROGRESS";
     }
 
     return matchesSearch && matchesStatus && matchesTab;
@@ -202,7 +91,6 @@ export default function OfficerDashboard() {
         </div>
       </div>
 
-      {/* NEW: Proactive Morning Briefing & Alerts Header section */}
       {loadingBriefing ? (
         <BriefingSkeleton />
       ) : briefing ? (
@@ -217,7 +105,7 @@ export default function OfficerDashboard() {
               </h2>
             </div>
             <div className="font-sans text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line bg-card p-4 rounded-xl border shadow-inner">
-              {briefing.morning_brief}
+              {briefing.morning_brief || "No briefing available."}
             </div>
           </Card>
 
@@ -229,7 +117,7 @@ export default function OfficerDashboard() {
               <h3 className="text-sm font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Critical SLA Risks</h3>
             </div>
             <div className="space-y-3">
-              {briefing.risk_alerts.map((alert: any, idx: number) => (
+              {briefing.risk_alerts?.length > 0 ? briefing.risk_alerts.map((alert: any, idx: number) => (
                 <div key={idx} className="border border-red-500/10 p-3 rounded-xl bg-card text-xs flex justify-between items-center gap-3 hover:border-red-500/30 transition shadow-sm">
                   <div className="truncate">
                     <p className="font-bold truncate text-slate-850 dark:text-slate-200">{alert.title}</p>
@@ -239,11 +127,17 @@ export default function OfficerDashboard() {
                     <Badge variant="destructive" className="text-[9px] font-mono font-bold px-2 py-0.5">{alert.sla_remaining}</Badge>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-xs text-muted-foreground">No critical SLA risks at this time.</p>
+              )}
             </div>
           </Card>
         </div>
-      ) : null}
+      ) : (
+        <div className="text-sm text-muted-foreground bg-card p-4 border rounded-xl shadow-sm text-center">
+          No proactive morning brief generated.
+        </div>
+      )}
 
       {/* Constituency Health score Widget */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -255,49 +149,28 @@ export default function OfficerDashboard() {
               <Activity className="h-4.5 w-4.5 text-indigo-400" />
             </div>
             <div className="flex items-baseline gap-2 mt-5">
-              <span className="text-5xl font-extrabold tracking-tight">78</span>
+              <span className="text-5xl font-extrabold tracking-tight">{briefing?.overall_health_score || "--"}</span>
               <span className="text-indigo-300/60 text-sm font-semibold">/ 100</span>
             </div>
-          </div>
-          <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold mt-4">
-            <TrendingUp className="h-3.5 w-3.5" />
-            <span>+2.4% positive resolution index</span>
           </div>
         </Card>
 
         {/* Category Health Scores */}
         <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <Card className="p-4 bg-card text-card-foreground border hover:border-slate-300 dark:hover:border-slate-800 transition flex flex-col justify-between shadow-sm">
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Roads</span>
-            <div className="text-3xl font-extrabold mt-3 tracking-tight">82</div>
-            <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5 mt-2">
-              <TrendingUp className="h-3 w-3" /> +1.2%
-            </span>
-          </Card>
-          <Card className="p-4 bg-card border-red-500/20 text-card-foreground flex flex-col justify-between shadow-sm">
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Water/Sanit</span>
-            <div className="text-3xl font-extrabold text-red-500 mt-3 tracking-tight">61</div>
-            <span className="text-[10px] text-red-550 dark:text-red-400 font-bold flex items-center gap-0.5 mt-2">
-              <TrendingDown className="h-3 w-3 animate-bounce" /> -3.5%
-            </span>
-          </Card>
-          <Card className="p-4 bg-card text-card-foreground border hover:border-slate-300 dark:hover:border-slate-800 transition flex flex-col justify-between shadow-sm">
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Electricity</span>
-            <div className="text-3xl font-extrabold mt-3 tracking-tight">90</div>
-            <span className="text-[10px] text-slate-400 font-bold mt-2.5">Stable</span>
-          </Card>
-          <Card className="p-4 bg-card text-card-foreground border hover:border-slate-300 dark:hover:border-slate-800 transition flex flex-col justify-between shadow-sm">
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Healthcare</span>
-            <div className="text-3xl font-extrabold mt-3 tracking-tight">74</div>
-            <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5 mt-2">
-              <TrendingUp className="h-3 w-3" /> +0.5%
-            </span>
-          </Card>
-          <Card className="p-4 bg-card text-card-foreground border hover:border-slate-300 dark:hover:border-slate-800 transition flex flex-col justify-between shadow-sm">
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Education</span>
-            <div className="text-3xl font-extrabold mt-3 tracking-tight">69</div>
-            <span className="text-[10px] text-slate-400 font-bold mt-2.5">Stable</span>
-          </Card>
+          {briefing?.category_forecasts?.map((cat: any, i: number) => (
+             <Card key={i} className="p-4 bg-card text-card-foreground border hover:border-slate-300 dark:hover:border-slate-800 transition flex flex-col justify-between shadow-sm">
+             <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{cat.category}</span>
+             <div className="text-3xl font-extrabold mt-3 tracking-tight">{cat.current_score}</div>
+             <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5 mt-2">
+               {cat.forecast_direction}
+             </span>
+           </Card>
+          ))}
+          {!briefing?.category_forecasts && (
+            <div className="col-span-full flex items-center justify-center p-4 text-sm text-muted-foreground border rounded-xl border-dashed">
+              No category data available
+            </div>
+          )}
         </div>
       </div>
 
@@ -310,7 +183,7 @@ export default function OfficerDashboard() {
           <div>
             <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Pending Triage</div>
             <div className="text-2xl font-extrabold mt-0.5 tracking-tight">
-              {issues.filter((i) => i.status === "Submitted" || i.status === "Validated").length}
+              {issues.filter((i) => i.status === "INTAKE" || i.status === "TRIAGE").length}
             </div>
           </div>
         </Card>
@@ -321,7 +194,7 @@ export default function OfficerDashboard() {
           <div>
             <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Active Field Tasks</div>
             <div className="text-2xl font-extrabold mt-0.5 tracking-tight">
-              {issues.filter((i) => i.status === "Assigned" || i.status === "In_Progress").length}
+              {issues.filter((i) => i.status === "ASSIGNED" || i.status === "IN_PROGRESS").length}
             </div>
           </div>
         </Card>
@@ -331,7 +204,7 @@ export default function OfficerDashboard() {
           </div>
           <div>
             <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Resolved Today</div>
-            <div className="text-2xl font-extrabold mt-0.5 tracking-tight">{issues.filter((i) => i.status === "Completed").length}</div>
+            <div className="text-2xl font-extrabold mt-0.5 tracking-tight">{issues.filter((i) => i.status === "COMPLETED").length}</div>
           </div>
         </Card>
       </div>
@@ -390,11 +263,11 @@ export default function OfficerDashboard() {
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="All">All Statuses</option>
-            <option value="Submitted">Submitted</option>
-            <option value="Validated">Validated</option>
-            <option value="Assigned">Assigned</option>
-            <option value="In_Progress">In Progress</option>
-            <option value="Completed">Completed</option>
+            <option value="INTAKE">Intake</option>
+            <option value="TRIAGE">Triage</option>
+            <option value="ASSIGNED">Assigned</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
           </select>
         </div>
       </div>
@@ -409,7 +282,6 @@ export default function OfficerDashboard() {
               <tr className="border-b bg-slate-50/80 dark:bg-slate-900/40 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                 <th className="p-4">Issue ID</th>
                 <th className="p-4">Title / Category</th>
-                <th className="p-4">Constituency</th>
                 <th className="p-4">Priority</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Last Updated</th>
@@ -423,77 +295,23 @@ export default function OfficerDashboard() {
                     key={issue.id}
                     className="hover:bg-slate-55/20 dark:hover:bg-slate-900/20 transition-colors duration-150"
                   >
-                    <td className="p-4 font-mono font-bold text-slate-450">{issue.id}</td>
+                    <td className="p-4 font-mono font-bold text-slate-450">{issue.id.split("-")[0]}</td>
                     <td className="p-4 max-w-[280px]">
                       <div className="font-bold text-sm text-slate-850 dark:text-slate-200 line-clamp-1 leading-snug">{issue.title}</div>
                       <div className="text-slate-400 mt-1 font-medium">{issue.category}</div>
                     </td>
-                    <td className="p-4 font-bold text-slate-700 dark:text-slate-300">{issue.constituency}</td>
                     <td className="p-4">
-                      <Badge
-                        variant={
-                          issue.priority === "Critical"
-                            ? "destructive"
-                            : issue.priority === "High"
-                            ? "warning"
-                            : "default"
-                        }
-                      >
-                        {issue.priority}
-                      </Badge>
+                      <Badge variant="outline">{issue.priority || "NORMAL"}</Badge>
                     </td>
                     <td className="p-4">
-                      <Badge variant={issue.status === "Completed" ? "success" : "info"}>
-                        {issue.status.replace("_", " ")}
+                      <Badge variant="secondary">
+                        {issue.status}
                       </Badge>
                     </td>
                     <td className="p-4 text-muted-foreground font-medium">
-                      {new Date(issue.updatedAt).toLocaleString("en-IN", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      })}
+                      {new Date(issue.updated_at || Date.now()).toLocaleDateString()}
                     </td>
                     <td className="p-4 text-right space-x-1.5 whitespace-nowrap">
-                      {issue.status === "Submitted" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 text-[11px] font-bold"
-                          onClick={() => handleUpdateStatus(issue.id, "Validated")}
-                        >
-                          Validate AI
-                        </Button>
-                      )}
-                      {issue.status === "Validated" && (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="h-8 text-[11px] font-bold"
-                          onClick={() => handleUpdateStatus(issue.id, "Assigned")}
-                        >
-                          Dispatch Crew
-                        </Button>
-                      )}
-                      {issue.status === "Assigned" && (
-                        <Button
-                          size="sm"
-                          variant="default"
-                          className="h-8 text-[11px] font-bold bg-indigo-650 hover:bg-indigo-700 text-white"
-                          onClick={() => handleUpdateStatus(issue.id, "In_Progress")}
-                        >
-                          Start Work
-                        </Button>
-                      )}
-                      {issue.status === "In_Progress" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 text-[11px] font-bold border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
-                          onClick={() => handleUpdateStatus(issue.id, "Completed")}
-                        >
-                          Resolve SLA
-                        </Button>
-                      )}
                       <Link href={`/issues/${issue.id}`}>
                         <Button size="sm" variant="ghost" className="h-8 text-[11px] font-bold">
                           Open Brief <ArrowRight className="h-3 w-3 ml-0.5" />
@@ -504,7 +322,7 @@ export default function OfficerDashboard() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-0">
+                  <td colSpan={6} className="p-0">
                     <QueueEmptyState />
                   </td>
                 </tr>
@@ -530,7 +348,6 @@ function BriefingSkeleton() {
           <div className="h-4.5 w-full bg-slate-200 dark:bg-slate-800 rounded" />
           <div className="h-4.5 w-full bg-slate-200 dark:bg-slate-800 rounded" />
           <div className="h-4.5 w-5/6 bg-slate-200 dark:bg-slate-800 rounded" />
-          <div className="h-4.5 w-2/3 bg-slate-200 dark:bg-slate-800 rounded" />
         </div>
       </Card>
       <Card className="p-5 border space-y-4 bg-card flex flex-col justify-between">
@@ -560,8 +377,6 @@ function QueueSkeleton() {
           <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
           <div className="h-5.5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full" />
           <div className="h-5.5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full" />
-          <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
-          <div className="h-8.5 w-24 bg-slate-200 dark:bg-slate-800 rounded sm:self-center" />
         </div>
       ))}
     </div>
@@ -575,9 +390,9 @@ function QueueEmptyState() {
         <Search className="h-5 w-5 text-slate-500" />
       </div>
       <div className="space-y-1">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">No work items found</h3>
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">No data available</h3>
         <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-normal">
-          No municipal issues match the selected filters or search keyword. Try broadening your query or selecting another status tab.
+          There are no pending tickets at this moment.
         </p>
       </div>
     </div>

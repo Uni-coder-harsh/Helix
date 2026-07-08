@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { API_BASE_URL } from "@/config";
-import { mockIssues, Issue } from "@/lib/mock-data";
+import { fetchWithAuth } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import { ThumbsUp, MapPin, Plus, Search, Calendar, ChevronRight, Users, Compass,
 import Link from "next/link";
 
 export default function CitizenDashboard() {
-  const [issues, setIssues] = useState<Issue[]>(mockIssues);
+  const [issues, setIssues] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,54 +21,30 @@ export default function CitizenDashboard() {
   const [newTitle, setNewTitle] = useState("");
   const [newCategory, setNewCategory] = useState("Water Supply & Sanitation");
   const [newDescription, setNewDescription] = useState("");
-  const [newPriority, setNewPriority] = useState<Issue["priority"]>("Medium");
+  const [newPriority, setNewPriority] = useState<"Low" | "Medium" | "High" | "Critical">("Medium");
   const [newConstituency, setNewConstituency] = useState("Central Bengaluru");
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/governance/issues/pending`)
-      .then((res) => res.json())
+    fetchWithAuth(`/governance/issues/pending`)
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
-          const mapped: Issue[] = data.map((item) => ({
+          const mapped: any[] = data.map((item) => ({
             id: item.id,
             title: item.title,
             description: item.description,
-            category:
-              item.category === "sanitation"
-                ? "Water Supply & Sanitation"
-                : item.category === "roads"
-                ? "Roads & Sidewalks"
-                : item.category,
+            category: item.category,
             status: item.status,
-            priority:
-              item.priority === "HIGH"
-                ? "High"
-                : item.priority === "MEDIUM"
-                ? "Medium"
-                : "Low",
+            priority: item.priority,
             citizenName: "Jan Doe",
             createdAt: item.created_at || new Date().toISOString(),
             updatedAt: item.created_at || new Date().toISOString(),
             constituency: "Central Bengaluru",
             location: { lat: item.latitude, lng: item.longitude },
             upvotes: 1,
-            updates: [
-              {
-                timestamp: item.created_at || new Date().toISOString(),
-                status: item.status,
-                note: `Issue ingested in ${item.status} status.`,
-                author: "System Engine",
-              },
-            ],
-            aiDraftResponse:
-              "AI analysis completed. Standard resolution timeline initiated.",
+            updates: [],
+            aiDraftResponse: "AI analysis completed. Standard resolution timeline initiated.",
           }));
-          setIssues((prev) => {
-            const mockOnly = prev.filter(
-              (p) => !p.id.includes("-") && !data.some((d) => d.id === p.id)
-            );
-            return [...mapped, ...mockOnly];
-          });
+          setIssues(mapped);
         }
         setLoading(false);
       })
@@ -98,55 +73,23 @@ export default function CitizenDashboard() {
     if (!newTitle || !newDescription) return;
 
     const payload = {
-      citizen_id: "00000000-0000-0000-0000-000000000000",
       title: newTitle,
       description: newDescription,
       category: newCategory.toLowerCase().replace(" & ", "_").replace(" ", "_"),
       latitude: 12.9716,
       longitude: 77.5946,
-      formatted_address: newConstituency,
+      address: newConstituency,
     };
 
-    fetch(`${API_BASE_URL}/governance/issues`, {
+    fetchWithAuth(`/governance/issues`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
-      .then((res) => res.json())
       .then(() => {
         window.location.reload();
       })
       .catch((err) => {
-        console.log("Post failed, falling back to mock simulation:", err);
-        const newIssue: Issue = {
-          id: `ISS-${1000 + issues.length + 1}`,
-          title: newTitle,
-          description: newDescription,
-          category: newCategory,
-          status: "Submitted",
-          priority: newPriority,
-          citizenName: "Jan Doe (You)",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          constituency: newConstituency,
-          location: {
-            lat: 12.97 + (Math.random() - 0.5) * 0.05,
-            lng: 77.59 + (Math.random() - 0.5) * 0.05,
-          },
-          upvotes: 1,
-          updates: [
-            {
-              timestamp: new Date().toISOString(),
-              status: "Submitted",
-              note: "Issue logged by citizen via dashboard portal.",
-              author: "Jan Doe (Citizen)",
-            },
-          ],
-          aiDraftResponse:
-            "AI analysis initiated. Checking regional logs and historical reports.",
-        };
-
-        setIssues([newIssue, ...issues]);
+        console.log("Post failed:", err);
         setIsModalOpen(false);
 
         // Reset forms
@@ -340,7 +283,7 @@ export default function CitizenDashboard() {
                 <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Priority Bias</label>
                 <select
                   value={newPriority}
-                  onChange={(e) => setNewPriority(e.target.value as Issue["priority"])}
+                  onChange={(e) => setNewPriority(e.target.value as "Low" | "Medium" | "High" | "Critical")}
                   className="w-full h-9.5 rounded-md border border-input bg-slate-50/50 dark:bg-slate-900/30 px-3 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   <option value="Low">Low (Non-urgent)</option>

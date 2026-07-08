@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { AuthProvider } from "@/lib/auth-context";
 import { AuthGuard } from "@/components/auth-guard";
-import { RoleSelector } from "@/components/role-selector";
+import { Navigation } from "@/components/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -53,49 +53,10 @@ export default function RootLayout({
                         Helix
                       </span>
                     </Link>
-                    <nav className="hidden md:flex items-center space-x-6 text-sm font-semibold text-muted-foreground">
-                      <Link
-                        href="/officer"
-                        className="flex items-center gap-1.5 hover:text-foreground transition"
-                      >
-                        <Shield className="h-4 w-4" /> Officer
-                      </Link>
-                      <Link
-                        href="/citizen"
-                        className="flex items-center gap-1.5 hover:text-foreground transition"
-                      >
-                        <Users className="h-4 w-4" /> Citizen
-                      </Link>
-                      <Link
-                        href="/map"
-                        className="flex items-center gap-1.5 hover:text-foreground transition"
-                      >
-                        <Compass className="h-4 w-4" /> Map
-                      </Link>
-                      <Link
-                        href="/planning"
-                        className="flex items-center gap-1.5 hover:text-foreground transition"
-                      >
-                        <Sparkles className="h-4 w-4 text-indigo-500 animate-pulse" />{" "}
-                        Planning
-                      </Link>
-                      <Link
-                        href="/analytics"
-                        className="flex items-center gap-1.5 hover:text-foreground transition"
-                      >
-                        <BarChart3 className="h-4 w-4" /> Analytics
-                      </Link>
-                      <Link
-                        href="/settings"
-                        className="flex items-center gap-1.5 hover:text-foreground transition"
-                      >
-                        <Settings className="h-4 w-4" /> Settings
-                      </Link>
-                    </nav>
+                    <Navigation />
                   </div>
                   <div className="flex items-center gap-4">
                     <ThemeToggle />
-                    <RoleSelector />
                   </div>
                 </div>
               </header>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { API_BASE_URL } from "@/config";
+import { fetchWithAuth } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,67 +22,33 @@ export default function OutcomePlanningPage() {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvedStates, setApprovedStates] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/governance/planning/projects`)
-      .then((res) => res.json())
+    fetchWithAuth("/governance/planning/projects")
       .then((data) => {
-        setProjects(data);
+        setProjects(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch((err) => {
-        console.log("Offline, loading mock planning data:", err);
-        setProjects([
-          {
-            id: "water-reconstruction- Shivaji Nagar",
-            title: "Shivaji Nagar Drainage & Water Pipe Trunk Reconstruction",
-            cost: "₹1.8 Crores",
-            benefits: "14,230 citizens benefited",
-            confidence: 0.93,
-            evidence_count: 41,
-            future_risk: "HIGH (Pipeline bursting hazard if deferred)",
-            explanation:
-              "Clustering 41 water leak complaints near Shivaji Nagar Hospital indicates severe pipeline decay. A complete trunk reconstruction is recommended over patching leaks, ensuring uninterrupted clinic access and raising water safety scores by 22%.",
-            outcomes: [
-              { metric: "Water Health Index", before: 61, after: 83 },
-              { metric: "School Attendance", before: "Baseline", after: "+8.4%" },
-              { metric: "Ambulance Delay", before: "Baseline", after: "-15.0%" },
-            ],
-            status: "PROPOSED",
-          },
-          {
-            id: "road-reconstruction-sector4",
-            title: "Sector 4 Pedestrian Corridor & Road Reconstruction",
-            cost: "₹1.2 Crores",
-            benefits: "8,350 citizens benefited",
-            confidence: 0.91,
-            evidence_count: 18,
-            future_risk: "MEDIUM (Transit bottlenecks)",
-            explanation:
-              "Sector 4 features 18 transit hazard reports surrounding local primary schools. Restructuring the sidewalk corridor and repaving the arterial road solves these reports collectively, reducing student commute hazards by 60%.",
-            outcomes: [
-              { metric: "Road Health Index", before: 82, after: 95 },
-              { metric: "Travel Time Latency", before: "Baseline", after: "-25.0%" },
-              { metric: "Pedestrian Hazard Incidents", before: "Baseline", after: "-60.0%" },
-            ],
-            status: "PROPOSED",
-          },
-        ]);
+        console.error("Failed to load planning data:", err);
+        setError("Failed to load data");
+        setProjects([]);
         setLoading(false);
       });
   }, []);
 
   const handleApproveProject = (projectId: string) => {
-    fetch(`${API_BASE_URL}/governance/planning/projects/${projectId}/approve`, {
+    fetchWithAuth(`/governance/planning/projects/${projectId}/approve`, {
       method: "POST",
     })
-      .then((r) => r.json())
       .then(() => {
         setApprovedStates((prev) => ({ ...prev, [projectId]: true }));
       })
       .catch((err) => {
-        console.log("Offline approve, updating state locally:", err);
-        setApprovedStates((prev) => ({ ...prev, [projectId]: true }));
+        console.error("Failed to approve project:", err);
+        // Only update local state if we don't want to show an error, but let's be strict
+        alert("Failed to approve project. Check connection.");
       });
   };
 
@@ -103,12 +69,12 @@ export default function OutcomePlanningPage() {
           <ProjectSkeleton />
           <ProjectSkeleton />
         </div>
-      ) : projects.length === 0 ? (
+      ) : error || projects.length === 0 ? (
         <EmptyState />
       ) : (
         <div className="grid grid-cols-1 gap-8">
           {projects.map((proj) => {
-            const isApproved = approvedStates[proj.id];
+            const isApproved = approvedStates[proj.id] || proj.status === "APPROVED";
             return (
               <Card
                 key={proj.id}
@@ -125,7 +91,7 @@ export default function OutcomePlanningPage() {
                         <Sparkles className="h-3 w-3 mr-1 animate-pulse inline" /> Derived Proposal
                       </Badge>
                       <span className="text-[11px] text-muted-foreground font-medium">
-                        Based on <span className="font-bold text-slate-700 dark:text-slate-300">{proj.evidence_count} citizen complaints</span>
+                        Based on <span className="font-bold text-slate-700 dark:text-slate-300">{proj.evidence_count || 0} citizen complaints</span>
                       </span>
                     </div>
                     <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mt-1 leading-snug">
@@ -135,12 +101,12 @@ export default function OutcomePlanningPage() {
                   <div className="flex items-center gap-5 text-xs font-semibold bg-slate-50 dark:bg-slate-900/50 p-2.5 px-4 rounded-xl border">
                     <div className="flex items-center gap-1.5">
                       <DollarSign className="h-4 w-4 text-emerald-500" />
-                      <span className="text-slate-800 dark:text-slate-200">{proj.cost}</span>
+                      <span className="text-slate-800 dark:text-slate-200">{proj.cost || "N/A"}</span>
                     </div>
                     <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
                     <div className="flex items-center gap-1.5">
                       <Users className="h-4 w-4 text-indigo-500" />
-                      <span className="text-slate-800 dark:text-slate-200">{proj.benefits}</span>
+                      <span className="text-slate-800 dark:text-slate-200">{proj.benefits || "N/A"}</span>
                     </div>
                   </div>
                 </div>
@@ -153,7 +119,7 @@ export default function OutcomePlanningPage() {
                       <Activity className="h-3.5 w-3.5" /> Simulated Outcomes
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {proj.outcomes.map((out: any, i: number) => {
+                      {proj.outcomes && proj.outcomes.map((out: any, i: number) => {
                         const isNumeric = !isNaN(Number(out.before)) && !isNaN(Number(out.after));
                         const delta = isNumeric ? Number(out.after) - Number(out.before) : null;
                         const deltaText = delta !== null && delta > 0 ? `+${delta}` : "";
@@ -187,15 +153,15 @@ export default function OutcomePlanningPage() {
                     <div className="border p-4 rounded-xl bg-slate-50/50 dark:bg-slate-900/20 space-y-3.5 text-xs">
                       <div className="flex justify-between items-center">
                         <span className="text-slate-500 font-medium">Confidence Score:</span>
-                        <span className="font-extrabold text-indigo-600 dark:text-indigo-400 font-mono text-sm">{(proj.confidence * 100).toFixed(0)}%</span>
+                        <span className="font-extrabold text-indigo-600 dark:text-indigo-400 font-mono text-sm">{((proj.confidence || 0) * 100).toFixed(0)}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500" style={{ width: `${proj.confidence * 100}%` }} />
+                        <div className="h-full bg-indigo-500" style={{ width: `${(proj.confidence || 0) * 100}%` }} />
                       </div>
                       <div className="space-y-1 pt-1.5 border-t">
                         <span className="text-slate-500 font-medium block">Postponement Risk:</span>
                         <span className="font-bold text-red-500 dark:text-red-400 text-[10px] uppercase font-mono block leading-normal">
-                          {proj.future_risk}
+                          {proj.future_risk || "N/A"}
                         </span>
                       </div>
                     </div>
@@ -208,7 +174,7 @@ export default function OutcomePlanningPage() {
                     <Sparkles className="h-3.5 w-3.5 animate-pulse" /> AI Justification (Gemini Explainer)
                   </span>
                   <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans font-medium">
-                    {proj.explanation}
+                    {proj.explanation || "No explanation provided."}
                   </p>
                 </div>
 
@@ -280,9 +246,9 @@ function EmptyState() {
         <Compass className="h-6 w-6 text-slate-500" />
       </div>
       <div className="space-y-1">
-        <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">No planning projects proposed</h3>
+        <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">No planning projects available</h3>
         <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-normal">
-          There are currently no developmental projects under evaluation by the Outcome Planning Engine for this constituency.
+          There are currently no developmental projects under evaluation by the Outcome Planning Engine.
         </p>
       </div>
     </div>

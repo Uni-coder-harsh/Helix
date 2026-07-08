@@ -1,7 +1,6 @@
 import React from "react";
-import { ChartsPlaceholder } from "@/components/charts-placeholder";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { BarChart3, TrendingUp, Users } from "lucide-react";
+import { TrendingUp, Users } from "lucide-react";
 
 export default function AnalyticsPage() {
   return (
@@ -12,7 +11,10 @@ export default function AnalyticsPage() {
         <p className="text-xs text-muted-foreground">Analytical logs, Service Level Agreement (SLA) conformance, and ward resolution metrics.</p>
       </div>
 
-      <ChartsPlaceholder />
+      <Card className="p-8 text-center bg-card">
+        <CardTitle className="text-lg mb-2">Analytics Not Available</CardTitle>
+        <CardDescription>We could not load analytics data at this time. No data is available.</CardDescription>
+      </Card>
 
       {/* SLA audit callouts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
