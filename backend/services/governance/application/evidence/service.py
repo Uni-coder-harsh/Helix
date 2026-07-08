@@ -166,6 +166,12 @@ class EvidenceIntelligenceService:
             latitude=issue.latitude,
             longitude=issue.longitude,
             location_address=issue.location_address,
+            state_id=issue.state_id,
+            district_id=issue.district_id,
+            parliamentary_constituency_id=issue.parliamentary_constituency_id,
+            assembly_constituency_id=issue.assembly_constituency_id,
+            ward_id=issue.ward_id,
+            village_id=issue.village_id,
         )
         db.add(new_incident)
         issue.incident_id = new_incident.id

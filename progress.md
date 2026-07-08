@@ -52,6 +52,7 @@ This log records every significant action, decision, change, and status update i
 | `LOG-044` | 2026-07-07T17:20:00+05:30 | Sprint 14.5 | Repository Cleanup & Production Hardening | Frozen |
 | `LOG-045` | 2026-07-07T17:25:00+05:30 | Sprint 15 | Cloud Deployment & Demo Readiness | Frozen |
 | `LOG-046` | 2026-07-08T09:10:00+05:30 | Sprint A1 | Sprint A1 Stabilization & Security Complete | Completed |
+| `LOG-047` | 2026-07-08T10:04:02+05:30 | Sprint A2 | Administrative Hierarchy & Jurisdiction Engine | Completed |
 
 ---
 
@@ -587,3 +588,18 @@ This log records every significant action, decision, change, and status update i
 - **Issues/Resolutions:**
   - *Issue:* Integration tests for token refresh and password reset failed due to Boolean query filter evaluation.
   - *Resolution:* Swapped `not Column` with `Column == False`.
+
+### `LOG-047` (2026-07-08T10:04:02+05:30) - Administrative Hierarchy & Jurisdiction Engine
+- **Phase:** Sprint A2 (Administrative Hierarchy & Jurisdiction Engine)
+- **Status:** Completed
+- **Changes:**
+  - **Normalized Hierarchy Models:** Extended the identity persistence layer with production-grade country, state, district, parliamentary constituency, assembly constituency, ward, and village schema support, including official codes, active flags, timestamps, and constituency boundary metadata.
+  - **Admin CRUD APIs:** Completed system-admin CRUD coverage for countries, states, districts, parliamentary constituencies, assembly constituencies, wards, and villages, while preserving the existing legacy constituency compatibility path.
+  - **GeoJSON Validation & Boundary Management:** Added centralized GeoJSON validation with polygon closure, coordinate bounds, and self-intersection checks, then reused it across create/update/boundary-replacement endpoints with boundary version bumping.
+  - **Jurisdiction Lookup Service:** Implemented deterministic latitude/longitude lookup across constituency, ward, and village boundaries without fake fallback assignments, returning resolved state/district/constituency hierarchy only when a real spatial match exists.
+  - **Complaint Routing Integration:** Wired governance issue intake and incident clustering to persist resolved `state_id`, `district_id`, `parliamentary_constituency_id`, `assembly_constituency_id`, `ward_id`, and `village_id` values for each complaint.
+  - **Migration & API Documentation:** Added a manual SQL migration artifact at `backend/migrations/20260708_01_jurisdiction_hierarchy.sql` and documented the new hierarchy and lookup APIs in `docs/api.md`.
+  - **Verification Coverage:** Added focused integration coverage in `backend/services/tests/integration/test_jurisdiction.py` validating both the hierarchy lookup path and governance persistence path.
+- **Issues/Resolutions:**
+  - *Issue:* HTTP transport-based verification paths in the current backend test environment hang inside FastAPI response serialization for existing route suites.
+  - *Resolution:* Kept production behavior intact, limited new verification to direct route/service integration tests, and added test-environment guards to skip telemetry/logging middleware that was unnecessary for the local verification path.

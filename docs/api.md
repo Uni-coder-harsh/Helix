@@ -551,3 +551,83 @@ The Identity service handles user profile retrieval, self-registration, user CRU
     }
   ]
   ```
+
+## Administrative Hierarchy & Jurisdiction API Endpoints
+
+The Identity service now exposes system-admin-controlled administrative hierarchy APIs covering government geography setup, GeoJSON boundary management, and jurisdiction resolution for downstream complaint routing.
+
+### 1. Country, State, and District Administration
+* **Endpoints:**
+  - `POST /identity/countries`
+  - `GET /identity/countries`
+  - `GET /identity/countries/{country_id}`
+  - `PUT /identity/countries/{country_id}`
+  - `DELETE /identity/countries/{country_id}`
+  - Equivalent CRUD routes exist for `/identity/states` and `/identity/districts`
+* **Description:** Create and maintain the normalized country, state, and district hierarchy, including official codes and soft deactivation.
+* **Headers:**
+  - `Authorization: Bearer <system-admin-token>`
+
+### 2. Parliamentary, Assembly, Ward, and Village Boundaries
+* **Endpoints:**
+  - `POST /identity/parliamentary-constituencies`
+  - `POST /identity/assembly-constituencies`
+  - `POST /identity/wards`
+  - `POST /identity/villages`
+  - `POST /identity/parliamentary-constituencies/{id}/boundary`
+  - `POST /identity/assembly-constituencies/{id}/boundary`
+  - `POST /identity/wards/{id}/boundary`
+  - `POST /identity/villages/{id}/boundary`
+* **Description:** Configure constituency and local-boundary records, validate uploaded GeoJSON polygons, track boundary versions, and reject malformed or self-intersecting polygons before persistence.
+* **Headers:**
+  - `Authorization: Bearer <system-admin-token>`
+
+### 3. Jurisdiction Lookup
+* **Endpoint:** `GET /identity/jurisdiction/lookup`
+* **Description:** Resolve a latitude/longitude pair into the matching state, district, parliamentary constituency, assembly constituency, ward, and village when boundaries are available.
+* **Parameters:**
+  - `latitude` (float, required)
+  - `longitude` (float, required)
+* **Response Sample:**
+  ```json
+  {
+    "state": {
+      "id": "state-uuid-1",
+      "name": "Jurisdiction State",
+      "code": "JS-001"
+    },
+    "district": {
+      "id": "district-uuid-1",
+      "name": "Jurisdiction District",
+      "code": "JD-001"
+    },
+    "parliamentary_constituency": {
+      "id": "pc-uuid-1",
+      "name": "Jurisdiction PC",
+      "code": "PC-001",
+      "boundary_version": 1,
+      "area_metadata": "regional",
+      "population_metadata": "100000"
+    },
+    "assembly_constituency": {
+      "id": "ac-uuid-1",
+      "name": "Jurisdiction AC",
+      "code": "AC-001",
+      "boundary_version": 1,
+      "area_metadata": "local",
+      "population_metadata": "25000"
+    },
+    "ward": {
+      "id": "ward-uuid-1",
+      "name": "Ward 12",
+      "code": "W-12",
+      "assembly_constituency_id": "ac-uuid-1"
+    },
+    "village": {
+      "id": "village-uuid-1",
+      "name": "Village North",
+      "code": "V-12",
+      "assembly_constituency_id": "ac-uuid-1"
+    }
+  }
+  ```

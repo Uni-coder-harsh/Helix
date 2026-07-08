@@ -180,6 +180,25 @@ async def submit_issue(
         formatted_address=payload.formatted_address,
     )
 
+    from services.governance.infrastructure.models import IssueDB
+    from services.identity.jurisdiction import (
+        lookup_jurisdiction,
+        resolve_jurisdiction_ids,
+    )
+
+    jurisdiction_ids = resolve_jurisdiction_ids(db, payload.latitude, payload.longitude)
+    db_issue: Any = db.query(IssueDB).filter(IssueDB.id == issue_id).first()
+    if db_issue:
+        db_issue.state_id = jurisdiction_ids["state_id"]
+        db_issue.district_id = jurisdiction_ids["district_id"]
+        db_issue.parliamentary_constituency_id = jurisdiction_ids[
+            "parliamentary_constituency_id"
+        ]
+        db_issue.assembly_constituency_id = jurisdiction_ids["assembly_constituency_id"]
+        db_issue.ward_id = jurisdiction_ids["ward_id"]
+        db_issue.village_id = jurisdiction_ids["village_id"]
+        db.commit()
+
     # Auto-cluster the issue into an incident
     from services.governance.application.evidence import EvidenceIntelligenceService
 
@@ -195,6 +214,7 @@ async def submit_issue(
         "status": "INTAKE",
         "incident_id": cluster_info.get("incident_id"),
         "cluster_info": cluster_info,
+        "jurisdiction": lookup_jurisdiction(db, payload.latitude, payload.longitude),
     }
 
 

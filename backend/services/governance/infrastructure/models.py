@@ -23,6 +23,15 @@ class IssueDB(Base):
     longitude = Column(Float, nullable=False)
     department_id = Column(String(36), nullable=True)
     incident_id = Column(String(36), nullable=True)
+
+    # Geographic scope resolved via lookup engine
+    state_id = Column(String(36), nullable=True)
+    district_id = Column(String(36), nullable=True)
+    parliamentary_constituency_id = Column(String(36), nullable=True)
+    assembly_constituency_id = Column(String(36), nullable=True)
+    ward_id = Column(String(36), nullable=True)
+    village_id = Column(String(36), nullable=True)
+
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 
 
@@ -39,6 +48,15 @@ class IncidentDB(Base):
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     location_address = Column(String(505), nullable=False)
+
+    # Geographic scope resolved via lookup engine
+    state_id = Column(String(36), nullable=True)
+    district_id = Column(String(36), nullable=True)
+    parliamentary_constituency_id = Column(String(36), nullable=True)
+    assembly_constituency_id = Column(String(36), nullable=True)
+    ward_id = Column(String(36), nullable=True)
+    village_id = Column(String(36), nullable=True)
+
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 
 

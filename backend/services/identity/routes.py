@@ -13,45 +13,67 @@ from helix_platform.security import (
     normalize_role,
     verify_password,
 )
+from services.identity.jurisdiction import (
+    lookup_jurisdiction,
+    validate_geojson_polygon,
+)
 from services.identity.models import (
+    AssemblyConstituencyDB,
     AuditLoginDB,
     ConstituencyDB,
     CountryDB,
     DistrictDB,
     InvitationDB,
+    ParliamentaryConstituencyDB,
     PasswordResetDB,
     RefreshTokenDB,
     SessionDB,
     StateDB,
     UserDB,
+    VillageDB,
     WardDB,
 )
 from services.identity.schemas import (
+    AssemblyConstituencyCreate,
+    AssemblyConstituencyResponse,
+    AssemblyConstituencyUpdate,
     AuditLoginResponse,
+    BoundaryUploadRequest,
     ChangePasswordRequest,
     CitizenRegister,
     ConstituencyCreate,
     ConstituencyResponse,
     CountryCreate,
     CountryResponse,
+    CountryUpdate,
     DistrictCreate,
     DistrictResponse,
+    DistrictUpdate,
     ForgotPasswordRequest,
     InvitationAccept,
     InvitationCreate,
     InvitationResponse,
+    JurisdictionLookupResponse,
     LoginRequest,
+    ParliamentaryConstituencyCreate,
+    ParliamentaryConstituencyResponse,
+    ParliamentaryConstituencyUpdate,
     RefreshRequest,
     ResetPasswordRequest,
     SessionResponse,
     StateCreate,
     StateResponse,
+    StateUpdate,
     TokenResponse,
     UserResponse,
     UserUpdate,
     VerifyEmailRequest,
+    VillageCreate,
+    VillageResponse,
+    VillageUpdate,
     WardCreate,
     WardResponse,
+    WardUpdate,
 )
 
 router = APIRouter(prefix="/identity", tags=["User Management"])
@@ -129,6 +151,38 @@ def check_permission(user: UserDB, required_permission: str) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Permission denied: required permission '{required_permission}' not found for role '{user.role}'",
         )
+
+
+def validate_geojson_or_400(geojson_boundary: str) -> None:
+    try:
+        validate_geojson_polygon(geojson_boundary)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+
+def get_entity_or_404(
+    db: Session, model: object, entity_id: str, detail: str
+) -> object:
+    entity = db.query(model).filter(model.id == entity_id).first()
+    if entity:
+        return entity
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
+
+
+def resolve_assembly_constituency_id(
+    assembly_constituency_id: str | None,
+    constituency_id: str | None,
+) -> str:
+    resolved_id = assembly_constituency_id or constituency_id
+    if resolved_id:
+        return resolved_id
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="assembly_constituency_id or constituency_id must be provided",
+    )
 
 
 # Public Endpoints
@@ -642,7 +696,12 @@ def add_country(
     db: Session = Depends(get_db),
 ):
     check_permission(current_user, "system:admin")
-    country = CountryDB(id=str(uuid.uuid4()), name=payload.name)
+    country = CountryDB(
+        id=str(uuid.uuid4()),
+        name=payload.name,
+        code=payload.code,
+        is_active=True,
+    )
     db.add(country)
     db.commit()
     db.refresh(country)
@@ -650,8 +709,61 @@ def add_country(
 
 
 @router.get("/countries", response_model=list[CountryResponse])
-def list_countries(db: Session = Depends(get_db)):
-    return db.query(CountryDB).all()
+def list_countries(
+    include_inactive: bool = False,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    query = db.query(CountryDB)
+    if not include_inactive:
+        query = query.filter(CountryDB.is_active.is_(True))
+    return query.order_by(CountryDB.name.asc()).all()
+
+
+@router.get("/countries/{country_id}", response_model=CountryResponse)
+def get_country(
+    country_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    return get_entity_or_404(db, CountryDB, country_id, "Country not found")
+
+
+@router.put("/countries/{country_id}", response_model=CountryResponse)
+def update_country(
+    country_id: str,
+    payload: CountryUpdate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    country = get_entity_or_404(db, CountryDB, country_id, "Country not found")
+
+    if payload.name is not None:
+        country.name = payload.name
+    if payload.code is not None:
+        country.code = payload.code
+    if payload.is_active is not None:
+        country.is_active = payload.is_active
+
+    db.commit()
+    db.refresh(country)
+    return country
+
+
+@router.delete("/countries/{country_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_country(
+    country_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    country = get_entity_or_404(db, CountryDB, country_id, "Country not found")
+    country.is_active = False
+    db.commit()
+    return
 
 
 @router.post(
@@ -663,8 +775,13 @@ def add_state(
     db: Session = Depends(get_db),
 ):
     check_permission(current_user, "system:admin")
+    get_entity_or_404(db, CountryDB, payload.country_id, "Country not found")
     state = StateDB(
-        id=str(uuid.uuid4()), name=payload.name, country_id=payload.country_id
+        id=str(uuid.uuid4()),
+        name=payload.name,
+        country_id=payload.country_id,
+        code=payload.code,
+        is_active=True,
     )
     db.add(state)
     db.commit()
@@ -673,11 +790,67 @@ def add_state(
 
 
 @router.get("/states", response_model=list[StateResponse])
-def list_states(country_id: str | None = None, db: Session = Depends(get_db)):
+def list_states(
+    country_id: str | None = None,
+    include_inactive: bool = False,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
     query = db.query(StateDB)
     if country_id:
         query = query.filter(StateDB.country_id == country_id)
-    return query.all()
+    if not include_inactive:
+        query = query.filter(StateDB.is_active.is_(True))
+    return query.order_by(StateDB.name.asc()).all()
+
+
+@router.get("/states/{state_id}", response_model=StateResponse)
+def get_state(
+    state_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    return get_entity_or_404(db, StateDB, state_id, "State not found")
+
+
+@router.put("/states/{state_id}", response_model=StateResponse)
+def update_state(
+    state_id: str,
+    payload: StateUpdate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    state = get_entity_or_404(db, StateDB, state_id, "State not found")
+
+    if payload.country_id is not None:
+        get_entity_or_404(db, CountryDB, payload.country_id, "Country not found")
+        state.country_id = payload.country_id
+    if payload.name is not None:
+        state.name = payload.name
+    if payload.code is not None:
+        state.code = payload.code
+    if payload.is_active is not None:
+        state.is_active = payload.is_active
+
+    db.commit()
+    db.refresh(state)
+    return state
+
+
+@router.delete("/states/{state_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_state(
+    state_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    state = get_entity_or_404(db, StateDB, state_id, "State not found")
+    state.is_active = False
+    db.commit()
+    return
 
 
 @router.post(
@@ -689,8 +862,13 @@ def add_district(
     db: Session = Depends(get_db),
 ):
     check_permission(current_user, "system:admin")
+    get_entity_or_404(db, StateDB, payload.state_id, "State not found")
     district = DistrictDB(
-        id=str(uuid.uuid4()), name=payload.name, state_id=payload.state_id
+        id=str(uuid.uuid4()),
+        name=payload.name,
+        state_id=payload.state_id,
+        code=payload.code,
+        is_active=True,
     )
     db.add(district)
     db.commit()
@@ -699,11 +877,67 @@ def add_district(
 
 
 @router.get("/districts", response_model=list[DistrictResponse])
-def list_districts(state_id: str | None = None, db: Session = Depends(get_db)):
+def list_districts(
+    state_id: str | None = None,
+    include_inactive: bool = False,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
     query = db.query(DistrictDB)
     if state_id:
         query = query.filter(DistrictDB.state_id == state_id)
-    return query.all()
+    if not include_inactive:
+        query = query.filter(DistrictDB.is_active.is_(True))
+    return query.order_by(DistrictDB.name.asc()).all()
+
+
+@router.get("/districts/{district_id}", response_model=DistrictResponse)
+def get_district(
+    district_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    return get_entity_or_404(db, DistrictDB, district_id, "District not found")
+
+
+@router.put("/districts/{district_id}", response_model=DistrictResponse)
+def update_district(
+    district_id: str,
+    payload: DistrictUpdate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    district = get_entity_or_404(db, DistrictDB, district_id, "District not found")
+
+    if payload.state_id is not None:
+        get_entity_or_404(db, StateDB, payload.state_id, "State not found")
+        district.state_id = payload.state_id
+    if payload.name is not None:
+        district.name = payload.name
+    if payload.code is not None:
+        district.code = payload.code
+    if payload.is_active is not None:
+        district.is_active = payload.is_active
+
+    db.commit()
+    db.refresh(district)
+    return district
+
+
+@router.delete("/districts/{district_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_district(
+    district_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    district = get_entity_or_404(db, DistrictDB, district_id, "District not found")
+    district.is_active = False
+    db.commit()
+    return
 
 
 @router.post(
@@ -717,11 +951,27 @@ def add_constituency(
     db: Session = Depends(get_db),
 ):
     check_permission(current_user, "system:admin")
+    get_entity_or_404(db, DistrictDB, payload.district_id, "District not found")
+    if payload.parliamentary_constituency_id is not None:
+        get_entity_or_404(
+            db,
+            ParliamentaryConstituencyDB,
+            payload.parliamentary_constituency_id,
+            "Parliamentary Constituency not found",
+        )
+    if payload.geojson_boundary:
+        validate_geojson_or_400(payload.geojson_boundary)
+
     constituency = ConstituencyDB(
         id=str(uuid.uuid4()),
         name=payload.name,
         district_id=payload.district_id,
+        parliamentary_constituency_id=payload.parliamentary_constituency_id,
+        code=payload.code,
         geojson_boundary=payload.geojson_boundary,
+        area_metadata=payload.area_metadata,
+        population_metadata=payload.population_metadata,
+        is_active=True,
         status="ACTIVE",
     )
     db.add(constituency)
@@ -731,11 +981,25 @@ def add_constituency(
 
 
 @router.get("/constituencies", response_model=list[ConstituencyResponse])
-def list_constituencies(district_id: str | None = None, db: Session = Depends(get_db)):
+def list_constituencies(
+    district_id: str | None = None,
+    parliamentary_constituency_id: str | None = None,
+    include_inactive: bool = False,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
     query = db.query(ConstituencyDB)
     if district_id:
         query = query.filter(ConstituencyDB.district_id == district_id)
-    return query.all()
+    if parliamentary_constituency_id:
+        query = query.filter(
+            ConstituencyDB.parliamentary_constituency_id
+            == parliamentary_constituency_id
+        )
+    if not include_inactive:
+        query = query.filter(ConstituencyDB.is_active.is_(True))
+    return query.order_by(ConstituencyDB.name.asc()).all()
 
 
 @router.post(
@@ -748,13 +1012,12 @@ def assign_mla_constituency(
     db: Session = Depends(get_db),
 ):
     check_permission(current_user, "system:admin")
-    constituency = (
-        db.query(ConstituencyDB).filter(ConstituencyDB.id == constituency_id).first()
+    constituency = get_entity_or_404(
+        db,
+        ConstituencyDB,
+        constituency_id,
+        "Constituency not found",
     )
-    if not constituency:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Constituency not found"
-        )
 
     mla = db.query(UserDB).filter(UserDB.id == mla_id, UserDB.role == "MLA").first()
     if not mla:
@@ -763,7 +1026,6 @@ def assign_mla_constituency(
             detail="MLA user not found or user role is not MLA",
         )
 
-    # Revoke MLA from previous constituency assignment
     prev_constituency = (
         db.query(ConstituencyDB).filter(ConstituencyDB.mla_id == mla_id).first()
     )
@@ -787,15 +1049,16 @@ def update_constituency_geojson(
     db: Session = Depends(get_db),
 ):
     check_permission(current_user, "system:admin")
-    constituency = (
-        db.query(ConstituencyDB).filter(ConstituencyDB.id == constituency_id).first()
+    constituency = get_entity_or_404(
+        db,
+        ConstituencyDB,
+        constituency_id,
+        "Constituency not found",
     )
-    if not constituency:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Constituency not found"
-        )
+    validate_geojson_or_400(geojson_boundary)
 
     constituency.geojson_boundary = geojson_boundary
+    constituency.boundary_version += 1
     db.commit()
     db.refresh(constituency)
     return constituency
@@ -808,8 +1071,26 @@ def add_ward(
     db: Session = Depends(get_db),
 ):
     check_permission(current_user, "system:admin")
+    assembly_constituency_id = resolve_assembly_constituency_id(
+        payload.assembly_constituency_id,
+        payload.constituency_id,
+    )
+    get_entity_or_404(
+        db,
+        AssemblyConstituencyDB,
+        assembly_constituency_id,
+        "Assembly Constituency not found",
+    )
+    if payload.geojson_boundary:
+        validate_geojson_or_400(payload.geojson_boundary)
+
     ward = WardDB(
-        id=str(uuid.uuid4()), name=payload.name, constituency_id=payload.constituency_id
+        id=str(uuid.uuid4()),
+        name=payload.name,
+        assembly_constituency_id=assembly_constituency_id,
+        code=payload.code,
+        geojson_boundary=payload.geojson_boundary,
+        is_active=True,
     )
     db.add(ward)
     db.commit()
@@ -818,11 +1099,21 @@ def add_ward(
 
 
 @router.get("/wards", response_model=list[WardResponse])
-def list_wards(constituency_id: str | None = None, db: Session = Depends(get_db)):
+def list_wards(
+    assembly_constituency_id: str | None = None,
+    constituency_id: str | None = None,
+    include_inactive: bool = False,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
     query = db.query(WardDB)
-    if constituency_id:
-        query = query.filter(WardDB.constituency_id == constituency_id)
-    return query.all()
+    resolved_id = assembly_constituency_id or constituency_id
+    if resolved_id:
+        query = query.filter(WardDB.assembly_constituency_id == resolved_id)
+    if not include_inactive:
+        query = query.filter(WardDB.is_active.is_(True))
+    return query.order_by(WardDB.name.asc()).all()
 
 
 # User Audit Logs Route
@@ -1220,3 +1511,572 @@ def delete_user(
     user.status = "DEACTIVATED"
     db.commit()
     return
+
+
+# Jurisdiction Lookup Endpoint
+@router.get("/jurisdiction/lookup", response_model=JurisdictionLookupResponse)
+def lookup_jurisdiction_coords(
+    latitude: float,
+    longitude: float,
+    db: Session = Depends(get_db),
+):
+    """Given GPS coordinates (latitude and longitude), return State, District,
+    Parliamentary/Assembly Constituencies, and Ward/Village containing the coordinates.
+    """
+    return lookup_jurisdiction(db, latitude, longitude)
+
+
+# Parliamentary Constituency CRUD
+@router.post(
+    "/parliamentary-constituencies",
+    response_model=ParliamentaryConstituencyResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_parliamentary_constituency(
+    payload: ParliamentaryConstituencyCreate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    get_entity_or_404(db, StateDB, payload.state_id, "State not found")
+    if payload.geojson_boundary:
+        validate_geojson_or_400(payload.geojson_boundary)
+
+    pc = ParliamentaryConstituencyDB(
+        id=str(uuid.uuid4()),
+        name=payload.name,
+        state_id=payload.state_id,
+        code=payload.code,
+        geojson_boundary=payload.geojson_boundary,
+        area_metadata=payload.area_metadata,
+        population_metadata=payload.population_metadata,
+        is_active=True,
+    )
+    db.add(pc)
+    db.commit()
+    db.refresh(pc)
+    return pc
+
+
+@router.get(
+    "/parliamentary-constituencies",
+    response_model=list[ParliamentaryConstituencyResponse],
+)
+def list_parliamentary_constituencies(
+    state_id: str | None = None,
+    include_inactive: bool = False,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    query = db.query(ParliamentaryConstituencyDB)
+    if state_id:
+        query = query.filter(ParliamentaryConstituencyDB.state_id == state_id)
+    if not include_inactive:
+        query = query.filter(ParliamentaryConstituencyDB.is_active.is_(True))
+    return query.order_by(ParliamentaryConstituencyDB.name.asc()).all()
+
+
+@router.get(
+    "/parliamentary-constituencies/{pc_id}",
+    response_model=ParliamentaryConstituencyResponse,
+)
+def get_parliamentary_constituency(
+    pc_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    return get_entity_or_404(
+        db,
+        ParliamentaryConstituencyDB,
+        pc_id,
+        "Parliamentary Constituency not found",
+    )
+
+
+@router.put(
+    "/parliamentary-constituencies/{pc_id}",
+    response_model=ParliamentaryConstituencyResponse,
+)
+def update_parliamentary_constituency(
+    pc_id: str,
+    payload: ParliamentaryConstituencyUpdate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    pc = get_entity_or_404(
+        db,
+        ParliamentaryConstituencyDB,
+        pc_id,
+        "Parliamentary Constituency not found",
+    )
+
+    if payload.name is not None:
+        pc.name = payload.name
+    if payload.state_id is not None:
+        get_entity_or_404(db, StateDB, payload.state_id, "State not found")
+        pc.state_id = payload.state_id
+    if payload.code is not None:
+        pc.code = payload.code
+    if payload.is_active is not None:
+        pc.is_active = payload.is_active
+    if payload.area_metadata is not None:
+        pc.area_metadata = payload.area_metadata
+    if payload.population_metadata is not None:
+        pc.population_metadata = payload.population_metadata
+    if payload.geojson_boundary is not None:
+        validate_geojson_or_400(payload.geojson_boundary)
+        pc.geojson_boundary = payload.geojson_boundary
+        pc.boundary_version += 1
+
+    db.commit()
+    db.refresh(pc)
+    return pc
+
+
+@router.delete(
+    "/parliamentary-constituencies/{pc_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_parliamentary_constituency(
+    pc_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    pc = get_entity_or_404(
+        db,
+        ParliamentaryConstituencyDB,
+        pc_id,
+        "Parliamentary Constituency not found",
+    )
+    pc.is_active = False
+    db.commit()
+    return
+
+
+# Assembly Constituency CRUD
+@router.post(
+    "/assembly-constituencies",
+    response_model=AssemblyConstituencyResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_assembly_constituency(
+    payload: AssemblyConstituencyCreate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    get_entity_or_404(db, DistrictDB, payload.district_id, "District not found")
+    if payload.parliamentary_constituency_id is not None:
+        get_entity_or_404(
+            db,
+            ParliamentaryConstituencyDB,
+            payload.parliamentary_constituency_id,
+            "Parliamentary Constituency not found",
+        )
+    if payload.geojson_boundary:
+        validate_geojson_or_400(payload.geojson_boundary)
+
+    ac = AssemblyConstituencyDB(
+        id=str(uuid.uuid4()),
+        name=payload.name,
+        district_id=payload.district_id,
+        parliamentary_constituency_id=payload.parliamentary_constituency_id,
+        code=payload.code,
+        geojson_boundary=payload.geojson_boundary,
+        area_metadata=payload.area_metadata,
+        population_metadata=payload.population_metadata,
+        is_active=True,
+        status="ACTIVE",
+    )
+    db.add(ac)
+    db.commit()
+    db.refresh(ac)
+    return ac
+
+
+@router.get(
+    "/assembly-constituencies",
+    response_model=list[AssemblyConstituencyResponse],
+)
+def list_assembly_constituencies(
+    district_id: str | None = None,
+    parliamentary_constituency_id: str | None = None,
+    include_inactive: bool = False,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    query = db.query(AssemblyConstituencyDB)
+    if district_id:
+        query = query.filter(AssemblyConstituencyDB.district_id == district_id)
+    if parliamentary_constituency_id:
+        query = query.filter(
+            AssemblyConstituencyDB.parliamentary_constituency_id
+            == parliamentary_constituency_id
+        )
+    if not include_inactive:
+        query = query.filter(AssemblyConstituencyDB.is_active.is_(True))
+    return query.order_by(AssemblyConstituencyDB.name.asc()).all()
+
+
+@router.get(
+    "/assembly-constituencies/{ac_id}",
+    response_model=AssemblyConstituencyResponse,
+)
+def get_assembly_constituency(
+    ac_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    return get_entity_or_404(
+        db,
+        AssemblyConstituencyDB,
+        ac_id,
+        "Assembly Constituency not found",
+    )
+
+
+@router.put(
+    "/assembly-constituencies/{ac_id}",
+    response_model=AssemblyConstituencyResponse,
+)
+def update_assembly_constituency(
+    ac_id: str,
+    payload: AssemblyConstituencyUpdate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    ac = get_entity_or_404(
+        db,
+        AssemblyConstituencyDB,
+        ac_id,
+        "Assembly Constituency not found",
+    )
+
+    if payload.name is not None:
+        ac.name = payload.name
+    if payload.district_id is not None:
+        get_entity_or_404(db, DistrictDB, payload.district_id, "District not found")
+        ac.district_id = payload.district_id
+    if payload.parliamentary_constituency_id is not None:
+        get_entity_or_404(
+            db,
+            ParliamentaryConstituencyDB,
+            payload.parliamentary_constituency_id,
+            "Parliamentary Constituency not found",
+        )
+        ac.parliamentary_constituency_id = payload.parliamentary_constituency_id
+    if payload.code is not None:
+        ac.code = payload.code
+    if payload.is_active is not None:
+        ac.is_active = payload.is_active
+        ac.status = "ACTIVE" if payload.is_active else "DEACTIVATED"
+    if payload.area_metadata is not None:
+        ac.area_metadata = payload.area_metadata
+    if payload.population_metadata is not None:
+        ac.population_metadata = payload.population_metadata
+    if payload.geojson_boundary is not None:
+        validate_geojson_or_400(payload.geojson_boundary)
+        ac.geojson_boundary = payload.geojson_boundary
+        ac.boundary_version += 1
+
+    db.commit()
+    db.refresh(ac)
+    return ac
+
+
+@router.delete(
+    "/assembly-constituencies/{ac_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_assembly_constituency(
+    ac_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    ac = get_entity_or_404(
+        db,
+        AssemblyConstituencyDB,
+        ac_id,
+        "Assembly Constituency not found",
+    )
+    ac.is_active = False
+    ac.status = "DEACTIVATED"
+    db.commit()
+    return
+
+
+# Extended Ward Endpoints
+@router.get("/wards/{ward_id}", response_model=WardResponse)
+def get_ward(
+    ward_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    return get_entity_or_404(db, WardDB, ward_id, "Ward not found")
+
+
+@router.put("/wards/{ward_id}", response_model=WardResponse)
+def update_ward(
+    ward_id: str,
+    payload: WardUpdate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    ward = get_entity_or_404(db, WardDB, ward_id, "Ward not found")
+
+    if payload.name is not None:
+        ward.name = payload.name
+    if (
+        payload.assembly_constituency_id is not None
+        or payload.constituency_id is not None
+    ):
+        assembly_constituency_id = resolve_assembly_constituency_id(
+            payload.assembly_constituency_id,
+            payload.constituency_id,
+        )
+        get_entity_or_404(
+            db,
+            AssemblyConstituencyDB,
+            assembly_constituency_id,
+            "Assembly Constituency not found",
+        )
+        ward.assembly_constituency_id = assembly_constituency_id
+    if payload.code is not None:
+        ward.code = payload.code
+    if payload.is_active is not None:
+        ward.is_active = payload.is_active
+    if payload.geojson_boundary is not None:
+        validate_geojson_or_400(payload.geojson_boundary)
+        ward.geojson_boundary = payload.geojson_boundary
+
+    db.commit()
+    db.refresh(ward)
+    return ward
+
+
+@router.delete("/wards/{ward_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_ward(
+    ward_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    ward = get_entity_or_404(db, WardDB, ward_id, "Ward not found")
+    ward.is_active = False
+    db.commit()
+    return
+
+
+# Village Endpoints
+@router.post(
+    "/villages", response_model=VillageResponse, status_code=status.HTTP_201_CREATED
+)
+def add_village(
+    payload: VillageCreate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    assembly_constituency_id = resolve_assembly_constituency_id(
+        payload.assembly_constituency_id,
+        payload.constituency_id,
+    )
+    get_entity_or_404(
+        db,
+        AssemblyConstituencyDB,
+        assembly_constituency_id,
+        "Assembly Constituency not found",
+    )
+    if payload.geojson_boundary:
+        validate_geojson_or_400(payload.geojson_boundary)
+
+    village = VillageDB(
+        id=str(uuid.uuid4()),
+        name=payload.name,
+        assembly_constituency_id=assembly_constituency_id,
+        code=payload.code,
+        geojson_boundary=payload.geojson_boundary,
+        is_active=True,
+    )
+    db.add(village)
+    db.commit()
+    db.refresh(village)
+    return village
+
+
+@router.get("/villages", response_model=list[VillageResponse])
+def list_villages(
+    assembly_constituency_id: str | None = None,
+    constituency_id: str | None = None,
+    include_inactive: bool = False,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    query = db.query(VillageDB)
+    resolved_id = assembly_constituency_id or constituency_id
+    if resolved_id:
+        query = query.filter(VillageDB.assembly_constituency_id == resolved_id)
+    if not include_inactive:
+        query = query.filter(VillageDB.is_active.is_(True))
+    return query.order_by(VillageDB.name.asc()).all()
+
+
+@router.get("/villages/{village_id}", response_model=VillageResponse)
+def get_village(
+    village_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    return get_entity_or_404(db, VillageDB, village_id, "Village not found")
+
+
+@router.put("/villages/{village_id}", response_model=VillageResponse)
+def update_village(
+    village_id: str,
+    payload: VillageUpdate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    village = get_entity_or_404(db, VillageDB, village_id, "Village not found")
+
+    if payload.name is not None:
+        village.name = payload.name
+    if (
+        payload.assembly_constituency_id is not None
+        or payload.constituency_id is not None
+    ):
+        assembly_constituency_id = resolve_assembly_constituency_id(
+            payload.assembly_constituency_id,
+            payload.constituency_id,
+        )
+        get_entity_or_404(
+            db,
+            AssemblyConstituencyDB,
+            assembly_constituency_id,
+            "Assembly Constituency not found",
+        )
+        village.assembly_constituency_id = assembly_constituency_id
+    if payload.code is not None:
+        village.code = payload.code
+    if payload.is_active is not None:
+        village.is_active = payload.is_active
+    if payload.geojson_boundary is not None:
+        validate_geojson_or_400(payload.geojson_boundary)
+        village.geojson_boundary = payload.geojson_boundary
+
+    db.commit()
+    db.refresh(village)
+    return village
+
+
+@router.delete("/villages/{village_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_village(
+    village_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    village = get_entity_or_404(db, VillageDB, village_id, "Village not found")
+    village.is_active = False
+    db.commit()
+    return
+
+
+# Boundary Upload/Replace Endpoints
+@router.post(
+    "/parliamentary-constituencies/{id}/boundary",
+    response_model=ParliamentaryConstituencyResponse,
+)
+def replace_parliamentary_boundary(
+    id: str,
+    payload: BoundaryUploadRequest,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    pc = get_entity_or_404(
+        db,
+        ParliamentaryConstituencyDB,
+        id,
+        "Parliamentary Constituency not found",
+    )
+    validate_geojson_or_400(payload.geojson_boundary)
+
+    pc.geojson_boundary = payload.geojson_boundary
+    pc.boundary_version += 1
+    db.commit()
+    db.refresh(pc)
+    return pc
+
+
+@router.post(
+    "/assembly-constituencies/{id}/boundary",
+    response_model=AssemblyConstituencyResponse,
+)
+def replace_assembly_boundary(
+    id: str,
+    payload: BoundaryUploadRequest,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    ac = get_entity_or_404(
+        db,
+        AssemblyConstituencyDB,
+        id,
+        "Assembly Constituency not found",
+    )
+    validate_geojson_or_400(payload.geojson_boundary)
+
+    ac.geojson_boundary = payload.geojson_boundary
+    ac.boundary_version += 1
+    db.commit()
+    db.refresh(ac)
+    return ac
+
+
+@router.post("/wards/{id}/boundary", response_model=WardResponse)
+def replace_ward_boundary(
+    id: str,
+    payload: BoundaryUploadRequest,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    ward = get_entity_or_404(db, WardDB, id, "Ward not found")
+    validate_geojson_or_400(payload.geojson_boundary)
+
+    ward.geojson_boundary = payload.geojson_boundary
+    db.commit()
+    db.refresh(ward)
+    return ward
+
+
+@router.post("/villages/{id}/boundary", response_model=VillageResponse)
+def replace_village_boundary(
+    id: str,
+    payload: BoundaryUploadRequest,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_permission(current_user, "system:admin")
+    village = get_entity_or_404(db, VillageDB, id, "Village not found")
+    validate_geojson_or_400(payload.geojson_boundary)
+
+    village.geojson_boundary = payload.geojson_boundary
+    db.commit()
+    db.refresh(village)
+    return village

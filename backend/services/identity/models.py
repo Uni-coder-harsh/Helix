@@ -2,6 +2,7 @@ import datetime
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from helix_platform.persistence import Base
 
@@ -13,6 +14,17 @@ class CountryDB(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), unique=True, nullable=False)
+    code = Column(String(100), nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(
+        DateTime, default=lambda: datetime.datetime.now(datetime.UTC), nullable=False
+    )
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.datetime.now(datetime.UTC),
+        onupdate=lambda: datetime.datetime.now(datetime.UTC),
+        nullable=False,
+    )
 
 
 class StateDB(Base):
@@ -22,7 +34,18 @@ class StateDB(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
+    code = Column(String(100), nullable=True)
     country_id = Column(String(36), ForeignKey("countries.id"), nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(
+        DateTime, default=lambda: datetime.datetime.now(datetime.UTC), nullable=False
+    )
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.datetime.now(datetime.UTC),
+        onupdate=lambda: datetime.datetime.now(datetime.UTC),
+        nullable=False,
+    )
 
 
 class DistrictDB(Base):
@@ -32,23 +55,77 @@ class DistrictDB(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
+    code = Column(String(100), nullable=True)
     state_id = Column(String(36), ForeignKey("states.id"), nullable=False)
-
-
-class ConstituencyDB(Base):
-    """SQLAlchemy model representing an Electoral Constituency with GeoJSON boundaries."""
-
-    __tablename__ = "constituencies"
-
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String(255), nullable=False)
-    district_id = Column(String(36), ForeignKey("districts.id"), nullable=False)
-    geojson_boundary = Column(Text, nullable=True)  # Store boundary as a GeoJSON string
-    mla_id = Column(String(36), nullable=True)  # Reference to UserDB.id
-    status = Column(String(50), nullable=False, default="ACTIVE")  # ACTIVE, DEACTIVATED
+    is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(
         DateTime, default=lambda: datetime.datetime.now(datetime.UTC), nullable=False
     )
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.datetime.now(datetime.UTC),
+        onupdate=lambda: datetime.datetime.now(datetime.UTC),
+        nullable=False,
+    )
+
+
+class ParliamentaryConstituencyDB(Base):
+    """SQLAlchemy model representing a Parliamentary Constituency with GeoJSON boundaries."""
+
+    __tablename__ = "parliamentary_constituencies"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(255), nullable=False)
+    code = Column(String(100), nullable=True)
+    state_id = Column(String(36), ForeignKey("states.id"), nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(
+        DateTime, default=lambda: datetime.datetime.now(datetime.UTC), nullable=False
+    )
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.datetime.now(datetime.UTC),
+        onupdate=lambda: datetime.datetime.now(datetime.UTC),
+        nullable=False,
+    )
+    geojson_boundary = Column(Text, nullable=True)
+    boundary_version = Column(Integer, default=1, nullable=False)
+    area_metadata = Column(Text, nullable=True)
+    population_metadata = Column(Text, nullable=True)
+
+
+class AssemblyConstituencyDB(Base):
+    """SQLAlchemy model representing an Assembly Constituency with GeoJSON boundaries."""
+
+    __tablename__ = "assembly_constituencies"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(255), nullable=False)
+    code = Column(String(100), nullable=True)
+    district_id = Column(String(36), ForeignKey("districts.id"), nullable=False)
+    parliamentary_constituency_id = Column(
+        String(36), ForeignKey("parliamentary_constituencies.id"), nullable=True
+    )
+    mla_id = Column(String(36), nullable=True)  # Reference to UserDB.id
+    status = Column(String(50), nullable=False, default="ACTIVE")
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(
+        DateTime, default=lambda: datetime.datetime.now(datetime.UTC), nullable=False
+    )
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.datetime.now(datetime.UTC),
+        onupdate=lambda: datetime.datetime.now(datetime.UTC),
+        nullable=False,
+    )
+    geojson_boundary = Column(Text, nullable=True)
+    boundary_version = Column(Integer, default=1, nullable=False)
+    area_metadata = Column(Text, nullable=True)
+    population_metadata = Column(Text, nullable=True)
+
+
+# Keep ConstituencyDB as alias for backward compatibility
+ConstituencyDB = AssemblyConstituencyDB
 
 
 class WardDB(Base):
@@ -58,9 +135,69 @@ class WardDB(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
-    constituency_id = Column(
-        String(36), ForeignKey("constituencies.id"), nullable=False
+    code = Column(String(100), nullable=True)
+    assembly_constituency_id = Column(
+        String(36), ForeignKey("assembly_constituencies.id"), nullable=False
     )
+    is_active = Column(Boolean, default=True, nullable=False)
+    geojson_boundary = Column(Text, nullable=True)
+    created_at = Column(
+        DateTime, default=lambda: datetime.datetime.now(datetime.UTC), nullable=False
+    )
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.datetime.now(datetime.UTC),
+        onupdate=lambda: datetime.datetime.now(datetime.UTC),
+        nullable=False,
+    )
+
+    @hybrid_property
+    def constituency_id(self) -> str:
+        return self.assembly_constituency_id
+
+    @constituency_id.expression
+    def constituency_id(self) -> Column:
+        return self.assembly_constituency_id
+
+    @constituency_id.setter
+    def constituency_id(self, value: str) -> None:
+        self.assembly_constituency_id = value
+
+
+class VillageDB(Base):
+    """SQLAlchemy model representing a Village within a constituency."""
+
+    __tablename__ = "villages"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(255), nullable=False)
+    code = Column(String(100), nullable=True)
+    assembly_constituency_id = Column(
+        String(36), ForeignKey("assembly_constituencies.id"), nullable=False
+    )
+    is_active = Column(Boolean, default=True, nullable=False)
+    geojson_boundary = Column(Text, nullable=True)
+    created_at = Column(
+        DateTime, default=lambda: datetime.datetime.now(datetime.UTC), nullable=False
+    )
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.datetime.now(datetime.UTC),
+        onupdate=lambda: datetime.datetime.now(datetime.UTC),
+        nullable=False,
+    )
+
+    @hybrid_property
+    def constituency_id(self) -> str:
+        return self.assembly_constituency_id
+
+    @constituency_id.expression
+    def constituency_id(self) -> Column:
+        return self.assembly_constituency_id
+
+    @constituency_id.setter
+    def constituency_id(self, value: str) -> None:
+        self.assembly_constituency_id = value
 
 
 class UserDB(Base):
@@ -90,6 +227,8 @@ class UserDB(Base):
     state_id = Column(String(36), nullable=True)
     district_id = Column(String(36), nullable=True)
     constituency_id = Column(String(36), nullable=True)
+    assembly_constituency_id = Column(String(36), nullable=True)
+    parliamentary_constituency_id = Column(String(36), nullable=True)
     ward_or_village = Column(String(255), nullable=True)
     address = Column(String(1024), nullable=True)
 
