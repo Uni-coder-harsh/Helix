@@ -351,7 +351,7 @@ def refresh(
         db.query(RefreshTokenDB)
         .filter(
             RefreshTokenDB.token == token,
-            RefreshTokenDB.is_revoked == False,  # noqa: E712
+            RefreshTokenDB.is_revoked.is_(False),
         )
         .first()
     )
@@ -479,7 +479,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
         db.query(PasswordResetDB)
         .filter(
             PasswordResetDB.token == payload.token,
-            PasswordResetDB.is_used == False,  # noqa: E712
+            PasswordResetDB.is_used.is_(False),
         )
         .first()
     )
