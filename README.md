@@ -4,7 +4,7 @@
 
   <p>
     <a href="https://helix-sigma-kohl.vercel.app"><strong>Live Demo</strong></a> ·
-    <a href="https://helix-sigma-kohl.vercel.app/docs"><strong>Documentation</strong></a>
+    <a href="https://uni-coder-harsh.github.io/Helix"><strong>Documentation</strong></a>
   </p>
 </div>
 
@@ -92,6 +92,3 @@ npm install
 cp .env.example .env.local
 npm run dev
 ```
-
-## 📄 License
-This project is licensed under the MIT License.

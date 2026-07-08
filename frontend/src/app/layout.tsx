@@ -81,7 +81,7 @@ export default function RootLayout({
                       Privacy Policy
                     </a>
                     <a href="#" className="hover:underline">
-                      System Architecture (HELIX-ARCH-007)
+                      System Architecture
                     </a>
                   </div>
                 </div>

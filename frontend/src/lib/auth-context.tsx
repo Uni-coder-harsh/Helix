@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (token: string) => {
     localStorage.setItem("helix-token", token);
     await checkAuth();
+    router.push("/");
   };
 
   const logout = () => {
