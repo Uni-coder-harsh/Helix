@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { API_BASE_URL } from "@/config";
+import { fetchWithAuth } from "@/lib/api";
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,24 +15,19 @@ export default function SettingsPage() {
   const [whatsappNotify, setWhatsappNotify] = useState(true);
   const [emailNotify, setEmailNotify] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
-  const { user, role, token } = useAuth();
-  const [roleRequests, setRoleRequests] = useState([]);
+  const { user, role } = useAuth();
+  const [roleRequests, setRoleRequests] = useState<any[]>([]);
   const [requestedRole, setRequestedRole] = useState("Officer");
-  const [myRequests, setMyRequests] = useState([]);
+  const [myRequests, setMyRequests] = useState<any[]>([]);
 
   useEffect(() => {
-    if (token) {
-      fetchRequests();
-    }
-  }, [token]);
+    fetchRequests();
+  }, []);
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/identity/role-change-requests`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const data = await fetchWithAuth(`/identity/role-change-requests`);
+      if (data) {
         if (role === "System Administrator") setRoleRequests(data);
         else setMyRequests(data);
       }
@@ -41,25 +36,20 @@ export default function SettingsPage() {
 
   const handleRequestRole = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/identity/role-change-requests`, {
+      await fetchWithAuth(`/identity/role-change-requests`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
         body: JSON.stringify({ requested_role: requestedRole })
       });
-      if (res.ok) fetchRequests();
+      fetchRequests();
     } catch (e) {}
   };
 
-  const handleApprove = async (id) => {
+  const handleApprove = async (id: string) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/identity/role-change-requests/${id}/approve`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` }
+      await fetchWithAuth(`/identity/role-change-requests/${id}/approve`, {
+        method: "PUT"
       });
-      if (res.ok) fetchRequests();
+      fetchRequests();
     } catch (e) {}
   };
 
