@@ -54,7 +54,7 @@ export default function Home() {
             Note: New registered accounts are considered as "Citizen" unless approved by the System Administrator.
             For testing, you may use the following pre-configured dummy credentials:
             <br/><br/>
-            <strong>MLA:</strong> mla@gov.ai / Password <br/>
+            <strong>MLA:</strong> mla@gov.in / Password <br/>
             <strong>System Admin:</strong> system@gov.ai / System123
           </p>
         </div>

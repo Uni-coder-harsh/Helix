@@ -74,13 +74,10 @@ export default function RootLayout({
                     Governance Ethos of the Helix Constitution.
                   </div>
                   <div className="flex gap-4">
-                    <a href="#" className="hover:underline">
+                    <a href="https://uni-coder-harsh.github.io/Helix/" className="hover:underline">
                       Documentation
                     </a>
-                    <a href="#" className="hover:underline">
-                      Privacy Policy
-                    </a>
-                    <a href="#" className="hover:underline">
+                    <a href="https://uni-coder-harsh.github.io/Helix/02-architecture/00-architecture-principles/" className="hover:underline">
                       System Architecture
                     </a>
                   </div>
