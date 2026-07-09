@@ -501,3 +501,18 @@ class JurisdictionLookupResponse(BaseModel):
     assembly_constituency: dict[str, Any] | None = None
     ward: dict[str, Any] | None = None
     village: dict[str, Any] | None = None
+
+
+class RoleChangeRequestCreate(BaseModel):
+    requested_role: str
+
+
+class RoleChangeRequestResponse(BaseModel):
+    id: str
+    user_id: str
+    requested_role: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

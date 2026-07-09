@@ -27,12 +27,7 @@ export default function CitizenDashboard() {
   const [newConstituency, setNewConstituency] = useState("Central Bengaluru");
 
   useEffect(() => {
-    // Citizens do not have permission for /pending. Bypass if citizen.
-    if (user?.role === "Citizen") {
-      setLoading(false);
-      return;
-    }
-    fetchWithAuth(`/governance/issues/pending`)
+    fetchWithAuth(`/governance/issues`)
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           const mapped: any[] = data.map((item) => ({

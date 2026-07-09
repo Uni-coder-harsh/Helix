@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { API_URL } from "@/config";
+
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +15,54 @@ export default function SettingsPage() {
   const [whatsappNotify, setWhatsappNotify] = useState(true);
   const [emailNotify, setEmailNotify] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+  const { user, role, token } = useAuth();
+  const [roleRequests, setRoleRequests] = useState([]);
+  const [requestedRole, setRequestedRole] = useState("Officer");
+  const [myRequests, setMyRequests] = useState([]);
+
+  useEffect(() => {
+    if (token) {
+      fetchRequests();
+    }
+  }, [token]);
+
+  const fetchRequests = async () => {
+    try {
+      const res = await fetch(`${API_URL}/identity/role-change-requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (role === "System Administrator") setRoleRequests(data);
+        else setMyRequests(data);
+      }
+    } catch(e) {}
+  };
+
+  const handleRequestRole = async () => {
+    try {
+      const res = await fetch(`${API_URL}/identity/role-change-requests`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ requested_role: requestedRole })
+      });
+      if (res.ok) fetchRequests();
+    } catch (e) {}
+  };
+
+  const handleApprove = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/identity/role-change-requests/${id}/approve`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) fetchRequests();
+    } catch (e) {}
+  };
+
 
   const handleSave = () => {
     setIsSaved(true);
@@ -103,7 +154,57 @@ export default function SettingsPage() {
               </div>
             </div>
           </Card>
-        </div>
+
+          {/* Admin Role Approval UI */}
+          {role === "System Administrator" && (
+            <Card className="p-6 mt-6">
+              <h3 className="font-bold text-sm mb-4 tracking-tight">Pending Role Change Requests</h3>
+              <div className="space-y-4">
+                {roleRequests.length === 0 && <p className="text-xs text-muted-foreground">No pending requests.</p>}
+                {roleRequests.map((req) => (
+                  <div key={req.id} className="flex items-center justify-between border-b pb-3">
+                    <div className="space-y-0.5">
+                      <div className="font-semibold text-xs text-slate-800 dark:text-slate-200">User ID: {req.user_id}</div>
+                      <p className="text-[10px] text-muted-foreground">Requested Role: {req.requested_role}</p>
+                    </div>
+                    <Button onClick={() => handleApprove(req.id)} size="sm" className="h-7 text-[10px]">Approve</Button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Normal User Role Request UI */}
+          {role !== "System Administrator" && (
+            <Card className="p-6 mt-6">
+              <h3 className="font-bold text-sm mb-4 tracking-tight">Request Role Change</h3>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <select
+                    value={requestedRole}
+                    onChange={e => setRequestedRole(e.target.value)}
+                    className="text-sm border rounded p-1"
+                  >
+                    <option value="Officer">Officer</option>
+                    <option value="MLA">MLA</option>
+                    <option value="MP">MP</option>
+                  </select>
+                  <Button onClick={handleRequestRole} size="sm">Submit Request</Button>
+                </div>
+                {myRequests.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="font-bold text-xs mb-2">My Requests:</h4>
+                    {myRequests.map(req => (
+                      <div key={req.id} className="text-xs">
+                        Requested: {req.requested_role} - Status: {req.status}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+</div>
 
         {/* Plugin and Security Adapters */}
         <div className="space-y-6">

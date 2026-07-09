@@ -350,3 +350,22 @@ class InvitationDB(Base):
     invited_by = Column(String(36), nullable=False)  # User ID of the inviter
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
     expires_at = Column(DateTime, nullable=False)
+
+
+class RoleChangeRequestDB(Base):
+    """SQLAlchemy model for tracking role change requests."""
+
+    __tablename__ = "role_change_requests"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
+    requested_role = Column(String(50), nullable=False)
+    status = Column(
+        String(50), nullable=False, default="PENDING"
+    )  # PENDING, APPROVED, REJECTED
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.datetime.now(datetime.UTC),
+        onupdate=lambda: datetime.datetime.now(datetime.UTC),
+    )

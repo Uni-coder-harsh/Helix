@@ -37,17 +37,26 @@ export default function Home() {
         <p className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed font-medium">
           A secure, transparent, event-driven governance system. We connect citizens directly to field operations using spatial intelligence and AI-driven decision support for smarter cities.
         </p>
-        <div className="pt-6 flex items-center justify-center gap-4">
-          <Link href="/login">
-            <button className="h-12 px-8 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/95 transition-all shadow-md group/btn flex items-center gap-2">
-              Login to Access <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-            </button>
-          </Link>
-          <Link href="/register">
-            <button className="h-12 px-8 rounded-lg bg-secondary text-secondary-foreground text-sm font-bold hover:bg-secondary/80 transition-all border shadow-sm flex items-center gap-2">
-              Register Account
-            </button>
-          </Link>
+        <div className="pt-6 flex flex-col items-center justify-center gap-4">
+          <div className="flex gap-4">
+            <Link href="/login">
+              <button className="h-12 px-8 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/95 transition-all shadow-md group/btn flex items-center gap-2">
+                Login to Access <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            </Link>
+            <Link href="/register">
+              <button className="h-12 px-8 rounded-lg bg-secondary text-secondary-foreground text-sm font-bold hover:bg-secondary/80 transition-all border shadow-sm flex items-center gap-2">
+                Register Account
+              </button>
+            </Link>
+          </div>
+          <p className="text-xs text-muted-foreground mt-4 max-w-lg">
+            Note: New registered accounts are considered as "Citizen" unless approved by the System Administrator.
+            For testing, you may use the following pre-configured dummy credentials:
+            <br/><br/>
+            <strong>MLA:</strong> mla@gov.ai / Password <br/>
+            <strong>System Admin:</strong> system@gov.ai / System123
+          </p>
         </div>
       </section>
 

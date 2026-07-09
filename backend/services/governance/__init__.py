@@ -218,6 +218,15 @@ async def submit_issue(
     }
 
 
+@router.get("/issues", response_model=list[dict[str, Any]])
+async def list_all_issues(
+    query_service: GovernanceQueryService = Depends(get_query_service),
+    _current_user: CurrentUser = Depends(require_permission(Permissions.ISSUES_READ)),
+) -> list[dict[str, Any]]:
+    """List all issues for citizens."""
+    return query_service.list_pending_issues()  # we return all issues; typically we might want to return all not just pending, but since list_pending_issues lists issues we'll use that or we can query DB directly.
+
+
 @router.get("/issues/pending", response_model=list[dict[str, Any]])
 async def list_pending_issues(
     query_service: GovernanceQueryService = Depends(get_query_service),

@@ -27,6 +27,7 @@ from services.identity.models import (
     ParliamentaryConstituencyDB,
     PasswordResetDB,
     RefreshTokenDB,
+    RoleChangeRequestDB,
     SessionDB,
     StateDB,
     UserDB,
@@ -60,6 +61,8 @@ from services.identity.schemas import (
     ParliamentaryConstituencyUpdate,
     RefreshRequest,
     ResetPasswordRequest,
+    RoleChangeRequestCreate,
+    RoleChangeRequestResponse,
     SessionResponse,
     StateCreate,
     StateResponse,
@@ -2056,7 +2059,7 @@ def replace_ward_boundary(
     db: Session = Depends(get_db),
 ):
     check_permission(current_user, "system:admin")
-    ward = get_entity_or_404(db, WardDB, id, "Ward not found")
+    ward = get_entity_or_404(db, WardDB, RoleChangeRequestDB, id, "Ward not found")
     validate_geojson_or_400(payload.geojson_boundary)
 
     ward.geojson_boundary = payload.geojson_boundary
@@ -2080,3 +2083,76 @@ def replace_village_boundary(
     db.commit()
     db.refresh(village)
     return village
+
+
+@router.post(
+    "/role-change-requests",
+    response_model=RoleChangeRequestResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_role_change_request(
+    payload: RoleChangeRequestCreate,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    request = RoleChangeRequestDB(
+        user_id=current_user.id, requested_role=payload.requested_role, status="PENDING"
+    )
+    db.add(request)
+    db.commit()
+    db.refresh(request)
+    return request
+
+
+@router.get("/role-change-requests", response_model=list[RoleChangeRequestResponse])
+def get_role_change_requests(
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # If admin, fetch all pending
+    if current_user.role == "System Administrator":
+        return (
+            db.query(RoleChangeRequestDB)
+            .filter(RoleChangeRequestDB.status == "PENDING")
+            .all()
+        )
+    # Otherwise fetch their own
+    return (
+        db.query(RoleChangeRequestDB)
+        .filter(RoleChangeRequestDB.user_id == current_user.id)
+        .all()
+    )
+
+
+@router.put("/role-change-requests/{request_id}/approve")
+def approve_role_change_request(
+    request_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role != "System Administrator":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only System Administrator can approve role changes",
+        )
+
+    req = (
+        db.query(RoleChangeRequestDB)
+        .filter(RoleChangeRequestDB.id == request_id)
+        .first()
+    )
+    if not req:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Request not found"
+        )
+
+    user = db.query(UserDB).filter(UserDB.id == req.user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
+    user.role = req.requested_role
+    req.status = "APPROVED"
+    db.commit()
+    return {"message": f"Role updated to {req.requested_role} successfully"}
