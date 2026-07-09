@@ -1,7 +1,0 @@
-for mla
-email - mla@gov.ai
-pass - Password
-
-for systemAdministrator
-email - system@gov.ai
-pass - System123

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { API_URL } from "@/config";
+import { API_BASE_URL } from "@/config";
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ export default function SettingsPage() {
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch(`${API_URL}/identity/role-change-requests`, {
+      const res = await fetch(`${API_BASE_URL}/identity/role-change-requests`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -41,7 +41,7 @@ export default function SettingsPage() {
 
   const handleRequestRole = async () => {
     try {
-      const res = await fetch(`${API_URL}/identity/role-change-requests`, {
+      const res = await fetch(`${API_BASE_URL}/identity/role-change-requests`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -55,7 +55,7 @@ export default function SettingsPage() {
 
   const handleApprove = async (id) => {
     try {
-      const res = await fetch(`${API_URL}/identity/role-change-requests/${id}/approve`, {
+      const res = await fetch(`${API_BASE_URL}/identity/role-change-requests/${id}/approve`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` }
       });
