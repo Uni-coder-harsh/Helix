@@ -31,6 +31,8 @@ from services.governance.infrastructure.repositories import (
     SQLAlchemyRecommendationRepository,
 )
 from services.governance.workflows import knowledge_service
+from shared.domain.repositories.email import EmailRepository
+from shared.domain.repositories.notification import NotificationRepository
 
 router = APIRouter(prefix="/governance", tags=["Governance"])
 
@@ -80,8 +82,35 @@ def get_rec_repo(
     return SQLAlchemyRecommendationRepository(db)
 
 
-def get_notification_repo() -> LogNotificationRepository:
+def get_notification_repo() -> NotificationRepository:
+    import os
+
+    from services.governance.infrastructure.repositories import (
+        TwilioNotificationRepository,
+    )
+
+    provider = os.environ.get("NOTIFICATION_PROVIDER", "").lower()
+    account_sid = os.environ.get("TWILIO_ACCOUNT_SID", "")
+    if provider == "twilio" or (account_sid and not account_sid.startswith("ACXXXX")):
+        return TwilioNotificationRepository()
     return LogNotificationRepository()
+
+
+def get_email_repo() -> EmailRepository:
+    import os
+
+    from services.governance.infrastructure.repositories import (
+        HTTPEmailRepository,
+        LogEmailRepository,
+        SMTPEmailRepository,
+    )
+
+    provider = os.environ.get("EMAIL_PROVIDER", "").lower()
+    if provider == "http" or os.environ.get("EMAIL_API_URL"):
+        return HTTPEmailRepository()
+    if provider == "smtp" or os.environ.get("SMTP_HOST"):
+        return SMTPEmailRepository()
+    return LogEmailRepository()
 
 
 def get_query_service(
@@ -105,7 +134,7 @@ def get_rec_service(
 def get_officer_service(
     issue_repo: SQLAlchemyIssueRepository = Depends(get_issue_repo),
     rec_repo: SQLAlchemyRecommendationRepository = Depends(get_rec_repo),
-    notification_repo: LogNotificationRepository = Depends(get_notification_repo),
+    notification_repo: NotificationRepository = Depends(get_notification_repo),
 ) -> OfficerApplicationService:
     return OfficerApplicationService(issue_repo, rec_repo, notification_repo)
 
@@ -949,3 +978,35 @@ async def merge_issue_into_incident(
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+class EmailSendRequest(BaseModel):
+    to_email: str = Field(..., description="Recipient email address")
+    subject: str = Field(..., description="Email subject title")
+    message: str = Field(..., description="Email body content")
+    is_html: bool = Field(False, description="Whether the message content is HTML")
+
+
+@router.post("/email/send", response_model=dict[str, Any])
+async def send_email_notification(
+    payload: EmailSendRequest,
+    email_repo: EmailRepository = Depends(get_email_repo),
+) -> dict[str, Any]:
+    """HTTP API endpoint for sending email notifications on backend API calls."""
+    try:
+        email_repo.send_email(
+            to_email=payload.to_email,
+            subject=payload.subject,
+            message=payload.message,
+            is_html=payload.is_html,
+        )
+        return {
+            "status": "success",
+            "message": f"Email dispatched successfully to {payload.to_email}",
+            "recipient": payload.to_email,
+            "subject": payload.subject,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to dispatch email: {e}"
+        ) from e

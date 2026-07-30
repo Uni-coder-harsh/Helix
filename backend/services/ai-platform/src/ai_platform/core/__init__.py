@@ -7,6 +7,7 @@ from ai_platform.core.embedding import (
 from ai_platform.core.llm import (
     ConfigurationError,
     GeminiAdapter,
+    GemmaAdapter,
     LLMMessage,
     LLMProvider,
     LLMResponse,
@@ -32,6 +33,7 @@ __all__ = [
     "EmbeddingResponse",
     "GeminiAdapter",
     "GeminiEmbeddingAdapter",
+    "GemmaAdapter",
     "InMemoryPromptRegistry",
     "InMemoryVectorStore",
     "LLMMessage",

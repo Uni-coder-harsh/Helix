@@ -39,13 +39,170 @@ class LLMProvider(ABC):
     @staticmethod
     def get_provider() -> "LLMProvider":
         provider_type = os.environ.get("LLM_PROVIDER", "").lower()
-        if provider_type == "gemini":
+        if provider_type in ["gemini"]:
             return GeminiAdapter()
+        if provider_type in ["gemma", "gemma-2", "gemma2"]:
+            return GemmaAdapter()
         if provider_type == "mock":
             return MockProvider()
         raise ConfigurationError(
-            f"Unsupported or missing LLM_PROVIDER: '{provider_type}'. Must be 'gemini' or 'mock'."
+            f"Unsupported or missing LLM_PROVIDER: '{provider_type}'. Must be 'gemma', 'gemini', or 'mock'."
         )
+
+
+class GemmaAdapter(LLMProvider):
+    """
+    Concrete adapter for Google Gemma API models (e.g. Gemma 2 9B/27B/2B).
+    Supports API requests via:
+    1. Google AI Studio (generativelanguage.googleapis.com)
+    2. Custom Gemma API URL / OpenRouter / HuggingFace endpoint (GEMMA_API_URL)
+
+    Uses standard library urllib.request for lightweight, dependency-free execution.
+    """
+
+    def __init__(
+        self, model_name: str | None = None, api_key: str | None = None
+    ) -> None:
+        self.model_name = model_name or os.environ.get("LLM_MODEL", "gemma-2-9b-it")
+        self.api_key = (
+            api_key
+            or os.environ.get("GEMMA_API_KEY", "")
+            or os.environ.get("GEMINI_API_KEY", "")
+            or os.environ.get("HUGGINGFACE_API_KEY", "")
+            or os.environ.get("HF_TOKEN", "")
+        )
+        self.api_url = os.environ.get("GEMMA_API_URL", "")
+
+    async def generate(
+        self, messages: list[LLMMessage], config: dict[str, Any] | None = None
+    ) -> LLMResponse:
+        if not self.api_key and not self.api_url:
+            # Fallback for unauthenticated/test environments
+            last_msg = messages[-1].content if messages else ""
+            return LLMResponse(
+                content=f"[GemmaAdapter Simulation - GEMMA_API_KEY / GEMINI_API_KEY not set] Analysis for prompt: {last_msg[:120]}...",
+                raw_response={"status": "mocked", "reason": "no_api_key"},
+                usage={
+                    "prompt_tokens": 12,
+                    "completion_tokens": 16,
+                    "total_tokens": 28,
+                },
+                model_name=self.model_name,
+            )
+
+        generation_config = config or {}
+        temp = generation_config.get(
+            "temperature", float(os.environ.get("LLM_TEMPERATURE", "0.2"))
+        )
+        max_t = generation_config.get(
+            "max_tokens", int(os.environ.get("LLM_MAX_TOKENS", "1024"))
+        )
+        timeout = float(os.environ.get("LLM_TIMEOUT", "30"))
+
+        # Case A: Custom GEMMA_API_URL (OpenAI-compatible / HuggingFace Inference API)
+        if self.api_url:
+            payload = {
+                "model": self.model_name,
+                "messages": [{"role": m.role, "content": m.content} for m in messages],
+                "temperature": temp,
+                "max_tokens": max_t,
+            }
+            headers = {"Content-Type": "application/json"}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+
+            data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(
+                self.api_url, data=data, headers=headers, method="POST"
+            )
+
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as response:
+                    resp_data = json.loads(response.read().decode("utf-8"))
+
+                choices = resp_data.get("choices", [])
+                if choices:
+                    content_text = choices[0].get("message", {}).get("content", "")
+                else:
+                    content_text = str(resp_data)
+
+                usage_meta = resp_data.get("usage", {})
+                usage = {
+                    "prompt_tokens": usage_meta.get("prompt_tokens", 0),
+                    "completion_tokens": usage_meta.get("completion_tokens", 0),
+                    "total_tokens": usage_meta.get("total_tokens", 0),
+                }
+
+                return LLMResponse(
+                    content=content_text,
+                    raw_response=resp_data,
+                    usage=usage,
+                    model_name=self.model_name,
+                )
+            except Exception as e:
+                raise RuntimeError(
+                    f"Gemma API request to {self.api_url} failed: {e}"
+                ) from e
+
+        # Case B: Google AI Studio Gemma API endpoint
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={self.api_key}"
+
+        contents_payload = []
+        for msg in messages:
+            role = "user" if msg.role in ["user", "system"] else "model"
+            contents_payload.append({"role": role, "parts": [{"text": msg.content}]})
+
+        payload = {
+            "contents": contents_payload,
+            "generationConfig": {
+                "temperature": temp,
+                "maxOutputTokens": max_t,
+                "topP": generation_config.get("top_p", 0.95),
+            },
+        }
+
+        system_msgs = [m for m in messages if m.role == "system"]
+        if system_msgs:
+            payload["systemInstruction"] = {
+                "parts": [{"text": system_msgs[-1].content}]
+            }
+
+        headers = {"Content-Type": "application/json"}
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                resp_data = json.loads(response.read().decode("utf-8"))
+
+            candidates = resp_data.get("candidates", [])
+            if not candidates:
+                raise ValueError("Gemma API returned empty candidates response.")
+
+            content_text = (
+                candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+            )
+
+            usage_meta = resp_data.get("usageMetadata", {})
+            usage = {
+                "prompt_tokens": usage_meta.get("promptTokenCount", 0),
+                "completion_tokens": usage_meta.get("candidatesTokenCount", 0),
+                "total_tokens": usage_meta.get("totalTokenCount", 0),
+            }
+
+            return LLMResponse(
+                content=content_text,
+                raw_response=resp_data,
+                usage=usage,
+                model_name=self.model_name,
+            )
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8")
+            raise RuntimeError(
+                f"Gemma API request failed with status {e.code}. Details: {error_body}"
+            ) from e
+        except Exception as e:
+            raise RuntimeError(f"Failed to communicate with Gemma API: {e}") from e
 
 
 class GeminiAdapter(LLMProvider):

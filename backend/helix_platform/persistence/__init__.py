@@ -9,10 +9,15 @@ from helix_platform.config import get_settings
 settings = get_settings()
 
 # Create SQLAlchemy engine instance
-# If using SQLite, we require check_same_thread=False for FastAPI concurrency
-connect_args = {"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {}
+# Normalize legacy 'postgres://' connection string format from providers like Neon DB
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
+# If using SQLite, we require check_same_thread=False for FastAPI concurrency
+connect_args = {"check_same_thread": False} if "sqlite" in db_url else {}
+
+engine = create_engine(db_url, connect_args=connect_args)
 
 # Create session maker instance
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
