@@ -268,3 +268,92 @@ class RecommendationBuilder:
             "expected_outcome": impact["expected_outcome"],
             "budget_scheme": budget_scheme,
         }
+
+
+class GemmaFeedbackGenerator:
+    """
+    Dedicated AI Feedback Layer powered by Gemma models via OpenRouter/Google API.
+    Generates structured feedback for citizens, officers, and governance decision-makers.
+    """
+
+    def __init__(self) -> None:
+        self.llm: LLMProvider | None = None
+        try:
+            self.llm = LLMProvider.get_provider()
+        except Exception:
+            self.llm = None
+
+    async def generate_citizen_feedback(
+        self, title: str, category: str, status: str, location_address: str
+    ) -> str:
+        """Generates an empathetic, reassuring feedback message for the citizen."""
+        default_feedback = (
+            f"Thank you for reporting '{title}'. Your issue in category '{category}' "
+            f"at {location_address} is currently '{status}'. Our team has logged this request "
+            f"and assigned it to the appropriate ward department under standard SLA guidelines."
+        )
+        if not self.llm:
+            return default_feedback
+
+        prompt = (
+            f"Generate a polite, reassuring feedback message for a citizen who submitted an issue:\n"
+            f"Title: {title}\n"
+            f"Category: {category}\n"
+            f"Status: {status}\n"
+            f"Location: {location_address}\n\n"
+            "Keep the message friendly, under 3 sentences, and explain what step comes next."
+        )
+        try:
+            messages = [LLMMessage(role="user", content=prompt)]
+            res = await self.llm.generate(messages)
+            if res and res.content and len(res.content.strip()) > 20:
+                return res.content.strip()
+        except Exception:
+            pass
+        return default_feedback
+
+    async def generate_officer_feedback(
+        self, issue_details: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Generates operational feedback and dispatch advice for constituency officers."""
+        title = issue_details.get("title", "Governance Issue")
+        category = issue_details.get("category", "General")
+        priority = issue_details.get("priority", "MEDIUM")
+
+        default_response = {
+            "feedback": (
+                f"Issue '{title}' ({category}) requires {priority} priority triage. "
+                "Recommended to dispatch ward inspection crew within SLA."
+            ),
+            "risk_assessment": "Standard operational risk.",
+            "suggested_next_steps": [
+                "Verify location coordinates",
+                "Dispatch ward crew",
+                "Notify citizen",
+            ],
+        }
+        if not self.llm:
+            return default_response
+
+        prompt = (
+            f"Evaluate this civic governance issue and generate structured feedback for an officer:\n"
+            f"Title: {title}\n"
+            f"Category: {category}\n"
+            f"Priority: {priority}\n\n"
+            "Respond ONLY with a JSON object containing keys: 'feedback', 'risk_assessment', 'suggested_next_steps' (list)."
+        )
+        try:
+            messages = [LLMMessage(role="user", content=prompt)]
+            res = await self.llm.generate(messages)
+            if res and res.content:
+                cleaned = res.content.strip()
+                if cleaned.startswith("```"):
+                    lines = cleaned.split("\n")
+                    if lines[0].startswith("```json") or lines[0].startswith("```"):
+                        cleaned = "\n".join(lines[1:-1]).strip()
+                data = json.loads(cleaned)
+                if isinstance(data, dict):
+                    return data
+        except Exception:
+            pass
+        return default_response

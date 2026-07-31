@@ -39,14 +39,34 @@ class LLMProvider(ABC):
     @staticmethod
     def get_provider() -> "LLMProvider":
         provider_type = os.environ.get("LLM_PROVIDER", "").lower()
+        if provider_type in ["openrouter", "open-router", "openrouter-gemma"]:
+            return OpenRouterGemmaAdapter()
         if provider_type in ["gemini"]:
             return GeminiAdapter()
-        if provider_type in ["gemma", "gemma-2", "gemma2"]:
+        if provider_type in [
+            "gemma",
+            "gemma-2",
+            "gemma2",
+            "gemma-2-9b-it",
+            "gemma-2-27b-it",
+        ]:
+            if os.environ.get("OPENROUTER_API_KEY"):
+                return OpenRouterGemmaAdapter()
             return GemmaAdapter()
         if provider_type == "mock":
             return MockProvider()
+        # Default to OpenRouterGemmaAdapter if OPENROUTER_API_KEY is present
+        if os.environ.get("OPENROUTER_API_KEY"):
+            return OpenRouterGemmaAdapter()
+        # Default to GemmaAdapter if GEMMA_API_KEY is present or LLM_PROVIDER is unset/empty
+        if (
+            os.environ.get("GEMMA_API_KEY")
+            or os.environ.get("GEMINI_API_KEY")
+            or not provider_type
+        ):
+            return GemmaAdapter()
         raise ConfigurationError(
-            f"Unsupported or missing LLM_PROVIDER: '{provider_type}'. Must be 'gemma', 'gemini', or 'mock'."
+            f"Unsupported or missing LLM_PROVIDER: '{provider_type}'. Must be 'openrouter', 'gemma', 'gemini', or 'mock'."
         )
 
 
@@ -203,6 +223,108 @@ class GemmaAdapter(LLMProvider):
             ) from e
         except Exception as e:
             raise RuntimeError(f"Failed to communicate with Gemma API: {e}") from e
+
+
+class OpenRouterGemmaAdapter(LLMProvider):
+    """
+    Concrete adapter for Google Gemma models hosted on OpenRouter API (openrouter.ai).
+    Supports models like google/gemma-2-27b-it, google/gemma-2-9b-it.
+    Uses standard library urllib.request for lightweight execution.
+    """
+
+    def __init__(
+        self, model_name: str | None = None, api_key: str | None = None
+    ) -> None:
+        raw_model = model_name or os.environ.get("LLM_MODEL", "google/gemma-2-27b-it")
+        if not raw_model.startswith("google/") and "/" not in raw_model:
+            self.model_name = f"google/{raw_model}"
+        else:
+            self.model_name = raw_model
+
+        self.api_key = (
+            api_key
+            or os.environ.get("OPENROUTER_API_KEY", "")
+            or os.environ.get("GEMMA_API_KEY", "")
+        )
+        self.api_url = os.environ.get(
+            "OPENROUTER_API_URL", "https://openrouter.ai/api/v1/chat/completions"
+        )
+
+    async def generate(
+        self, messages: list[LLMMessage], config: dict[str, Any] | None = None
+    ) -> LLMResponse:
+        if not self.api_key:
+            last_msg = messages[-1].content if messages else ""
+            return LLMResponse(
+                content=f"[OpenRouter Gemma Simulation - OPENROUTER_API_KEY / GEMMA_API_KEY not set] Analysis for prompt: {last_msg[:120]}...",
+                raw_response={"status": "mocked", "reason": "no_api_key"},
+                usage={
+                    "prompt_tokens": 12,
+                    "completion_tokens": 16,
+                    "total_tokens": 28,
+                },
+                model_name=self.model_name,
+            )
+
+        generation_config = config or {}
+        temp = generation_config.get(
+            "temperature", float(os.environ.get("LLM_TEMPERATURE", "0.2"))
+        )
+        max_t = generation_config.get(
+            "max_tokens", int(os.environ.get("LLM_MAX_TOKENS", "1024"))
+        )
+        timeout = float(os.environ.get("LLM_TIMEOUT", "30"))
+
+        payload = {
+            "model": self.model_name,
+            "messages": [{"role": m.role, "content": m.content} for m in messages],
+            "temperature": temp,
+            "max_tokens": max_t,
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}",
+            "HTTP-Referer": os.environ.get("OPENROUTER_SITE_URL", "https://helix.dev"),
+            "X-Title": os.environ.get(
+                "OPENROUTER_SITE_NAME", "Project Helix Governance OS"
+            ),
+        }
+
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            self.api_url, data=data, headers=headers, method="POST"
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                resp_data = json.loads(response.read().decode("utf-8"))
+
+            choices = resp_data.get("choices", [])
+            if choices:
+                content_text = choices[0].get("message", {}).get("content", "")
+            else:
+                content_text = str(resp_data)
+
+            usage_meta = resp_data.get("usage", {})
+            usage = {
+                "prompt_tokens": usage_meta.get("prompt_tokens", 0),
+                "completion_tokens": usage_meta.get("completion_tokens", 0),
+                "total_tokens": usage_meta.get("total_tokens", 0),
+            }
+
+            return LLMResponse(
+                content=content_text,
+                raw_response=resp_data,
+                usage=usage,
+                model_name=self.model_name,
+            )
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8")
+            raise RuntimeError(
+                f"OpenRouter Gemma API failed ({e.code}): {error_body}"
+            ) from e
+        except Exception as e:
+            raise RuntimeError(f"OpenRouter Gemma API communication error: {e}") from e
 
 
 class GeminiAdapter(LLMProvider):

@@ -53,7 +53,7 @@ Helix is not just a CRUD application for issue tracking. It is a modern **Event-
 - **Frontend:** Next.js 14, React, TailwindCSS, Lucide Icons, MapLibre
 - **Backend:** FastAPI, Python, SQLAlchemy
 - **Database:** Neon Serverless PostgreSQL
-- **AI / Intelligence:** Google Gemini Pro
+- **AI / Intelligence:** Gemma 3-4b
 - **Deployment:** Vercel (Frontend), Railway (Backend)
 
 ---

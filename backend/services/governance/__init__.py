@@ -1014,3 +1014,86 @@ async def send_email_notification(
         raise HTTPException(
             status_code=500, detail=f"Failed to dispatch email: {e}"
         ) from e
+
+
+class AIQueryPayload(BaseModel):
+    prompt: str = Field(..., description="Query prompt for Gemma AI")
+    context: dict[str, Any] | None = Field(
+        None, description="Optional governance context data"
+    )
+
+
+@router.post("/ai/query", response_model=dict[str, Any])
+async def query_gemma_ai(
+    payload: AIQueryPayload,
+) -> dict[str, Any]:
+    """Execute a direct query against the Google Gemma 2 AI model for governance assistance."""
+    try:
+        from ai_platform.core.llm import LLMMessage, LLMProvider
+
+        llm = LLMProvider.get_provider()
+        system_prompt = (
+            "You are the Helix AI Governance Copilot powered by Google Gemma 2. "
+            "Provide concise, professional, policy-compliant governance analysis and actionable advice."
+        )
+        context_str = ""
+        if payload.context:
+            import json
+
+            context_str = f"\nContext Data: {json.dumps(payload.context)}"
+
+        messages = [
+            LLMMessage(role="system", content=system_prompt),
+            LLMMessage(role="user", content=f"{payload.prompt}{context_str}"),
+        ]
+        response = await llm.generate(messages)
+        return {
+            "status": "success",
+            "content": response.content,
+            "model_name": response.model_name,
+            "usage": response.usage,
+            "raw_response": response.raw_response,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Gemma AI query failed: {e}"
+        ) from e
+
+
+class FeedbackGenerateRequest(BaseModel):
+    title: str = Field(..., description="Issue title")
+    category: str = Field(..., description="Issue category")
+    status: str = Field("INTAKE", description="Current issue status")
+    location_address: str = Field("Unknown Address", description="Location address")
+    target_role: str = Field("citizen", description="Role: 'citizen' or 'officer'")
+
+
+@router.post("/feedback/generate", response_model=dict[str, Any])
+async def generate_gemma_feedback(
+    payload: FeedbackGenerateRequest,
+) -> dict[str, Any]:
+    """Generate structured AI feedback using OpenRouter / Gemma model layer."""
+    from services.governance.application.intelligence import GemmaFeedbackGenerator
+
+    feedback_gen = GemmaFeedbackGenerator()
+    if payload.target_role.lower() == "officer":
+        feedback_data = await feedback_gen.generate_officer_feedback(
+            {
+                "title": payload.title,
+                "category": payload.category,
+                "priority": payload.status,
+            }
+        )
+        return {"status": "success", "feedback_type": "officer", "data": feedback_data}
+
+    feedback_text = await feedback_gen.generate_citizen_feedback(
+        title=payload.title,
+        category=payload.category,
+        status=payload.status,
+        location_address=payload.location_address,
+    )
+    return {
+        "status": "success",
+        "feedback_type": "citizen",
+        "feedback": feedback_text,
+    }

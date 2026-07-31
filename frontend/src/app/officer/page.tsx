@@ -32,6 +32,29 @@ export default function OfficerDashboard() {
   const [briefing, setBriefing] = useState<any>(null);
   const [loadingBriefing, setLoadingBriefing] = useState(true);
 
+  // Gemma 2 AI Assistant Copilot State
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiResponse, setAiResponse] = useState<any>(null);
+  const [loadingAi, setLoadingAi] = useState(false);
+
+  const handleQueryGemmaAi = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiPrompt.trim()) return;
+    setLoadingAi(true);
+    try {
+      const res = await fetchWithAuth("/governance/ai/query", {
+        method: "POST",
+        body: JSON.stringify({ prompt: aiPrompt }),
+      });
+      setAiResponse(res);
+    } catch (err: any) {
+      console.error("Gemma AI Query Error:", err);
+      setAiResponse({ status: "error", content: err.message || "Failed to query Gemma AI model." });
+    } finally {
+      setLoadingAi(false);
+    }
+  };
+
   useEffect(() => {
     // 1. Fetch Proactive Morning Briefing
     fetchWithAuth("/governance/proactive/morning-brief")
@@ -173,6 +196,67 @@ export default function OfficerDashboard() {
           )}
         </div>
       </div>
+
+      {/* Google Gemma 2 AI Governance Copilot Card */}
+      <Card className="p-6 border border-purple-500/30 bg-gradient-to-r from-purple-950/20 via-indigo-950/20 to-background shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400 border border-purple-500/20">
+              <Sparkles className="h-5 w-5 animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-foreground flex items-center gap-2">
+                Google Gemma 2 AI Governance Copilot
+                <Badge variant="outline" className="text-[10px] bg-purple-500/10 text-purple-400 border-purple-500/30">
+                  Gemma-2-9B-IT
+                </Badge>
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Ask Gemma AI for real-time policy guidelines, dispatch advice, or constituency analysis.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleQueryGemmaAi} className="flex gap-2">
+          <Input
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            placeholder="e.g. What is the recommended SLA policy for Ward 12 garbage overflow?"
+            className="flex-1 text-sm bg-background/80"
+          />
+          <Button type="submit" disabled={loadingAi || !aiPrompt.trim()} className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs gap-2">
+            {loadingAi ? (
+              <>
+                <Clock className="h-4 w-4 animate-spin" />
+                Thinking...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Ask Gemma
+              </>
+            )}
+          </Button>
+        </form>
+
+        {aiResponse && (
+          <div className="mt-3 p-4 rounded-xl bg-purple-950/20 border border-purple-500/20 text-sm space-y-2 animate-fade-in">
+            <div className="flex items-center justify-between text-xs font-semibold text-purple-300 border-b border-purple-500/20 pb-2">
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-purple-400" />
+                Gemma 2 Model Response
+              </span>
+              <span className="text-[10px] font-mono text-muted-foreground">
+                Model: {aiResponse.model_name || "gemma-2-9b-it"}
+              </span>
+            </div>
+            <p className="text-xs leading-relaxed text-foreground whitespace-pre-wrap pt-1">
+              {aiResponse.content}
+            </p>
+          </div>
+        )}
+      </Card>
 
       {/* Operational Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
