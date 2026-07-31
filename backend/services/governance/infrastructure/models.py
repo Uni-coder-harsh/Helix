@@ -67,9 +67,15 @@ class RecommendationDB(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     issue_id = Column(String(36), nullable=False)
-    suggested_category = Column(String(50), nullable=False)
-    suggested_department = Column(String(100), nullable=False)
-    confidence_score = Column(Float, nullable=False)
+    suggested_category = Column(String(50), nullable=False, default="general")
+    suggested_department = Column(String(100), nullable=False, default="unassigned")
+    confidence_score = Column(Float, nullable=False, default=1.0)
     rationale = Column(String(2048), nullable=False)
     status = Column(String(50), nullable=False, default="PROPOSED")
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
+
+
+# Aliases for backward compatibility
+IssueModel = IssueDB
+IncidentModel = IncidentDB
+RecommendationModel = RecommendationDB

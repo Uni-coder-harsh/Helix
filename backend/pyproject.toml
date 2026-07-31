@@ -91,9 +91,11 @@ strict_equality = true
 minversion = "6.0"
 addopts = "-ra -q"
 testpaths = [
-    "tests",
+    "services/governance/tests",
+    "services/tests",
 ]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 pythonpath = [
     ".",
     "services/ai-platform/src",

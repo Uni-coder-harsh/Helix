@@ -38,18 +38,45 @@ class SQLAlchemyIssueRepository(IssueRepository):
     def save(self, issue: Issue) -> None:
         from services.governance.infrastructure.models import IssueModel
 
-        db_issue = IssueModel(
-            id=str(issue.id),
-            citizen_id=str(issue.citizen_id),
-            title=issue.title,
-            description=issue.description,
-            category=issue.category,
-            latitude=issue.location.latitude,
-            longitude=issue.location.longitude,
-            status=issue.status.name,
-            priority=issue.priority.name,
-            created_at=issue.created_at,
+        loc_address = (
+            getattr(issue.location, "address", None)
+            or getattr(issue, "formatted_address", None)
+            or "Unknown Address"
         )
+        status_val = (
+            issue.status.name
+            if hasattr(issue.status, "name")
+            else (str(issue.status) if issue.status else "INTAKE")
+        )
+        priority_val = (
+            issue.priority.name
+            if hasattr(issue.priority, "name")
+            else (str(issue.priority) if issue.priority else "LOW")
+        )
+
+        issue_kwargs: dict[str, Any] = {
+            "id": str(issue.id),
+            "citizen_id": str(issue.citizen_id),
+            "title": issue.title,
+            "description": issue.description,
+            "category": issue.category,
+            "location_address": loc_address,
+            "latitude": issue.location.latitude,
+            "longitude": issue.location.longitude,
+            "status": status_val,
+            "priority": priority_val,
+        }
+        dept_id_val = getattr(issue, "department_id", None) or getattr(
+            issue, "_department_id", None
+        )
+        if dept_id_val is not None:
+            issue_kwargs["department_id"] = str(dept_id_val)
+
+        created_at_val = getattr(issue, "created_at", None)
+        if created_at_val is not None:
+            issue_kwargs["created_at"] = created_at_val
+
+        db_issue = IssueModel(**issue_kwargs)
         self.db.merge(db_issue)
         self.db.commit()
 
@@ -62,19 +89,43 @@ class SQLAlchemyIssueRepository(IssueRepository):
         if not db_issue:
             return None
 
-        from shared.domain.value_objects.location import Location
+        from shared.domain.value_objects import Location
 
-        return Issue(
+        try:
+            status_enum = IssueStatus[db_issue.status]
+        except (KeyError, ValueError, TypeError):
+            status_enum = IssueStatus.INTAKE
+
+        try:
+            priority_enum = Priority[db_issue.priority]
+        except (KeyError, ValueError, TypeError):
+            priority_enum = Priority.LOW
+
+        dept_uuid = (
+            uuid.UUID(db_issue.department_id)
+            if getattr(db_issue, "department_id", None)
+            else uuid.UUID("00000000-0000-0000-0000-000000000000")
+        )
+
+        res_issue = Issue(
             id=uuid.UUID(db_issue.id),
             citizen_id=uuid.UUID(db_issue.citizen_id),
             title=db_issue.title,
             description=db_issue.description,
             category=db_issue.category,
-            location=Location(latitude=db_issue.latitude, longitude=db_issue.longitude),
-            status=IssueStatus[db_issue.status],
-            priority=Priority[db_issue.priority],
-            created_at=db_issue.created_at,
+            location=Location(
+                latitude=db_issue.latitude,
+                longitude=db_issue.longitude,
+                formatted_address=getattr(db_issue, "location_address", None)
+                or "Unknown Address",
+            ),
+            status=status_enum,
+            priority=priority_enum,
+            department_id=dept_uuid,
         )
+        if hasattr(db_issue, "created_at") and db_issue.created_at is not None:
+            res_issue.created_at = db_issue.created_at
+        return res_issue
 
     def list_pending() -> list[Issue]:
         return []
@@ -86,15 +137,35 @@ class SQLAlchemyRecommendationRepository(RecommendationRepository):
     def __init__(self, db_session: Any) -> None:
         self.db = db_session
 
-    def save(self, recommendation: Recommendation) -> None:
+    def save(
+        self,
+        recommendation: Recommendation,
+        suggested_category: str | None = None,
+        suggested_department: str | None = None,
+        confidence_score: float | None = None,
+    ) -> None:
         from services.governance.infrastructure.models import RecommendationModel
 
-        db_rec = RecommendationModel(
-            id=str(recommendation.id),
-            issue_id=str(recommendation.issue_id),
-            rationale=recommendation.content,
-            status=recommendation.status.name,
+        status_val = (
+            recommendation.status.name
+            if hasattr(recommendation.status, "name")
+            else (str(recommendation.status) if recommendation.status else "PROPOSED")
         )
+
+        rec_kwargs: dict[str, Any] = {
+            "id": str(recommendation.id),
+            "issue_id": str(recommendation.issue_id),
+            "rationale": recommendation.content,
+            "status": status_val,
+        }
+        if suggested_category is not None:
+            rec_kwargs["suggested_category"] = suggested_category
+        if suggested_department is not None:
+            rec_kwargs["suggested_department"] = suggested_department
+        if confidence_score is not None:
+            rec_kwargs["confidence_score"] = confidence_score
+
+        db_rec = RecommendationModel(**rec_kwargs)
         self.db.merge(db_rec)
         self.db.commit()
 
@@ -104,6 +175,25 @@ class SQLAlchemyRecommendationRepository(RecommendationRepository):
         db_rec = (
             self.db.query(RecommendationModel)
             .filter(RecommendationModel.id == str(recommendation_id))
+            .first()
+        )
+        if not db_rec:
+            return None
+
+        return Recommendation(
+            id=uuid.UUID(db_rec.id),
+            issue_id=uuid.UUID(db_rec.issue_id),
+            evidence_ids=[uuid.uuid4()],
+            content=db_rec.rationale,
+            status=RecommendationStatus[db_rec.status],
+        )
+
+    def get_by_issue_id(self, issue_id: uuid.UUID) -> Recommendation | None:
+        from services.governance.infrastructure.models import RecommendationModel
+
+        db_rec = (
+            self.db.query(RecommendationModel)
+            .filter(RecommendationModel.issue_id == str(issue_id))
             .first()
         )
         if not db_rec:

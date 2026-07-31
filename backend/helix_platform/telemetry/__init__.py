@@ -96,5 +96,5 @@ def instrument_app(app: Any) -> None:
         from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
         FastAPIInstrumentor.instrument_app(app)  # type: ignore[unused-ignore]
-    except ImportError:
+    except Exception:
         pass
